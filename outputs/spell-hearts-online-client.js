@@ -11,7 +11,7 @@
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
   const back=(w,kind)=>`<img class="spell-back" src="${A+(w==='p'?(kind==='battle'?'red-battle-back.png':'red-spell-back.png'):(kind==='battle'?'blue-battle-back.jpg':'blue-spell-back.jpg'))}" alt="">`;
   const onlineStyle=document.createElement('style');
-  onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
+  onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.flight-target{display:block!important;visibility:hidden}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
   document.head.append(onlineStyle);
 
   function hand(){
@@ -147,7 +147,7 @@
         const newSpellUses=['p','c'].map(side=>incomingUses[side]&&!previousUses[side]?{...incomingUses[side],side}:null).filter(Boolean);
         const damaged=previous&&previous.phase==='spell'&&incoming.phase==='damage';
         if(incoming.phase!=='pick'){chooser=false;localSet=false;remoteSet=false}
-        if(opponentSet){const opponent=incoming.side==='p'?'c':'p';battleArriving[opponent]=true;}
+        if(opponentSet){const opponent=incoming.side==='p'?'c':'p';battleArriving[opponent]=true;$(opponent==='p'?'#pPlayed':'#cPlayed')?.classList.add('flight-target');}
         const charging=flipped?['p','c'].filter(side=>(side==='p'?incoming.battle?.a:incoming.battle?.b)==='amplify'):[];
         if(flipped)for(const side of charging)ampArriving[side]=true;
         newSpellUses.forEach(playOnlineSpell);
@@ -155,7 +155,7 @@
         try{ renderOnline(); }
         catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
         if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
-        if(opponentSet){const opponent=net.side==='p'?'c':'p';slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();setTimeout(()=>{battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
+        if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
         if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),A+cards.amplify.i);playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
         newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
         if(damaged)runOnlineDamage(previous,incoming);
@@ -166,7 +166,7 @@
 
   window.drawInitial=()=>send('draw');
   window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
-  window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side;chooser=false;battleArriving[mine]=true;renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card);setTimeout(()=>{battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
+  window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
   window.use=()=>send('use');
   window.confirmPlayerOk=()=>send('ok');
   window.endRound=()=>send('ok');
