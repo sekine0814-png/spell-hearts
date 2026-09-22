@@ -2,7 +2,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebas
 import {
   getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged,
   signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  linkWithCredential, EmailAuthProvider, signOut, sendPasswordResetEmail, updateProfile
+  linkWithCredential, EmailAuthProvider, signOut, sendPasswordResetEmail, updateProfile,
+  GoogleAuthProvider, signInWithPopup, linkWithPopup
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 
 const firebaseConfig={
@@ -60,6 +61,7 @@ function makeModal(){
       <h2 id="authTitle">SPELL HEARTS</h2>
       <p class="auth-subtitle">冒険者の記録</p>
       <div class="auth-tabs"><button type="button" class="auth-tab active" data-mode="login">ログイン</button><button type="button" class="auth-tab" data-mode="register">新規登録</button></div>
+      <button type="button" class="auth-google"><span>G</span> Googleでログイン</button>
       <form class="auth-form">
         <label>メールアドレス<input class="auth-email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
         <label class="auth-nickname">ニックネーム<input class="auth-name" type="text" autocomplete="nickname" maxlength="16" placeholder="対戦中に表示される名前"></label>
@@ -84,6 +86,18 @@ function makeModal(){
     panel.querySelector('.auth-password').autocomplete=mode==='login'?'current-password':'new-password';
     status.textContent='';
   });
+  modal.querySelector('.auth-google').onclick=async()=>{
+    const googleButton=panel.querySelector('.auth-google');
+    googleButton.disabled=true;status.textContent='Googleログインを開いています…';
+    try{
+      const provider=new GoogleAuthProvider();
+      if(auth.currentUser?.isAnonymous)await linkWithPopup(auth.currentUser,provider);
+      else await signInWithPopup(auth,provider);
+      status.textContent='Googleでログインしました。';
+      setTimeout(closeLogin,550);
+    }catch(error){status.textContent=authMessage(error);}
+    finally{googleButton.disabled=false;}
+  };
   form.onsubmit=async event=>{
     event.preventDefault();
     const email=panel.querySelector('.auth-email').value.trim(), password=panel.querySelector('.auth-password').value, nickname=panel.querySelector('.auth-name').value.trim();
@@ -186,5 +200,8 @@ document.head.append(style);
 const settingsTweaks=document.createElement('style');
 settingsTweaks.textContent='.title-settings{top:58px;background:#050508;transition:filter .2s}.title-settings.open{transform:none}.settings-panel{top:108px}.push-screen{margin-bottom:42px}@media(max-width:600px){.title-settings{top:45px}.settings-panel{top:87px}.push-screen{margin-bottom:24px}}';
 document.head.append(settingsTweaks);
+const googleButtonStyle=document.createElement('style');
+googleButtonStyle.textContent='.auth-google{position:relative;width:100%;margin:0 0 14px;padding:10px;border:1px solid #a08e62;border-radius:3px;background:#f8f8f6;color:#28231c;font:14px "Yu Gothic",sans-serif;font-weight:bold;cursor:pointer}.auth-google:hover{filter:brightness(.94)}.auth-google:disabled{opacity:.55;cursor:wait}.auth-google span{display:inline-grid;place-items:center;width:19px;height:19px;margin-right:8px;border-radius:50%;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 0 50%,#fbbc05 0 75%,#ea4335 0);color:#fff;font:bold 12px Arial;text-shadow:0 1px 1px #0006}';
+document.head.append(googleButtonStyle);
 style.textContent+='.auth-form .auth-nickname{display:none}.auth-form.registering .auth-nickname{display:grid}';
 style.textContent+='.title-settings{position:absolute;z-index:3;top:28px;left:34px;width:42px;height:42px;border:1px solid #d8ae4e;border-radius:50%;background:radial-gradient(circle at 35% 28%,#88703a,#251a0a 67%);box-shadow:inset 0 0 10px #ffe19a44,0 2px 12px #0009;color:#ffe9a0;font:25px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer;transition:filter .2s,transform .3s}.title-settings:hover{filter:brightness(1.3)}.title-settings.open{transform:rotate(90deg)}.settings-panel{position:absolute;z-index:4;top:78px;left:34px;width:245px;padding:16px;border:1px solid #d8ae4e;border-radius:5px;background:linear-gradient(145deg,rgba(32,30,22,.97),rgba(7,9,14,.98));box-shadow:inset 0 0 20px #d99d2e22,0 9px 25px #000b;color:#f9e7ad;font:13px Georgia,"Yu Mincho",serif}.settings-panel[hidden]{display:none}.settings-heading{margin-bottom:13px;color:#ffe9a0;font-size:16px;letter-spacing:.16em;text-align:center;text-shadow:0 0 8px #d69320}.settings-panel label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:10px 0}.settings-name{grid-column:1/-1;width:100%;padding:7px;border:1px solid #8d6c2e;background:#0b0c11;color:#fff0bd;font:14px Georgia,"Yu Mincho",serif}.settings-save{width:100%;padding:7px;border:1px solid #c79c37;background:linear-gradient(#72531c,#291906);color:#fff1b6;font:13px Georgia,"Yu Mincho",serif;cursor:pointer}.settings-panel input[type=range]{accent-color:#e8b543}.settings-panel output{justify-self:end;color:#ffeaa5}@media(max-width:600px){.title-settings{top:16px;left:16px;width:36px;height:36px;font-size:22px}.settings-panel{top:58px;left:16px;width:225px}}';
