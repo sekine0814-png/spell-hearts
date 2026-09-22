@@ -56,7 +56,8 @@
       const own=w===me, s=state[w], battleDeck=$(sideSlot(w));
       $('#'+w+'Hp').textContent=`HP ${s.hp} / 10`;
       const canPass=net.phase==='spell'&&own&&net.canOk;
-      battleDeck.innerHTML=net.phase==='pick'&&own?(net.picked?back(w,'battle'):(chooser?hand():back(w,'battle'))):back(w,'battle');
+      const keepingOpenHand=net.phase==='pick'&&own&&!net.picked&&chooser&&!!battleDeck.querySelector('.picks');
+      if(!keepingOpenHand)battleDeck.innerHTML=net.phase==='pick'&&own?(net.picked?back(w,'battle'):(chooser?hand():back(w,'battle'))):back(w,'battle');
       if(canPass)battleDeck.insertAdjacentHTML('beforeend','<span class="ok-label">OK!</span>');
       battleDeck.classList.toggle('online-battle-ready',(net.phase==='pick'&&own&&!net.picked&&!chooser)||canPass);
       battleDeck.onclick=canPass?()=>confirmPlayerOk():(net.phase==='pick'&&own&&!net.picked&&!chooser?()=>openBattle():null);
