@@ -15,6 +15,8 @@
   document.head.append(onlineStyle);
   onlineStyle.textContent+='.online-mode .faction{display:none}.online-nameplate{position:absolute;z-index:6;top:5.2%;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold clamp(11px,1.9vw,23px) Georgia,"Yu Mincho",serif;letter-spacing:.07em;-webkit-text-stroke:1px #10090d;paint-order:stroke fill;text-shadow:0 2px 6px #000}.online-nameplate.p-side{left:8%;color:#ff9b91}.online-nameplate.c-side{right:8%;color:#94dcff;text-align:right}';
 
+  onlineStyle.textContent+='.online-nameplate{top:7.25%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:7.6%;text-align:center}.online-nameplate.c-side{right:7.6%;text-align:center}';
+
   function hand(){
     return `<div class="picks">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${img(cards[k].i)}</button>`).join('')}</div>`;
   }
