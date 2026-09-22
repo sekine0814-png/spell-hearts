@@ -22,6 +22,7 @@ const auth=getAuth(firebaseApp);
 const db=getFirestore(firebaseApp);
 let currentUser=null;
 let modal=null;
+const gameOwnerEmail='sekine0814@gmail.com';
 
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
 
@@ -51,11 +52,13 @@ function updateLoginButton(){
 
 function tokenKey(){return `spellHeartsTokens:${currentUser?.uid||'guest'}`;}
 function readTokens(){return Math.max(0,Number.parseInt(localStorage.getItem(tokenKey())||'0',10)||0);}
+function isGameOwner(){return currentUser?.email?.toLowerCase()===gameOwnerEmail;}
+function displayedTokens(){return isGameOwner()?'∞':readTokens();}
 function shardKey(){return `spellHeartsStardust:${currentUser?.uid||'guest'}`;}
 function readStardust(){return Math.max(0,Number.parseInt(localStorage.getItem(shardKey())||'0',10)||0);}
 function renderTokenBalance(){
   const count=document.querySelector('#tokenBalance .token-count');
-  if(count)count.textContent=readTokens();
+  if(count)count.textContent=displayedTokens();
 }
 function makeTokenBalance(){
   const title=document.querySelector('#titleScreen');
@@ -80,7 +83,7 @@ function openSummonGate(){
   modal.hidden=false;
 }
 function renderSummonStock(){
-  document.querySelectorAll('.summon-token-total').forEach(node=>node.textContent=readTokens());
+  document.querySelectorAll('.summon-token-total').forEach(node=>node.textContent=displayedTokens());
   document.querySelectorAll('.summon-shard-total').forEach(node=>node.textContent=readStardust());
 }
 function openSummonConfirm(){
@@ -98,8 +101,8 @@ function openSummonConfirm(){
   dialog.onclick=event=>{if(event.target===dialog)dialog.hidden=true;};
   const yes=dialog.querySelector('.summon-confirm-yes');
   if(yes)yes.onclick=()=>{
-    if(readTokens()<10){dialog.querySelector('.summon-confirm-box').innerHTML='<p>金貨が足りません。</p><button type="button" class="summon-confirm-no">戻る</button>';dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;return;}
-    localStorage.setItem(tokenKey(),String(readTokens()-10));
+    if(!isGameOwner()&&readTokens()<10){dialog.querySelector('.summon-confirm-box').innerHTML='<p>金貨が足りません。</p><button type="button" class="summon-confirm-no">戻る</button>';dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;return;}
+    if(!isGameOwner())localStorage.setItem(tokenKey(),String(readTokens()-10));
     localStorage.setItem(shardKey(),String(readStardust()+1));
     renderTokenBalance();renderSummonStock();
     dialog.querySelector('.summon-confirm-box').innerHTML='<div class="summon-result-shard">✦</div><p>星のカケラが1個出ました。</p><button type="button" class="summon-confirm-no">受け取る</button>';
