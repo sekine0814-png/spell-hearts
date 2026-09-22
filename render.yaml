@@ -2,6 +2,7 @@ services:
   - type: web
     name: spell-hearts-online
     runtime: docker
+    plan: free
     rootDir: outputs
     healthCheckPath: /
-    autoDeploy: true
+    autoDeployTrigger: commit
