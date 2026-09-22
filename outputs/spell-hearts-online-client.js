@@ -164,18 +164,24 @@
     socket.onclose=()=>{clearInterval(heartbeat);if(net&&net.phase!=='end')$('#message').textContent='接続が切れました。再読み込みして再入室してください。'; };
   }
 
-  window.drawInitial=()=>send('draw');
-  window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
-  window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
-  window.use=()=>send('use');
-  window.confirmPlayerOk=()=>send('ok');
-  window.endRound=()=>send('ok');
+  let controlsActive=false;
+  function activateOnlineControls(){
+    if(controlsActive)return;
+    controlsActive=true;
+    window.drawInitial=()=>send('draw');
+    window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
+    window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
+    window.use=()=>send('use');
+    window.confirmPlayerOk=()=>send('ok');
+    window.endRound=()=>send('ok');
+  }
   window.beginOnlineMatch=code=>{
     if(location.protocol==='file:'){
       location.href='http://localhost:8787/?room='+encodeURIComponent(code);
       return;
     }
+    activateOnlineControls();
     connect(code);
   };
-  if(query.get('room'))connect(query.get('room'));
+  if(query.get('room')){activateOnlineControls();connect(query.get('room'));}
 })();
