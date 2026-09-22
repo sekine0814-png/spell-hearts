@@ -26,7 +26,7 @@
     if(!result){ result=document.createElement('div'); result.id='resultScreen'; document.body.append(result); }
     if(net.phase==='end'){
       const red=net.red.hp>net.blue.hp, blue=net.blue.hp>net.red.hp;
-      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><button class="result-retry" onclick="location.href=location.pathname">タイトルへ戻る</button></div>`;
+      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div>`;
       requestAnimationFrame(()=>result.classList.add('show'));
     }else{ result.classList.remove('show'); result.innerHTML=''; }
   }
