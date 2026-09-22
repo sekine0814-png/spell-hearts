@@ -116,7 +116,8 @@
     }
     const message=document.createElement('div');
     message.className=`spell-effect-message ${use.side==='p'?'p-side':'c-side'}`;
-    message.textContent=spellResult(use.k,use.x);
+    const [headline,...detail]=spellResult(use.k,use.x).split('\n');
+    message.innerHTML=`<strong>${headline}</strong><span>${detail.join(' ')}</span>`;
     stage.append(message); setTimeout(()=>{
       message.remove();
       if(!stage.querySelector('.spell-effect-message'))stage.querySelector('.spell-effect-backdrop')?.remove();
