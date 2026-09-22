@@ -105,7 +105,7 @@ function openSummonConfirm(){
     if(!isGameOwner())localStorage.setItem(tokenKey(),String(readTokens()-10));
     localStorage.setItem(shardKey(),String(readStardust()+1));
     renderTokenBalance();renderSummonStock();
-    dialog.querySelector('.summon-confirm-box').innerHTML='<div class="summon-result-shard">✦</div><p>星のカケラが1個出ました。</p><button type="button" class="summon-confirm-no">受け取る</button>';
+    dialog.querySelector('.summon-confirm-box').innerHTML='<div class="summon-result-shard">✦</div><p>星のカケラがひとつ落ちてきました</p><button type="button" class="summon-confirm-no">受け取る</button>';
     dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;
   };
 }
