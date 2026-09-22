@@ -13,6 +13,7 @@
   const onlineStyle=document.createElement('style');
   onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.flight-target{display:block!important;visibility:hidden}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
   document.head.append(onlineStyle);
+  onlineStyle.textContent+='.online-mode .faction{display:none}.online-nameplate{position:absolute;z-index:6;top:5.2%;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold clamp(11px,1.9vw,23px) Georgia,"Yu Mincho",serif;letter-spacing:.07em;-webkit-text-stroke:1px #10090d;paint-order:stroke fill;text-shadow:0 2px 6px #000}.online-nameplate.p-side{left:8%;color:#ff9b91}.online-nameplate.c-side{right:8%;color:#94dcff;text-align:right}';
 
   function hand(){
     return `<div class="picks">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${img(cards[k].i)}</button>`).join('')}</div>`;
@@ -52,9 +53,12 @@
   function renderOnline(){
     if(!net)return;
     const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
-    const redFaction=document.querySelector('.faction.red'),blueFaction=document.querySelector('.faction.blue');
-    if(redFaction)redFaction.textContent=net.red.nickname||'RED';
-    if(blueFaction)blueFaction.textContent=net.blue.nickname||'BLUE';
+    const stage=$('.stage');
+    for(const w of ['p','c']){
+      let plate=$(`#${w}Nameplate`);
+      if(!plate){plate=document.createElement('div');plate.id=`${w}Nameplate`;plate.className=`online-nameplate ${w==='p'?'p':'c'}-side`;stage?.append(plate);}
+      plate.textContent=state[w].nickname||`ゲスト${w==='p'?'RED':'BLUE'}`;
+    }
     for(const w of ['p','c']){
       const own=w===me, s=state[w], battleDeck=$(sideSlot(w));
       $('#'+w+'Hp').textContent=`HP ${s.hp} / 10`;
