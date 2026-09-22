@@ -5,6 +5,7 @@ import {
   linkWithCredential, EmailAuthProvider, signOut, sendPasswordResetEmail, updateProfile,
   GoogleAuthProvider, signInWithPopup, linkWithPopup
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
 const firebaseConfig={
   apiKey:'AIzaSyCP3E5ojlmFo9cp0sT4GY_MN81bMV4eSSc',
@@ -16,7 +17,9 @@ const firebaseConfig={
   measurementId:'G-XH0X45FXF8'
 };
 
-const auth=getAuth(initializeApp(firebaseConfig));
+const firebaseApp=initializeApp(firebaseConfig);
+const auth=getAuth(firebaseApp);
+const db=getFirestore(firebaseApp);
 let currentUser=null;
 let modal=null;
 
@@ -192,7 +195,18 @@ function makeSettings(){
 
 function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
 function readRecord(){try{return {...{wins:0,losses:0,draws:0},...JSON.parse(localStorage.getItem(recordKey())||'{}')};}catch{return {wins:0,losses:0,draws:0};}}
-function openRecord(){
+function writeLocalRecord(record){localStorage.setItem(recordKey(),JSON.stringify(record));}
+async function readCloudRecord(){
+  if(!currentUser||currentUser.isAnonymous)return readRecord();
+  try{const snapshot=await getDoc(doc(db,'records',currentUser.uid));return {...{wins:0,losses:0,draws:0},...(snapshot.exists()?snapshot.data():{})};}
+  catch{return readRecord();}
+}
+function drawRecord(panel,record){
+  panel.querySelector('.record-wins').textContent=record.wins||0;
+  panel.querySelector('.record-losses').textContent=record.losses||0;
+  panel.querySelector('.record-draws').textContent=record.draws||0;
+}
+async function openRecord(){
   let panel=document.querySelector('#recordPanel');
   if(!panel){
     panel=document.createElement('section');panel.id='recordPanel';panel.className='record-panel';
@@ -202,12 +216,21 @@ function openRecord(){
   }
   const record=readRecord(),name=window.getSpellHeartsNickname?.()||'ゲスト';
   panel.querySelector('.record-user').textContent=name;
-  panel.querySelector('.record-wins').textContent=record.wins;
-  panel.querySelector('.record-losses').textContent=record.losses;
-  panel.querySelector('.record-draws').textContent=record.draws;
-  panel.querySelector('.record-note').textContent=currentUser?.isAnonymous?'ゲスト戦績はこのブラウザに保存されます。':'アカウントの戦績を表示します。';
+  drawRecord(panel,record);
+  panel.querySelector('.record-note').textContent=currentUser?.isAnonymous?'ゲスト戦績はこのブラウザに保存されます。':'アカウント戦績を読み込んでいます…';
   panel.hidden=false;
+  if(currentUser&&!currentUser.isAnonymous){const cloudRecord=await readCloudRecord();drawRecord(panel,cloudRecord);panel.querySelector('.record-note').textContent='アカウントの戦績を表示しています。';}
 }
+window.recordSpellHeartsResult=async(result,matchId)=>{
+  const matchKey=`spellHeartsRecorded:${matchId}`;
+  if(!matchId||sessionStorage.getItem(matchKey))return;
+  sessionStorage.setItem(matchKey,'1');
+  const changes={wins:result==='win'?1:0,losses:result==='loss'?1:0,draws:result==='draw'?1:0};
+  const local={...readRecord()};for(const key of Object.keys(changes))local[key]=(local[key]||0)+changes[key];writeLocalRecord(local);
+  if(!currentUser||currentUser.isAnonymous)return;
+  try{await runTransaction(db,async transaction=>{const ref=doc(db,'records',currentUser.uid),snapshot=await transaction.get(ref),old=snapshot.exists()?snapshot.data():{};transaction.set(ref,{wins:(old.wins||0)+changes.wins,losses:(old.losses||0)+changes.losses,draws:(old.draws||0)+changes.draws,updatedAt:Date.now()},{merge:true});});}
+  catch(error){console.warn('Record sync failed',error);}
+};
 function makeRecordButton(){
   const form=document.querySelector('.room-form');
   if(!form||document.querySelector('#recordButton'))return;

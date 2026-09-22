@@ -148,6 +148,7 @@
       }
       if(message.type==='state'){
         const previous=net, incoming=message.state;
+        const gameEnded=previous&&previous.phase!=='end'&&incoming.phase==='end';
         const ownKey=incoming.side==='p'?'red':'blue';
         const drew=previous&&!previous[ownKey].spell&&!!incoming[ownKey].spell;
         const opponentSet=previous&&previous.phase==='pick'&&!previous.opponentPicked&&incoming.opponentPicked;
@@ -168,6 +169,10 @@
         if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),A+cards.amplify.i);playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
         newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
         if(damaged)runOnlineDamage(previous,incoming);
+        if(gameEnded){
+          const winner=incoming.red.hp===incoming.blue.hp?null:(incoming.red.hp>incoming.blue.hp?'p':'c');
+          window.recordSpellHeartsResult?.(winner===null?'draw':winner===incoming.side?'win':'loss',incoming.matchId);
+        }
       }
     };
     socket.onclose=()=>{clearInterval(heartbeat);if(net&&net.phase!=='end')$('#message').textContent='接続が切れました。再読み込みして再入室してください。'; };
