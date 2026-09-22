@@ -238,6 +238,32 @@ function makeRecordButton(){
   if(!form||document.querySelector('#recordButton'))return;
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
+function openTutorial(){
+  let modal=document.querySelector('#tutorialPanel');
+  if(!modal){
+    modal=document.createElement('section');modal.id='tutorialPanel';modal.className='tutorial-panel';
+    modal.innerHTML='<div class="tutorial-book"><button class="tutorial-close" type="button" aria-label="閉じる">×</button><div class="tutorial-seal">✦</div><div class="tutorial-page"></div><div class="tutorial-progress"></div><div class="tutorial-actions"><button class="tutorial-back" type="button">戻る</button><button class="tutorial-next" type="button">次の頁へ</button></div></div>';
+    document.body.append(modal);
+    modal.querySelector('.tutorial-close').onclick=()=>modal.hidden=true;
+  }
+  const pages=[
+    {chapter:'魔導書・第一頁',title:'この世界では、心で手を読む。',body:'スペルハーツは、グー・チョキ・パーでぶつかる魔導決闘。<br>勝った側は相手のHPを削り、先にHPを0にした者が勝者となる。',hint:'戦いは、まず一枚の伏せスペルから始まる。'},
+    {chapter:'魔導書・第二頁',title:'一巡の流れ',body:'<span>① スペルを引く</span><span>② バトルカードを選ぶ</span><span>③ カードを公開する</span><span>④ スペルを使うか選ぶ</span>',hint:'相手にも、見えないスペルが伏せられている。'},
+    {chapter:'魔導書・第三頁',title:'勝ち筋は、手札だけではない。',body:'追い打ちは勝利をさらに強くする。<br>ブロックは敗北を耐え抜く。<br>謀略は、あいこの裏側で牙をむく。',hint:'スペルは使いどころがすべて。'},
+    {chapter:'魔導書・最終頁',title:'アンプリファイアを忘れるな。',body:'アンプリファイアで一度ダメージを受ける代わりに、次のスペルは強化される。<br>危険な一手が、決闘を覆す。',hint:'準備は整った。模擬戦へ進もう。',start:true}
+  ];
+  let page=0;const pageNode=modal.querySelector('.tutorial-page'),progress=modal.querySelector('.tutorial-progress'),back=modal.querySelector('.tutorial-back'),next=modal.querySelector('.tutorial-next');
+  const renderPage=()=>{const item=pages[page];pageNode.innerHTML=`<div class="tutorial-chapter">${item.chapter}</div><h2>${item.title}</h2><div class="tutorial-body">${item.body}</div><p>${item.hint}</p>`;progress.innerHTML=pages.map((_,index)=>`<i class="${index===page?'active':''}"></i>`).join('');back.disabled=page===0;next.textContent=item.start?'模擬戦を始める':'次の頁へ';};
+  back.onclick=()=>{if(page){page--;renderPage();}};
+  next.onclick=()=>{if(page<pages.length-1){page++;renderPage();}else{modal.hidden=true;enterGame();}};
+  renderPage();modal.hidden=false;
+}
+function makeTutorialButton(){
+  const menu=document.querySelector('.title-menu');
+  if(!menu||document.querySelector('#tutorialButton'))return;
+  const button=document.createElement('button');button.id='tutorialButton';button.className='tutorial-button';button.type='button';button.textContent='魔 導 演 習';button.onclick=openTutorial;
+  menu.insertBefore(button,menu.querySelector('.push-screen'));
+}
 function makeBattleSettings(){
   const title=document.querySelector('#titleScreen');
   if(!title||document.querySelector('#battleSettings'))return;
@@ -258,6 +284,7 @@ function makeBattleSettings(){
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 makeSettings();
 makeRecordButton();
+makeTutorialButton();
 makeBattleSettings();
 
 const style=document.createElement('style');
@@ -276,6 +303,9 @@ document.head.append(recordStyle);
 const battleSettingsStyle=document.createElement('style');
 battleSettingsStyle.textContent='.battle-settings{position:fixed;z-index:145;top:15px;right:126px;width:38px;height:38px;border:1px solid #d8ae4e;border-radius:50%;background:#050508;color:#ffe9a0;font:22px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer}.battle-settings:hover{filter:brightness(1.3)}.battle-settings-panel{position:fixed;z-index:146;top:58px;right:126px;width:210px;padding:13px;border:1px solid #d8ae4e;border-radius:5px;background:rgba(7,8,13,.96);box-shadow:0 8px 22px #000b;color:#f8e5ac;font:13px Georgia,"Yu Mincho",serif}.battle-settings-panel[hidden]{display:none}.battle-settings-panel>div{margin-bottom:10px;text-align:center;letter-spacing:.13em;color:#ffe9a0}.battle-settings-panel label{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;margin:9px 0}.battle-settings-panel input{accent-color:#e8b543}.battle-settings-panel output{color:#ffe9a0}@media(max-width:600px){.battle-settings{right:98px;top:10px}.battle-settings-panel{right:98px;top:53px}}';
 document.head.append(battleSettingsStyle);
+const tutorialStyle=document.createElement('style');
+tutorialStyle.textContent='.tutorial-button{border:0;background:transparent;color:#d8c38b;font:clamp(13px,1.8vw,19px) Georgia,"Yu Mincho",serif;letter-spacing:.2em;cursor:pointer;text-shadow:0 0 8px #000;transition:color .2s,filter .2s}.tutorial-button:hover{color:#fff0b0;filter:drop-shadow(0 0 7px #e2a225)}.tutorial-panel{position:fixed;z-index:230;inset:0;display:grid;place-items:center;padding:20px;background:rgba(1,4,9,.78);backdrop-filter:blur(5px)}.tutorial-panel[hidden]{display:none}.tutorial-book{position:relative;width:min(92vw,600px);min-height:410px;padding:46px 68px 32px;border:1px solid #cba243;border-radius:8px;background:radial-gradient(ellipse at center,rgba(53,43,26,.98),rgba(15,15,16,.99));box-shadow:inset 0 0 45px #d4a23628,0 25px 75px #000;color:#f6e7bb;text-align:center}.tutorial-book:before{content:"";position:absolute;inset:10px;border:1px solid rgba(224,184,75,.42);border-radius:4px;pointer-events:none}.tutorial-close{position:absolute;z-index:1;right:20px;top:17px;border:0;background:transparent;color:#e4cb82;font:27px/1 Georgia,serif;cursor:pointer}.tutorial-seal{position:relative;color:#ffe17c;font-size:30px;text-shadow:0 0 20px #e0a126}.tutorial-chapter{position:relative;margin:6px 0 16px;color:#cfae65;font:13px Georgia,"Yu Mincho",serif;letter-spacing:.22em}.tutorial-page h2{position:relative;margin:0 0 24px;color:#fff0b3;font:clamp(21px,3.3vw,34px) Georgia,"Yu Mincho",serif;text-shadow:0 0 12px #d59a24}.tutorial-body{position:relative;display:grid;gap:9px;min-height:115px;color:#e7d5a2;font:16px/1.85 "Yu Mincho",serif}.tutorial-body span{display:block;padding:4px;border-bottom:1px solid rgba(210,169,67,.22)}.tutorial-page p{position:relative;margin:18px 0;color:#c3b58c;font:14px "Yu Gothic",sans-serif}.tutorial-progress{position:relative;display:flex;justify-content:center;gap:10px;margin:23px 0 17px}.tutorial-progress i{width:7px;height:7px;border-radius:50%;background:#615333}.tutorial-progress i.active{background:#ffe18a;box-shadow:0 0 8px #edb647}.tutorial-actions{position:relative;display:flex;justify-content:space-between;gap:16px}.tutorial-actions button{min-width:116px;padding:9px;border:1px solid #c59b38;border-radius:3px;background:linear-gradient(#6c4d16,#271806);color:#fff0b2;font:14px Georgia,"Yu Mincho",serif;letter-spacing:.08em;cursor:pointer}.tutorial-actions button:disabled{opacity:.3;cursor:default}.tutorial-actions .tutorial-next{margin-left:auto;background:linear-gradient(#8a6724,#30200a)}@media(max-width:600px){.tutorial-book{min-height:380px;padding:38px 31px 25px}.tutorial-body{font-size:14px}.tutorial-button{font-size:12px}}';
+document.head.append(tutorialStyle);
 recordStyle.textContent+='.record-panel{position:fixed;top:50%;bottom:auto;transform:translate(-50%,-50%)}';
 style.textContent+='.auth-form .auth-nickname{display:none}.auth-form.registering .auth-nickname{display:grid}';
 style.textContent+='.title-settings{position:absolute;z-index:3;top:28px;left:34px;width:42px;height:42px;border:1px solid #d8ae4e;border-radius:50%;background:radial-gradient(circle at 35% 28%,#88703a,#251a0a 67%);box-shadow:inset 0 0 10px #ffe19a44,0 2px 12px #0009;color:#ffe9a0;font:25px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer;transition:filter .2s,transform .3s}.title-settings:hover{filter:brightness(1.3)}.title-settings.open{transform:rotate(90deg)}.settings-panel{position:absolute;z-index:4;top:78px;left:34px;width:245px;padding:16px;border:1px solid #d8ae4e;border-radius:5px;background:linear-gradient(145deg,rgba(32,30,22,.97),rgba(7,9,14,.98));box-shadow:inset 0 0 20px #d99d2e22,0 9px 25px #000b;color:#f9e7ad;font:13px Georgia,"Yu Mincho",serif}.settings-panel[hidden]{display:none}.settings-heading{margin-bottom:13px;color:#ffe9a0;font-size:16px;letter-spacing:.16em;text-align:center;text-shadow:0 0 8px #d69320}.settings-panel label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:10px 0}.settings-name{grid-column:1/-1;width:100%;padding:7px;border:1px solid #8d6c2e;background:#0b0c11;color:#fff0bd;font:14px Georgia,"Yu Mincho",serif}.settings-save{width:100%;padding:7px;border:1px solid #c79c37;background:linear-gradient(#72531c,#291906);color:#fff1b6;font:13px Georgia,"Yu Mincho",serif;cursor:pointer}.settings-panel input[type=range]{accent-color:#e8b543}.settings-panel output{justify-self:end;color:#ffeaa5}@media(max-width:600px){.title-settings{top:16px;left:16px;width:36px;height:36px;font-size:22px}.settings-panel{top:58px;left:16px;width:225px}}';
