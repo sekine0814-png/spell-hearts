@@ -1,6 +1,6 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
   const query=new URLSearchParams(location.search);
   const $=selector=>document.querySelector(selector);
   const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
@@ -27,8 +27,9 @@
     if(net.phase==='end'){
       const red=net.red.hp>net.blue.hp, blue=net.blue.hp>net.red.hp;
       result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div>`;
+      if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.();}
       requestAnimationFrame(()=>result.classList.add('show'));
-    }else{ result.classList.remove('show'); result.innerHTML=''; }
+    }else{ resultSoundPlayed=false; result.classList.remove('show'); result.innerHTML=''; }
   }
 
   function runOnlineDamage(before,after){
