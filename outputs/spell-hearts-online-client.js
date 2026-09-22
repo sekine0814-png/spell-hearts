@@ -18,7 +18,7 @@
   onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
 
   function hand(){
-    return `<div class="picks">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${img(cards[k].i)}</button>`).join('')}</div>`;
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${img(cards[k].i)}</button>`).join('')}</div>`;
   }
 
   function showResult(){
