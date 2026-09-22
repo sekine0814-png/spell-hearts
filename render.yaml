@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: spell-hearts-online
+    runtime: docker
+    rootDir: outputs
+    healthCheckPath: /
+    autoDeploy: true
