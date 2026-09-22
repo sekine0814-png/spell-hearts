@@ -115,6 +115,8 @@ function makeModal(){
           await createUserWithEmailAndPassword(auth,email,password);
         }
         await updateProfile(auth.currentUser,{displayName:nickname});
+        currentUser=auth.currentUser;
+        updateLoginButton();
       }else{
         if(auth.currentUser?.isAnonymous)await signOut(auth);
         await signInWithEmailAndPassword(auth,email,password);
@@ -236,10 +238,27 @@ function makeRecordButton(){
   if(!form||document.querySelector('#recordButton'))return;
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
+function makeBattleSettings(){
+  const title=document.querySelector('#titleScreen');
+  if(!title||document.querySelector('#battleSettings'))return;
+  const gear=document.createElement('button');gear.id='battleSettings';gear.className='battle-settings';gear.type='button';gear.textContent='⚙';gear.setAttribute('aria-label','対戦中の音量設定');gear.hidden=true;
+  const panel=document.createElement('section');panel.className='battle-settings-panel';panel.hidden=true;
+  const levels=applySoundLevels();
+  panel.innerHTML=`<div>VOLUME</div><label>BGM <output class="battle-bgm-value">${levels.bgm}</output><input class="battle-bgm-range" type="range" min="0" max="100" value="${levels.bgm}"></label><label>SE <output class="battle-sfx-value">${levels.sfx}</output><input class="battle-sfx-range" type="range" min="0" max="100" value="${levels.sfx}"></label>`;
+  document.body.append(gear,panel);
+  gear.onclick=()=>{panel.hidden=!panel.hidden;};
+  for(const [kind,key] of [['bgm','spellHeartsBgmVolume'],['sfx','spellHeartsSfxVolume']]){
+    const range=panel.querySelector(`.battle-${kind}-range`),output=panel.querySelector(`.battle-${kind}-value`);
+    range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
+  }
+  const syncBattleSettings=()=>{const playing=title.classList.contains('dismiss');gear.hidden=!playing;if(!playing)panel.hidden=true;};
+  new MutationObserver(syncBattleSettings).observe(title,{attributes:true,attributeFilter:['class']});syncBattleSettings();
+}
 
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 makeSettings();
 makeRecordButton();
+makeBattleSettings();
 
 const style=document.createElement('style');
 style.textContent=`
@@ -254,6 +273,9 @@ document.head.append(googleButtonStyle);
 const recordStyle=document.createElement('style');
 recordStyle.textContent='.room-form{grid-template-columns:1fr auto auto}.room-record{padding:0 12px;border:1px solid #806cbd;border-radius:3px;background:linear-gradient(#41365f,#171124);color:#eee4ff;font:14px Georgia,"Yu Mincho",serif;letter-spacing:.08em;cursor:pointer}.room-record:hover{filter:brightness(1.3)}.record-panel{position:absolute;z-index:5;left:50%;bottom:calc(100% + 15px);width:min(88vw,380px);padding:22px 24px;border:1px solid #d8ae4e;border-radius:6px;background:linear-gradient(145deg,rgba(28,28,35,.98),rgba(7,8,14,.99));box-shadow:inset 0 0 25px #d69b2424,0 12px 32px #000c;color:#fff0bb;transform:translateX(-50%);text-align:center}.record-panel[hidden]{display:none}.record-close{position:absolute;right:12px;top:9px;border:0;background:transparent;color:#ddc984;font:26px/1 Georgia,serif;cursor:pointer}.record-heading{letter-spacing:.16em;color:#ffe69a;font:19px Georgia,"Yu Mincho",serif;text-shadow:0 0 9px #d18d1b}.record-user{margin:8px 0 17px;color:#e5d2a1;font:15px Georgia,"Yu Mincho",serif}.record-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #735d2b;border-bottom:1px solid #735d2b}.record-grid div{display:grid;gap:4px;padding:13px 4px}.record-grid div+div{border-left:1px solid #735d2b}.record-grid b{font:28px Georgia,serif;color:#fff2c4}.record-grid span{font:11px Georgia,serif;letter-spacing:.1em;color:#d4bd78}.record-note{margin:14px 0 0;color:#aeb4c0;font:11px "Yu Gothic",sans-serif}@media(max-width:600px){.room-record{padding:0 9px;font-size:12px}.record-panel{bottom:calc(100% + 10px)}}';
 document.head.append(recordStyle);
+const battleSettingsStyle=document.createElement('style');
+battleSettingsStyle.textContent='.battle-settings{position:fixed;z-index:145;top:15px;right:126px;width:38px;height:38px;border:1px solid #d8ae4e;border-radius:50%;background:#050508;color:#ffe9a0;font:22px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer}.battle-settings:hover{filter:brightness(1.3)}.battle-settings-panel{position:fixed;z-index:146;top:58px;right:126px;width:210px;padding:13px;border:1px solid #d8ae4e;border-radius:5px;background:rgba(7,8,13,.96);box-shadow:0 8px 22px #000b;color:#f8e5ac;font:13px Georgia,"Yu Mincho",serif}.battle-settings-panel[hidden]{display:none}.battle-settings-panel>div{margin-bottom:10px;text-align:center;letter-spacing:.13em;color:#ffe9a0}.battle-settings-panel label{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;margin:9px 0}.battle-settings-panel input{accent-color:#e8b543}.battle-settings-panel output{color:#ffe9a0}@media(max-width:600px){.battle-settings{right:98px;top:10px}.battle-settings-panel{right:98px;top:53px}}';
+document.head.append(battleSettingsStyle);
 recordStyle.textContent+='.record-panel{position:fixed;top:50%;bottom:auto;transform:translate(-50%,-50%)}';
 style.textContent+='.auth-form .auth-nickname{display:none}.auth-form.registering .auth-nickname{display:grid}';
 style.textContent+='.title-settings{position:absolute;z-index:3;top:28px;left:34px;width:42px;height:42px;border:1px solid #d8ae4e;border-radius:50%;background:radial-gradient(circle at 35% 28%,#88703a,#251a0a 67%);box-shadow:inset 0 0 10px #ffe19a44,0 2px 12px #0009;color:#ffe9a0;font:25px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer;transition:filter .2s,transform .3s}.title-settings:hover{filter:brightness(1.3)}.title-settings.open{transform:rotate(90deg)}.settings-panel{position:absolute;z-index:4;top:78px;left:34px;width:245px;padding:16px;border:1px solid #d8ae4e;border-radius:5px;background:linear-gradient(145deg,rgba(32,30,22,.97),rgba(7,9,14,.98));box-shadow:inset 0 0 20px #d99d2e22,0 9px 25px #000b;color:#f9e7ad;font:13px Georgia,"Yu Mincho",serif}.settings-panel[hidden]{display:none}.settings-heading{margin-bottom:13px;color:#ffe9a0;font-size:16px;letter-spacing:.16em;text-align:center;text-shadow:0 0 8px #d69320}.settings-panel label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:10px 0}.settings-name{grid-column:1/-1;width:100%;padding:7px;border:1px solid #8d6c2e;background:#0b0c11;color:#fff0bd;font:14px Georgia,"Yu Mincho",serif}.settings-save{width:100%;padding:7px;border:1px solid #c79c37;background:linear-gradient(#72531c,#291906);color:#fff1b6;font:13px Georgia,"Yu Mincho",serif;cursor:pointer}.settings-panel input[type=range]{accent-color:#e8b543}.settings-panel output{justify-self:end;color:#ffeaa5}@media(max-width:600px){.title-settings{top:16px;left:16px;width:36px;height:36px;font-size:22px}.settings-panel{top:58px;left:16px;width:225px}}';
