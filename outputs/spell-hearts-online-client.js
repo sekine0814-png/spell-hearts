@@ -29,7 +29,7 @@
       const winner=red?'p':blue?'c':null;
       const reward=winner===net.side?2:1;
       const rematchLabel=net.rematchReady?'相手の返答を待っています…':'もう一度対戦';
-      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><div class="result-token-reward"><span class="token-coin" aria-hidden="true">✦</span><span>+${reward}</span></div><div class="result-actions"><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div></div>`;
+      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><div class="result-token-reward"><img class="token-coin" src="assets/spell-hearts-token.png" alt="金貨"><span>+${reward}</span></div><div class="result-actions"><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div></div>`;
       if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.();}
       requestAnimationFrame(()=>result.classList.add('show'));
     }else{ resultSoundPlayed=false; result.classList.remove('show'); result.innerHTML=''; }
