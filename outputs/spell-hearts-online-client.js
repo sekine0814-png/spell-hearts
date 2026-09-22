@@ -52,6 +52,9 @@
   function renderOnline(){
     if(!net)return;
     const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
+    const redFaction=document.querySelector('.faction.red'),blueFaction=document.querySelector('.faction.blue');
+    if(redFaction)redFaction.textContent=net.red.nickname||'RED';
+    if(blueFaction)blueFaction.textContent=net.blue.nickname||'BLUE';
     for(const w of ['p','c']){
       const own=w===me, s=state[w], battleDeck=$(sideSlot(w));
       $('#'+w+'Hp').textContent=`HP ${s.hp} / 10`;
@@ -129,7 +132,7 @@
     joining=true;
     document.body.classList.add('online-mode');
     socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
-    socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code}));heartbeat=setInterval(()=>send('ping'),10000)};
+    socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
     socket.onmessage=event=>{
       let message; try{message=JSON.parse(event.data)}catch{return;}
       if(message.type==='error'){ $('#roomNote').textContent=message.message; joining=false; return; }
