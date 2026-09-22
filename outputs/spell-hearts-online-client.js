@@ -1,6 +1,6 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, ampArriving={p:false,c:false};
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
   const query=new URLSearchParams(location.search);
   const $=selector=>document.querySelector(selector);
   const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
@@ -79,8 +79,9 @@
       const graveCards=[...s.grave.map(k=>({image:spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:cards.amplify.i,title:'アンプリファイア'}]:[])];
       $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${A+card.image}" title="${card.title}" alt="">`).join('');
     }
-    $('#pPlayed').innerHTML=battle?(net.phase==='reveal'?back('p','battle'):img(cards[battle.a].i)):((localSet&&me==='p'||remoteSet&&me==='c')?back('p','battle'):'' );
-    $('#cPlayed').innerHTML=battle?(net.phase==='reveal'?back('c','battle'):img(cards[battle.b].i)):((localSet&&me==='c'||remoteSet&&me==='p')?back('c','battle'):'' );
+    const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
+    $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):img(cards[battle.a].i)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
+    $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):img(cards[battle.b].i)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
     let message=net.waiting?'対戦相手の入室を待っています。':net.message||'';
     if(net.phase==='pick')message=`ROUND ${net.round} ― <span class="battle-select-prompt">バトルカードを選択</span>`;
     $('#message').innerHTML=message;
@@ -140,13 +141,13 @@
         const previous=net, incoming=message.state;
         const ownKey=incoming.side==='p'?'red':'blue';
         const drew=previous&&!previous[ownKey].spell&&!!incoming[ownKey].spell;
-        const opponentSet=previous&&previous.phase==='pick'&&incoming.phase==='pick'&&!previous.opponentPicked&&incoming.opponentPicked;
+        const opponentSet=previous&&previous.phase==='pick'&&!previous.opponentPicked&&incoming.opponentPicked;
         const flipped=previous&&previous.phase==='reveal'&&incoming.phase==='spell';
         const previousUses=previous?.battle?.uses||{}, incomingUses=incoming.battle?.uses||{};
         const newSpellUses=['p','c'].map(side=>incomingUses[side]&&!previousUses[side]?{...incomingUses[side],side}:null).filter(Boolean);
         const damaged=previous&&previous.phase==='spell'&&incoming.phase==='damage';
         if(incoming.phase!=='pick'){chooser=false;localSet=false;remoteSet=false}
-        if(opponentSet)remoteSet=true;
+        if(opponentSet){const opponent=incoming.side==='p'?'c':'p';battleArriving[opponent]=true;}
         const charging=flipped?['p','c'].filter(side=>(side==='p'?incoming.battle?.a:incoming.battle?.b)==='amplify'):[];
         if(flipped)for(const side of charging)ampArriving[side]=true;
         newSpellUses.forEach(playOnlineSpell);
@@ -154,7 +155,7 @@
         try{ renderOnline(); }
         catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
         if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
-        if(opponentSet){const opponent=net.side==='p'?'c':'p';slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip()}
+        if(opponentSet){const opponent=net.side==='p'?'c':'p';slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();setTimeout(()=>{battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
         if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),A+cards.amplify.i);playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
         newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
         if(damaged)runOnlineDamage(previous,incoming);
@@ -165,7 +166,7 @@
 
   window.drawInitial=()=>send('draw');
   window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
-  window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side;chooser=false;localSet=true;renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card)};
+  window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side;chooser=false;battleArriving[mine]=true;renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card);setTimeout(()=>{battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
   window.use=()=>send('use');
   window.confirmPlayerOk=()=>send('ok');
   window.endRound=()=>send('ok');
