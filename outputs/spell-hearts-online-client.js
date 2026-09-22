@@ -11,7 +11,7 @@
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
   const back=(w,kind)=>`<img class="spell-back" src="${A+(w==='p'?(kind==='battle'?'red-battle-back.png':'red-spell-back.png'):(kind==='battle'?'blue-battle-back.jpg':'blue-spell-back.jpg'))}" alt="">`;
   const onlineStyle=document.createElement('style');
-  onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}';
+  onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
   document.head.append(onlineStyle);
 
   function hand(){
@@ -67,11 +67,11 @@
       spellDeck.onclick=net.phase==='opening'&&own&&!s.spell?()=>send('draw'):null;
       spellDeck.style.cursor=net.phase==='opening'&&own&&!s.spell?'pointer':'default';
       const amplifier=$(charge(w));
-      amplifier.innerHTML=s.amp==='charged'?img(cards.amplify.i):'';
+      amplifier.innerHTML=s.amp==='charged'?`<img src="${A+cards.amplify.i}" title="${cardTip('amplify')}" alt="アンプリファイア">`:'';
       const isOpeningAmplifier=net.phase==='reveal'&&(w==='p'?battle?.a:battle?.b)==='amplify';
       amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
       const held=$(chargeSpell(w));
-      held.innerHTML=s.hasSpell?(own?img(spells[s.spell].i):back(w,'spell')):'';
+      held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
       held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
@@ -97,10 +97,19 @@
   }
 
   function showOnlineSpellMessage(use){
+    const stage=$('.stage');
+    if(!stage.querySelector('.spell-effect-backdrop')){
+      const backdrop=document.createElement('div');
+      backdrop.className='spell-effect-backdrop';
+      stage.append(backdrop);
+    }
     const message=document.createElement('div');
     message.className=`spell-effect-message ${use.side==='p'?'p-side':'c-side'}`;
     message.textContent=spellResult(use.k,use.x);
-    $('.stage').append(message); setTimeout(()=>message.remove(),3000);
+    stage.append(message); setTimeout(()=>{
+      message.remove();
+      if(!stage.querySelector('.spell-effect-message'))stage.querySelector('.spell-effect-backdrop')?.remove();
+    },4200);
   }
 
   function playOnlineSpell(use){
