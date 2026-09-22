@@ -1,6 +1,6 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
   const query=new URLSearchParams(location.search);
   const $=selector=>document.querySelector(selector);
   const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
@@ -26,7 +26,8 @@
     if(!result){ result=document.createElement('div'); result.id='resultScreen'; document.body.append(result); }
     if(net.phase==='end'){
       const red=net.red.hp>net.blue.hp, blue=net.blue.hp>net.red.hp;
-      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div>`;
+      const rematchLabel=net.rematchReady?'相手の返答を待っています…':'もう一度対戦';
+      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div>`;
       if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.();}
       requestAnimationFrame(()=>result.classList.add('show'));
     }else{ resultSoundPlayed=false; result.classList.remove('show'); result.innerHTML=''; }
@@ -86,7 +87,8 @@
       held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
-      const graveCards=[...s.grave.map(k=>({image:spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:cards.amplify.i,title:'アンプリファイア'}]:[])];
+      const visibleSpells=spellInTransit[w]?s.grave.slice(0,-1):s.grave;
+      const graveCards=[...visibleSpells.map(k=>({image:spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:cards.amplify.i,title:'アンプリファイア'}]:[])];
       $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${A+card.image}" title="${card.title}" alt="">`).join('');
     }
     const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
@@ -127,12 +129,14 @@
 
   function playOnlineSpell(use){
     const source=A+spells[use.k].i, center=use.side==='p'?'#pPlayed':'#cPlayed';
+    spellInTransit[use.side]=true;
     const target=$(center);
     target?.classList.add('spell-display-top');
     setTimeout(()=>target?.classList.remove('spell-display-top'),3500);
     slideCard(chargeSpell(use.side),center,source); playCardFlip();
     setTimeout(()=>{holdOnlineSpell(center,source,use.side);showOnlineSpellMessage(use)},1240);
     setTimeout(()=>{slideCard(center,grave(use.side),source);playCardFlip()},2650);
+    setTimeout(()=>{spellInTransit[use.side]=false;renderOnline()},4000);
   }
 
   function connect(code){
@@ -159,6 +163,7 @@
         const newSpellUses=['p','c'].map(side=>incomingUses[side]&&!previousUses[side]?{...incomingUses[side],side}:null).filter(Boolean);
         const damaged=previous&&previous.phase==='spell'&&incoming.phase==='damage';
         if(incoming.phase!=='pick'){chooser=false;localSet=false;remoteSet=false}
+        if(incoming.phase==='opening')spellInTransit={p:false,c:false};
         if(opponentSet){const opponent=incoming.side==='p'?'c':'p';battleArriving[opponent]=true;$(opponent==='p'?'#pPlayed':'#cPlayed')?.classList.add('flight-target');}
         const charging=flipped?['p','c'].filter(side=>(side==='p'?incoming.battle?.a:incoming.battle?.b)==='amplify'):[];
         if(flipped)for(const side of charging)ampArriving[side]=true;
@@ -190,6 +195,7 @@
     window.use=()=>send('use');
     window.confirmPlayerOk=()=>send('ok');
     window.endRound=()=>send('ok');
+    window.requestRematch=()=>{if(net?.phase==='end'&&!net.rematchReady)send('rematch')};
   }
   window.beginOnlineMatch=code=>{
     if(location.protocol==='file:'){
