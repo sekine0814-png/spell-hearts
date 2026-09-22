@@ -190,8 +190,33 @@ function makeSettings(){
   }
 }
 
+function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
+function readRecord(){try{return {...{wins:0,losses:0,draws:0},...JSON.parse(localStorage.getItem(recordKey())||'{}')};}catch{return {wins:0,losses:0,draws:0};}}
+function openRecord(){
+  let panel=document.querySelector('#recordPanel');
+  if(!panel){
+    panel=document.createElement('section');panel.id='recordPanel';panel.className='record-panel';
+    panel.innerHTML='<button class="record-close" type="button" aria-label="閉じる">×</button><div class="record-heading">BATTLE RECORD</div><div class="record-user"></div><div class="record-grid"><div><b class="record-wins">0</b><span>WIN</span></div><div><b class="record-losses">0</b><span>LOSE</span></div><div><b class="record-draws">0</b><span>DRAW</span></div></div><p class="record-note"></p>';
+    document.querySelector('#titleScreen')?.append(panel);
+    panel.querySelector('.record-close').onclick=()=>panel.hidden=true;
+  }
+  const record=readRecord(),name=window.getSpellHeartsNickname?.()||'ゲスト';
+  panel.querySelector('.record-user').textContent=name;
+  panel.querySelector('.record-wins').textContent=record.wins;
+  panel.querySelector('.record-losses').textContent=record.losses;
+  panel.querySelector('.record-draws').textContent=record.draws;
+  panel.querySelector('.record-note').textContent=currentUser?.isAnonymous?'ゲスト戦績はこのブラウザに保存されます。':'アカウントの戦績を表示します。';
+  panel.hidden=false;
+}
+function makeRecordButton(){
+  const form=document.querySelector('.room-form');
+  if(!form||document.querySelector('#recordButton'))return;
+  const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
+}
+
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 makeSettings();
+makeRecordButton();
 
 const style=document.createElement('style');
 style.textContent=`
@@ -203,5 +228,9 @@ document.head.append(settingsTweaks);
 const googleButtonStyle=document.createElement('style');
 googleButtonStyle.textContent='.auth-google{position:relative;width:100%;margin:0 0 14px;padding:10px;border:1px solid #a08e62;border-radius:3px;background:#f8f8f6;color:#28231c;font:14px "Yu Gothic",sans-serif;font-weight:bold;cursor:pointer}.auth-google:hover{filter:brightness(.94)}.auth-google:disabled{opacity:.55;cursor:wait}.auth-google span{display:inline-grid;place-items:center;width:19px;height:19px;margin-right:8px;border-radius:50%;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 0 50%,#fbbc05 0 75%,#ea4335 0);color:#fff;font:bold 12px Arial;text-shadow:0 1px 1px #0006}';
 document.head.append(googleButtonStyle);
+const recordStyle=document.createElement('style');
+recordStyle.textContent='.room-form{grid-template-columns:1fr auto auto}.room-record{padding:0 12px;border:1px solid #806cbd;border-radius:3px;background:linear-gradient(#41365f,#171124);color:#eee4ff;font:14px Georgia,"Yu Mincho",serif;letter-spacing:.08em;cursor:pointer}.room-record:hover{filter:brightness(1.3)}.record-panel{position:absolute;z-index:5;left:50%;bottom:calc(100% + 15px);width:min(88vw,380px);padding:22px 24px;border:1px solid #d8ae4e;border-radius:6px;background:linear-gradient(145deg,rgba(28,28,35,.98),rgba(7,8,14,.99));box-shadow:inset 0 0 25px #d69b2424,0 12px 32px #000c;color:#fff0bb;transform:translateX(-50%);text-align:center}.record-panel[hidden]{display:none}.record-close{position:absolute;right:12px;top:9px;border:0;background:transparent;color:#ddc984;font:26px/1 Georgia,serif;cursor:pointer}.record-heading{letter-spacing:.16em;color:#ffe69a;font:19px Georgia,"Yu Mincho",serif;text-shadow:0 0 9px #d18d1b}.record-user{margin:8px 0 17px;color:#e5d2a1;font:15px Georgia,"Yu Mincho",serif}.record-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #735d2b;border-bottom:1px solid #735d2b}.record-grid div{display:grid;gap:4px;padding:13px 4px}.record-grid div+div{border-left:1px solid #735d2b}.record-grid b{font:28px Georgia,serif;color:#fff2c4}.record-grid span{font:11px Georgia,serif;letter-spacing:.1em;color:#d4bd78}.record-note{margin:14px 0 0;color:#aeb4c0;font:11px "Yu Gothic",sans-serif}@media(max-width:600px){.room-record{padding:0 9px;font-size:12px}.record-panel{bottom:calc(100% + 10px)}}';
+document.head.append(recordStyle);
+recordStyle.textContent+='.record-panel{position:fixed;top:50%;bottom:auto;transform:translate(-50%,-50%)}';
 style.textContent+='.auth-form .auth-nickname{display:none}.auth-form.registering .auth-nickname{display:grid}';
 style.textContent+='.title-settings{position:absolute;z-index:3;top:28px;left:34px;width:42px;height:42px;border:1px solid #d8ae4e;border-radius:50%;background:radial-gradient(circle at 35% 28%,#88703a,#251a0a 67%);box-shadow:inset 0 0 10px #ffe19a44,0 2px 12px #0009;color:#ffe9a0;font:25px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer;transition:filter .2s,transform .3s}.title-settings:hover{filter:brightness(1.3)}.title-settings.open{transform:rotate(90deg)}.settings-panel{position:absolute;z-index:4;top:78px;left:34px;width:245px;padding:16px;border:1px solid #d8ae4e;border-radius:5px;background:linear-gradient(145deg,rgba(32,30,22,.97),rgba(7,9,14,.98));box-shadow:inset 0 0 20px #d99d2e22,0 9px 25px #000b;color:#f9e7ad;font:13px Georgia,"Yu Mincho",serif}.settings-panel[hidden]{display:none}.settings-heading{margin-bottom:13px;color:#ffe9a0;font-size:16px;letter-spacing:.16em;text-align:center;text-shadow:0 0 8px #d69320}.settings-panel label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:10px 0}.settings-name{grid-column:1/-1;width:100%;padding:7px;border:1px solid #8d6c2e;background:#0b0c11;color:#fff0bd;font:14px Georgia,"Yu Mincho",serif}.settings-save{width:100%;padding:7px;border:1px solid #c79c37;background:linear-gradient(#72531c,#291906);color:#fff1b6;font:13px Georgia,"Yu Mincho",serif;cursor:pointer}.settings-panel input[type=range]{accent-color:#e8b543}.settings-panel output{justify-self:end;color:#ffeaa5}@media(max-width:600px){.title-settings{top:16px;left:16px;width:36px;height:36px;font-size:22px}.settings-panel{top:58px;left:16px;width:225px}}';
