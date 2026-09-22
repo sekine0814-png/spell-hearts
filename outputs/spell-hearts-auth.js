@@ -69,7 +69,7 @@ function openSummonGate(){
   let modal=document.querySelector('#summonGatePanel');
   if(!modal){
     modal=document.createElement('section');modal.id='summonGatePanel';modal.className='summon-gate-panel';
-    modal.innerHTML='<div class="summon-gate-book" role="dialog" aria-modal="true" aria-labelledby="summonGateTitle"><button class="summon-gate-close" type="button" aria-label="閉じる">×</button><div class="summon-gate-sigil">✦</div><p class="summon-gate-kicker">ARCANE SUMMONING</p><h2 id="summonGateTitle">召喚の門</h2><div class="summon-stock"><div><span>所持金貨</span><b class="summon-token-total">0</b></div><div><span>星のカケラ</span><b class="summon-shard-total">0</b></div></div><button class="summon-cast" type="button">星のカケラを召喚<small>金貨 10枚</small></button><p class="summon-gate-note">星のカケラを10個集めると、景品と交換できます。</p><button class="summon-gate-dismiss" type="button">戻る</button></div>';
+    modal.innerHTML='<div class="summon-gate-book" role="dialog" aria-modal="true" aria-labelledby="summonGateTitle"><button class="summon-gate-close" type="button" aria-label="閉じる">×</button><div class="summon-gate-sigil">✦</div><p class="summon-gate-kicker">ARCANE GACHA</p><h2 id="summonGateTitle">召喚の門</h2><div class="summon-stock"><div><span>所持金貨</span><b class="summon-token-total">0</b></div><div><span>星のカケラ</span><b class="summon-shard-total">0</b></div></div><button class="summon-cast" type="button">ガチャを引く<small>金貨 10枚</small></button><p class="summon-gate-note">星のカケラを10個集めると、景品と交換できます。</p><button class="summon-gate-dismiss" type="button">戻る</button></div>';
     document.body.append(modal);
     modal.querySelector('.summon-gate-close').onclick=()=>modal.hidden=true;
     modal.querySelector('.summon-gate-dismiss').onclick=()=>modal.hidden=true;
@@ -92,7 +92,7 @@ function openSummonConfirm(){
   }
   dialog.innerHTML=guest
     ?'<div class="summon-confirm-box"><p>召喚にはログインが必要です。</p><button type="button" class="summon-confirm-no">閉じる</button></div>'
-    :'<div class="summon-confirm-box"><p>金貨10枚を消費して<br>星のカケラを召喚しますか？</p><div><button type="button" class="summon-confirm-yes">はい</button><button type="button" class="summon-confirm-no">いいえ</button></div></div>';
+    :'<div class="summon-confirm-box"><p>金貨10枚を消費して<br>ガチャを引きますか？</p><div><button type="button" class="summon-confirm-yes">はい</button><button type="button" class="summon-confirm-no">いいえ</button></div></div>';
   dialog.hidden=false;
   dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;
   dialog.onclick=event=>{if(event.target===dialog)dialog.hidden=true;};
@@ -102,7 +102,7 @@ function openSummonConfirm(){
     localStorage.setItem(tokenKey(),String(readTokens()-10));
     localStorage.setItem(shardKey(),String(readStardust()+1));
     renderTokenBalance();renderSummonStock();
-    dialog.querySelector('.summon-confirm-box').innerHTML='<div class="summon-result-shard">✦</div><p>星のカケラを1個、召喚しました。</p><button type="button" class="summon-confirm-no">受け取る</button>';
+    dialog.querySelector('.summon-confirm-box').innerHTML='<div class="summon-result-shard">✦</div><p>星のカケラが1個出ました。</p><button type="button" class="summon-confirm-no">受け取る</button>';
     dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;
   };
 }
