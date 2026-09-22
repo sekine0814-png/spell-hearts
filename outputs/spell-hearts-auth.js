@@ -63,6 +63,26 @@ function makeTokenBalance(){
   balance.innerHTML='<img class="token-coin" src="assets/spell-hearts-token.png" alt="金貨"><span class="token-count">0</span>';
   title.append(balance);renderTokenBalance();
 }
+function openSummonGate(){
+  let modal=document.querySelector('#summonGatePanel');
+  if(!modal){
+    modal=document.createElement('section');modal.id='summonGatePanel';modal.className='summon-gate-panel';
+    modal.innerHTML='<div class="summon-gate-book" role="dialog" aria-modal="true" aria-labelledby="summonGateTitle"><button class="summon-gate-close" type="button" aria-label="閉じる">×</button><div class="summon-gate-sigil">✦</div><p class="summon-gate-kicker">ARCANE SUMMONING</p><h2 id="summonGateTitle">召喚の門</h2><p class="summon-gate-copy">秘められた力を呼び覚ます準備をしています。</p><p class="summon-gate-note">召喚の内容は、まもなく解放されます。</p><button class="summon-gate-dismiss" type="button">戻る</button></div>';
+    document.body.append(modal);
+    modal.querySelector('.summon-gate-close').onclick=()=>modal.hidden=true;
+    modal.querySelector('.summon-gate-dismiss').onclick=()=>modal.hidden=true;
+    modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
+  }
+  modal.hidden=false;
+}
+function makeSummonButton(){
+  const title=document.querySelector('#titleScreen');
+  if(!title||document.querySelector('#summonButton'))return;
+  const button=document.createElement('button');
+  button.id='summonButton';button.className='summon-button';button.type='button';button.setAttribute('aria-label','召喚の門を開く');
+  button.innerHTML='<span class="summon-sigil" aria-hidden="true">✦</span><span>召 喚</span>';
+  button.onclick=openSummonGate;title.append(button);
+}
 window.awardSpellHeartsTokens=(amount,matchId)=>{
   const reward=Math.max(0,Number(amount)||0),matchKey=`spellHeartsTokensAwarded:${matchId}`;
   if(!reward||!matchId||sessionStorage.getItem(matchKey))return readTokens();
@@ -308,6 +328,7 @@ function makeBattleSettings(){
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 makeSettings();
 makeTokenBalance();
+makeSummonButton();
 makeRecordButton();
 makeTutorialButton();
 makeBattleSettings();
@@ -322,6 +343,9 @@ document.head.append(settingsTweaks);
 const tokenStyle=document.createElement('style');
 tokenStyle.textContent='.token-balance{position:absolute;z-index:3;right:34px;bottom:3.5vh;display:inline-flex;align-items:center;gap:14px;background:transparent;color:#fff0ad;font:bold 34px Georgia,"Yu Mincho",serif;text-shadow:0 2px 5px #000}.token-coin{display:block;width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}.token-balance .token-coin{width:81px;height:81px}.token-count{min-width:2ch;text-align:right}.result-token-reward{display:inline-flex;align-items:center;gap:12px;margin-top:20px;padding:8px 15px;border:1px solid rgba(225,184,77,.8);border-radius:5px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 13px rgba(255,225,135,.12),0 2px 12px #0009;color:#fff0ad;font:bold clamp(20px,2.7vw,32px) Georgia,"Yu Mincho",serif;text-shadow:0 1px 3px #000}.result-token-reward .token-coin{width:50px;height:50px}@media(max-width:600px){.token-balance{right:16px;bottom:3vh;gap:8px;font-size:25px}.token-balance .token-coin{width:58px;height:58px}.result-token-reward{margin-top:14px;padding:7px 12px}.result-token-reward .token-coin{width:43px;height:43px}}';
 document.head.append(tokenStyle);
+const summonStyle=document.createElement('style');
+summonStyle.textContent='.summon-button{position:absolute;z-index:3;right:34px;bottom:calc(3.5vh + 96px);display:grid;place-items:center;gap:2px;width:82px;height:96px;padding:7px 5px;border:1px solid #d8ae4e;border-radius:6px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 16px rgba(124,100,255,.19),0 2px 12px #0009;color:#f7dda0;font:bold 17px/1.05 Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-shadow:0 1px 3px #000;cursor:pointer;transition:filter .18s}.summon-button:hover{filter:brightness(1.35)}.summon-sigil{display:grid;place-items:center;width:44px;height:44px;border:1px solid #b29ae8;border-radius:50%;background:radial-gradient(circle,rgba(129,110,238,.55),rgba(16,12,39,.25) 52%,transparent 55%);box-shadow:0 0 12px #907aff88;color:#f3e9ff;font:27px Georgia,serif;text-shadow:0 0 9px #d6c5ff}.summon-gate-panel{position:fixed;z-index:260;inset:0;display:grid;place-items:center;padding:20px;background:rgba(1,4,9,.8);backdrop-filter:blur(5px)}.summon-gate-panel[hidden]{display:none}.summon-gate-book{position:relative;width:min(90vw,410px);padding:35px 34px 28px;border:1px solid #d8ae4e;border-radius:8px;background:radial-gradient(ellipse at 50% 20%,rgba(73,52,108,.97),rgba(10,9,17,.99) 68%);box-shadow:inset 0 0 42px rgba(177,132,255,.22),0 20px 65px #000;color:#f7e7bc;text-align:center}.summon-gate-book:before{content:"";position:absolute;inset:9px;border:1px solid rgba(225,184,77,.3);border-radius:4px;pointer-events:none}.summon-gate-close{position:absolute;z-index:1;right:15px;top:11px;border:0;background:transparent;color:#e4cb82;font:28px/1 Georgia,serif;cursor:pointer}.summon-gate-sigil{position:relative;display:grid;place-items:center;width:82px;height:82px;margin:0 auto 12px;border:1px solid #d2b8ff;border-radius:50%;background:radial-gradient(circle,rgba(161,122,255,.68),rgba(38,23,70,.32) 52%,transparent 55%);box-shadow:0 0 25px #987dff99;color:#fff8ca;font:47px Georgia,serif;text-shadow:0 0 14px #fff}.summon-gate-kicker{position:relative;margin:0;color:#c9b182;font:11px Georgia,serif;letter-spacing:.23em}.summon-gate-book h2{position:relative;margin:9px 0 16px;color:#fff0b0;font:31px Georgia,"Yu Mincho",serif;letter-spacing:.13em;text-shadow:0 0 13px #dba432}.summon-gate-copy,.summon-gate-note{position:relative;margin:0;color:#e6d8b4;font:14px/1.7 "Yu Gothic",sans-serif}.summon-gate-note{margin-top:8px;color:#b7a8ce;font-size:12px}.summon-gate-dismiss{position:relative;margin-top:23px;min-width:120px;padding:9px;border:1px solid #c59b38;border-radius:3px;background:linear-gradient(#684a16,#261704);color:#fff0b2;font:14px Georgia,"Yu Mincho",serif;cursor:pointer}.summon-gate-dismiss:hover{filter:brightness(1.25)}@media(max-width:600px){.summon-button{right:16px;bottom:calc(3vh + 70px);width:62px;height:72px;font-size:13px}.summon-sigil{width:33px;height:33px;font-size:21px}.summon-gate-book{padding:32px 25px 24px}}';
+document.head.append(summonStyle);
 const googleButtonStyle=document.createElement('style');
 googleButtonStyle.textContent='.auth-google{position:relative;width:100%;margin:0 0 14px;padding:10px;border:1px solid #a08e62;border-radius:3px;background:#f8f8f6;color:#28231c;font:14px "Yu Gothic",sans-serif;font-weight:bold;cursor:pointer}.auth-google:hover{filter:brightness(.94)}.auth-google:disabled{opacity:.55;cursor:wait}.auth-google span{display:inline-grid;place-items:center;width:19px;height:19px;margin-right:8px;border-radius:50%;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 0 50%,#fbbc05 0 75%,#ea4335 0);color:#fff;font:bold 12px Arial;text-shadow:0 1px 1px #0006}';
 document.head.append(googleButtonStyle);
