@@ -56,6 +56,39 @@ function isGameOwner(){return currentUser?.email?.toLowerCase()===gameOwnerEmail
 function displayedTokens(){return isGameOwner()?'∞':readTokens();}
 function shardKey(){return `spellHeartsStardust:${currentUser?.uid||'guest'}`;}
 function readStardust(){return Math.max(0,Number.parseInt(localStorage.getItem(shardKey())||'0',10)||0);}
+let titleBgmStarted=false,titleBgmFadeFrame=0;
+function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
+function ensureTitleBgm(){
+  let music=document.querySelector('#titleBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-old-growth-forest.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopTitleBgm(){
+  cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;titleBgmStarted=false;
+  const music=document.querySelector('#titleBgm');
+  if(music){music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function startTitleBgm(){
+  const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
+  if(titleBgmStarted||title?.classList.contains('dismiss'))return;
+  titleBgmStarted=true;music.volume=0;music.dataset.fading='1';
+  music.play().then(()=>{
+    const began=performance.now(),duration=1400;
+    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1&&titleBgmStarted)titleBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
+    titleBgmFadeFrame=requestAnimationFrame(fade);
+  }).catch(()=>{titleBgmStarted=false;music.dataset.fading='';});
+}
+function installTitleBgm(){
+  ensureTitleBgm();
+  const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
+  if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
+  if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{stopTitleBgm();return originalReturnToTitle();};
+  document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
+  document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
+  startTitleBgm();
+}
 function renderTokenBalance(){
   const count=document.querySelector('#tokenBalance .token-count');
   if(count)count.textContent=displayedTokens();
@@ -289,6 +322,7 @@ function applySoundLevels(){
   const bgm=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)));
   const sfx=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsSfxVolume')??70)));
   const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
+  const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo').forEach(sound=>sound.volume=sfx/100);
   return {bgm,sfx};
 }
@@ -410,6 +444,7 @@ makeDressupButton();
 makeRecordButton();
 makeTutorialButton();
 makeBattleSettings();
+installTitleBgm();
 
 const style=document.createElement('style');
 style.textContent=`
