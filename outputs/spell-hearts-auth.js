@@ -655,7 +655,7 @@ function tutorialPick(card,cpu,onResolved){
 }
 function tutorialUseSpell(onDone){
   tutorialFocus('#pChargeSpell',()=>{
-    window.use?.('p');if(typeof g!=='undefined')g.pOk=true;window.render?.();
+    window.use?.('p');window.render?.();if(typeof g!=='undefined')g.pOk=true;
     setTimeout(onDone,1300);
   });
 }
