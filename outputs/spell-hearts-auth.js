@@ -577,7 +577,7 @@ function startChapterOne(){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
     scene.innerHTML='<button class="chapter-return-title" type="button">タイトルに戻る</button><div class="chapter-dialogue" hidden><div class="chapter-speaker">主人公</div><p>……ここが、王都の演習場か。</p><i class="chapter-next-mark" aria-hidden="true"></i></div>';
     document.body.append(scene);
-    scene.querySelector('.chapter-return-title').onclick=()=>location.href=location.pathname;
+    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
   scene.querySelector('.chapter-dialogue').hidden=true;
   scene.classList.remove('preparing','show');
