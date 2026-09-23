@@ -738,7 +738,7 @@ function tutorialReturnToStory(){
     speaker.textContent='先輩';copy.textContent='流石だ、筋がいいぞ。';dialogue.hidden=false;dialogue.dataset.ended='true';dialogue.onclick=()=>{};
     startChapterOneBgm();requestAnimationFrame(()=>curtain.classList.add('lift'));
     setTimeout(()=>curtain.classList.remove('returning'),1050);
-  },760);
+  },1120);
 }
 function tutorialFinalStrike(){
   tutorialDialogue('最後はチョキだ。相手はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
