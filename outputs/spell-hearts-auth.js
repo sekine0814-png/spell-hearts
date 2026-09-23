@@ -56,6 +56,7 @@ function isGameOwner(){return currentUser?.email?.toLowerCase()===gameOwnerEmail
 function displayedTokens(){return isGameOwner()?'∞':readTokens();}
 function shardKey(){return `spellHeartsStardust:${currentUser?.uid||'guest'}`;}
 function readStardust(){return Math.max(0,Number.parseInt(localStorage.getItem(shardKey())||'0',10)||0);}
+function displayedStardust(){return isGameOwner()?'∞':readStardust();}
 const battleArt={rock:'rock.jpg',scissors:'scissors.jpg',paper:'paper.jpg',amplify:'amplify.jpg'};
 const astrologianArt={rock:'astrologian-rock.png',scissors:'astrologian-scissors.png',paper:'astrologian-paper.png',amplify:'astrologian-amplify.png'};
 function defaultCosmetics(){return {owned:{battle:{astrologian:{}}},equipped:{battle:{rock:'normal',scissors:'normal',paper:'normal',amplify:'normal'},battleShrink:'normal',spellShrink:'normal'}};}
@@ -193,8 +194,8 @@ function openAstrologianConfirm(item){
   dialog.onclick=event=>{if(event.target===dialog)close();};
   dialog.querySelector('.exchange-confirm-no').onclick=close;
   dialog.querySelector('.exchange-confirm-yes').onclick=()=>{
-    if(readStardust()<10){dialog.querySelector('.item-exchange-confirm-box').innerHTML='<p>星のカケラが足りません。</p><button type="button" class="exchange-confirm-no">戻る</button>';dialog.querySelector('.exchange-confirm-no').onclick=close;return;}
-    localStorage.setItem(shardKey(),String(readStardust()-10));renderSummonStock();
+    if(!isGameOwner()&&readStardust()<10){dialog.querySelector('.item-exchange-confirm-box').innerHTML='<p>星のカケラが足りません。</p><button type="button" class="exchange-confirm-no">戻る</button>';dialog.querySelector('.exchange-confirm-no').onclick=close;return;}
+    if(!isGameOwner())localStorage.setItem(shardKey(),String(readStardust()-10));renderSummonStock();
     grantAstrologian(item.key);
     playExchangeAnimation(dialog,item,()=>{
       dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="astrologian ${item.name}"><p>astrologian ${item.name}を交換しました！</p><button type="button" class="exchange-confirm-no">閉じる</button></div>`;
@@ -308,7 +309,7 @@ function openItemExchange(){
 }
 function renderSummonStock(){
   document.querySelectorAll('.summon-token-total').forEach(node=>node.textContent=displayedTokens());
-  document.querySelectorAll('.summon-shard-total').forEach(node=>node.textContent=readStardust());
+  document.querySelectorAll('.summon-shard-total').forEach(node=>node.textContent=displayedStardust());
 }
 function openSummonConfirm(){
   const guest=!currentUser||currentUser.isAnonymous;
@@ -330,7 +331,7 @@ function openSummonConfirm(){
     dialog.innerHTML='<div class="summon-animation-box" aria-label="召喚中"><img class="summon-vortex" src="assets/spell-hearts-star-vortex.png" alt=""><img class="summon-animation-gate" src="assets/spell-hearts-summon-gate.png" alt=""><div class="summon-particles"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><img class="summon-falling-shard" src="assets/spell-hearts-star-fragment.png" alt="星のカケラ"></div>';
     setTimeout(()=>{
       if(!isGameOwner())localStorage.setItem(tokenKey(),String(readTokens()-10));
-      localStorage.setItem(shardKey(),String(readStardust()+1));
+      if(!isGameOwner())localStorage.setItem(shardKey(),String(readStardust()+1));
       renderTokenBalance();renderSummonStock();
       dialog.classList.remove('summoning');
       dialog.innerHTML='<div class="summon-confirm-box summon-result-box"><img class="summon-result-shard" src="assets/spell-hearts-star-fragment.png" alt="星のカケラ"><p>星のカケラがひとつ落ちてきました</p><button type="button" class="summon-confirm-no">受け取る</button>';
