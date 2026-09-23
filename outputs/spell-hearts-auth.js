@@ -688,8 +688,44 @@ function tutorialRoundThree(){
   if(typeof g!=='undefined'){g.c.spell='block';window.render?.();}
   tutorialDialogue('最後はパーだ。相手もパーを出すから、あいこになる。',()=>tutorialPick('paper','paper',()=>{
     tutorialDialogue('あいこでは互いに1ダメージを受ける。\nここでは謀略を使ってみよう。',()=>tutorialUseSpell(()=>{
-      tutorialDialogue('謀略はあいこのときに使える。\n自分だけダメージを受けずに済む。');
+      tutorialDialogue('謀略はあいこのときに使える。\n自分だけダメージを受けずに済む。',tutorialBeginAmplifyLesson);
     }));
+  }));
+}
+function tutorialBeginAmplifyLesson(){
+  tutorialDialogue('次はアンプリファイアだ。盤面を整えて、\nその力を実際に確かめてみよう。',()=>{
+    window.start?.();window.setBattleBackdrop?.('story-training-ground.jpg');
+    if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
+    setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
+      window.drawInitial?.();
+      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n相手はグーを出してくる。',()=>{
+        window.openBattle?.();setTimeout(()=>tutorialPick('amplify','rock',tutorialExplainAmplify),350);
+      }),680);
+    })),500);
+  });
+}
+function tutorialExplainAmplify(){
+  tutorialDialogue('アンプリファイアは、バトルカードの代わりに出す特殊カードだ。',()=>{
+    tutorialDialogue('そのターンは相手の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
+      tutorialDialogue('その代わり、次に使用するスペルの効果を強化できる。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
+    });
+  });
+}
+function tutorialAmplifiedPursuit(){
+  tutorialDialogue('次はパーだ。相手のグーに勝って、\n強化された追い打ちを使ってみろ。',()=>tutorialPick('paper','rock',()=>{
+    tutorialDialogue('パーの5ダメージに、強化追い打ちの3ダメージが加わる。\n合計8ダメージだ。',()=>tutorialUseSpell(()=>{
+      tutorialDialogue('残りHPは2。次の一手で決めよう。',()=>tutorialFinishRound(3,tutorialFinalStrike));
+    }));
+  }));
+}
+function tutorialFinalStrike(){
+  tutorialDialogue('最後はチョキだ。相手はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
+    if(typeof g!=='undefined'){g.c.hp=0;g.phase='spell';window.render?.();}
+    tutorialDialogue('よくやった。これで相手のHPは0だ。\n本来ならここで勝利となる。',()=>{
+      tutorialDialogue('強化ブロックは、受けるダメージを0にして、\nさらに自分のHPを1回復する。',()=>{
+        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n相手に2ダメージを与える強力な一手だ。');
+      });
+    });
   }));
 }
 function beginBattleCardLesson(){
