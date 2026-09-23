@@ -720,12 +720,30 @@ function tutorialAmplifiedPursuit(){
     }));
   }));
 }
+function tutorialReturnToStory(){
+  tutorialUnlock();stopTutorialBattleBgm();
+  let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!scene)return;
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  curtain.classList.add('returning');curtain.classList.remove('lift');
+  setTimeout(()=>{
+    intro?.classList.remove('show');if(intro)intro.hidden=true;
+    const npc=scene.querySelector('.chapter-npc-card'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
+    scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
+    npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
+    speaker.textContent='先輩';copy.textContent='流石だ、筋がいいぞ。';dialogue.hidden=false;dialogue.dataset.ended='true';dialogue.onclick=()=>{};
+    startChapterOneBgm();requestAnimationFrame(()=>curtain.classList.add('lift'));
+    setTimeout(()=>curtain.classList.remove('returning'),1050);
+  },760);
+}
 function tutorialFinalStrike(){
   tutorialDialogue('最後はチョキだ。相手はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
     if(typeof g!=='undefined'){g.c.hp=0;g.phase='spell';window.render?.();}
     tutorialDialogue('よくやった。これで相手のHPは0だ。\n本来ならここで勝利となる。',()=>{
       tutorialDialogue('強化ブロックは、受けるダメージを0にして、\nさらに自分のHPを1回復する。',()=>{
-        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n相手に2ダメージを与える強力な一手だ。');
+        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n相手に2ダメージを与える強力な一手だ。',()=>{
+          tutorialDialogue('よくやった、これで訓練は終了だ。',tutorialReturnToStory);
+        });
       });
     });
   }));
@@ -948,3 +966,4 @@ chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34
 chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
 chapterOneStyle.textContent+='.story-active .below{display:none}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:rgba(0,0,0,.76)}.tutorial-focus-target{position:relative!important;z-index:156!important;filter:brightness(1.34)!important;outline:2px solid #ffe37d!important;outline-offset:2px;border-radius:7px;box-shadow:0 0 12px 4px rgba(255,218,104,.92),inset 0 0 13px rgba(255,239,150,.48)!important;animation:tutorial-target-pulse 1.05s ease-in-out infinite!important}.tutorial-focus-target *{pointer-events:none}';
+chapterOneStyle.textContent+='#tutorialBattleCurtain.returning{z-index:220}';
