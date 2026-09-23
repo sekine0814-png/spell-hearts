@@ -672,9 +672,13 @@ function tutorialFinishRound(nextRound,next){
 }
 function tutorialRoundOne(){
   tutorialDialogue('では実戦だ。グーを選んでみろ。相手はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
-    tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>tutorialUseSpell(()=>{
-      tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n相手に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
-    }));
+    tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>{
+      tutorialDialogue('スペルカードは、使っても使わなくてもいい。\n使わない場合は、バトルカード山札の「OK！」を押すんだ。',()=>{
+        tutorialDialogue('今回は追い打ちを使ってみろ。',()=>tutorialUseSpell(()=>{
+          tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n相手に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
+        }));
+      });
+    });
   }));
 }
 function tutorialRoundTwo(){
