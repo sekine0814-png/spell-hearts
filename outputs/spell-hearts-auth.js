@@ -673,6 +673,7 @@ function beginChapterOneTutorial(scene){
   setTimeout(()=>{
     scene.hidden=true;
     window.start?.();
+    window.setBattleBackdrop?.('story-training-ground.jpg');
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
