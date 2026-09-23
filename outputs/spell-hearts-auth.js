@@ -659,17 +659,28 @@ function tutorialUseSpell(onDone){
     setTimeout(onDone,1300);
   });
 }
+function tutorialFinishRound(nextRound,next){
+  if(typeof g==='undefined')return;
+  let completed=false,move=()=>{if(completed)return;completed=true;next?.();};
+  g.pOk=true;g.cOk=true;g.cpuSpellReady=true;
+  window.endRound?.();
+  tutorialWaitFor(()=>typeof g!=='undefined'&&g.round>=nextRound&&g.phase==='pick',move);
+  setTimeout(()=>{
+    if(typeof g==='undefined'||g.round>=nextRound)return;
+    g.round=nextRound;g.phase='pick';g.chooser=true;g.now=null;g.damageEffect=null;window.render?.();move();
+  },6000);
+}
 function tutorialRoundOne(){
   tutorialDialogue('では実戦だ。グーを選んでみろ。相手はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
     tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>tutorialUseSpell(()=>{
-      tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n相手に与えるダメージを、さらに1増やす。',()=>tutorialWaitFor(()=>typeof g!=='undefined'&&g.round>=2&&g.phase==='pick',tutorialRoundTwo));
+      tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n相手に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
     }));
   }));
 }
 function tutorialRoundTwo(){
   tutorialDialogue('次はチョキだ。相手のグーには負けるが、\nブロックを使えば被害を抑えられる。',()=>tutorialPick('scissors','rock',()=>{
     tutorialDialogue('惜しい。チョキはグーに負ける。だが、ここでブロックの出番だ。',()=>tutorialUseSpell(()=>{
-      tutorialDialogue('ブロックは負けたときに使える。\n受けるダメージを1減らせる。',()=>tutorialWaitFor(()=>typeof g!=='undefined'&&g.round>=3&&g.phase==='pick',tutorialRoundThree));
+      tutorialDialogue('ブロックは負けたときに使える。\n受けるダメージを1減らせる。',()=>tutorialFinishRound(3,tutorialRoundThree));
     }));
   }));
 }
