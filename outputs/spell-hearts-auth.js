@@ -611,6 +611,57 @@ function playChapterOneSelectSfx(){
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
+function tutorialLock(){
+  let lock=document.querySelector('#tutorialInputLock');
+  if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
+  lock.hidden=false;lock.classList.remove('focus');lock.replaceChildren();
+  return lock;
+}
+function tutorialUnlock(){const lock=document.querySelector('#tutorialInputLock');if(lock){lock.hidden=true;lock.replaceChildren();}}
+function tutorialDialogue(text,next){
+  const intro=document.querySelector('#tutorialBattleIntro');if(!intro)return;
+  const dialogue=intro.querySelector('.tutorial-battle-dialogue'),copy=dialogue.querySelector('p');
+  intro.hidden=false;intro.classList.add('show');copy.textContent=text;
+  dialogue.onclick=()=>{if(typeof next==='function')next();};
+  tutorialLock();
+}
+function tutorialFocus(selector,onChoose){
+  const intro=document.querySelector('#tutorialBattleIntro'),target=document.querySelector(selector),lock=tutorialLock();
+  if(!target)return;
+  intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
+  const box=target.getBoundingClientRect(),button=document.createElement('button');
+  button.type='button';button.className='tutorial-focus-button';button.setAttribute('aria-label','ここを選択');
+  Object.assign(button.style,{left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`});
+  button.onclick=()=>{tutorialUnlock();onChoose?.();};lock.append(button);
+}
+function tutorialGlowCard(card){
+  document.querySelectorAll('#pBattle .pick').forEach(button=>button.classList.toggle('tutorial-card-glow',button.getAttribute('onclick')?.includes(`pick('${card}')`)));
+}
+function beginBattleCardLesson(){
+  window.openBattle?.();
+  setTimeout(()=>tutorialDialogue('バトルカードは4種類あるぞ。基本はグー、チョキ、パーのジャンケンだ。',()=>{
+    tutorialDialogue('それと、アンプリファイアと呼ばれる特殊カードが1枚。',()=>{
+      tutorialDialogue('バトルの基本はジャンケンだ。ただし普通のジャンケンではない。',()=>{
+        tutorialGlowCard('rock');tutorialDialogue('グーで勝つと1ダメージ。',()=>{
+          tutorialGlowCard('scissors');tutorialDialogue('チョキで勝つと2ダメージ。',()=>{
+            tutorialGlowCard('paper');tutorialDialogue('パーで勝つと5ダメージ。',()=>{
+              tutorialGlowCard('');tutorialDialogue('ジャンケンで勝った方が負けた方にダメージを与える。自分のHPは10ポイントで、先に相手のHPを0にした方の勝ちだ。');
+            });
+          });
+        });
+      });
+    });
+  }),620);
+}
+function beginSpellDrawLesson(){
+  tutorialFocus('#pSpell',()=>{
+    if(typeof g!=='undefined'){g.p.deck=['block','scheme','pursuit'];g.c.deck=['pursuit','block','scheme'];}
+    window.drawInitial?.();
+    setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、チャージエリアに伏せて置かれる。',()=>{
+      tutorialDialogue('次は、このバトルカードをドローするんだ。',()=>tutorialFocus('#pBattle',beginBattleCardLesson));
+    }),780);
+  });
+}
 function beginChapterOneTutorial(scene){
   if(scene.dataset.transitioning==='true')return;
   scene.dataset.transitioning='true';
@@ -625,13 +676,16 @@ function beginChapterOneTutorial(scene){
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
-      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.png" alt="先輩"><div class="chapter-dialogue tutorial-battle-dialogue"><span class="chapter-speaker">先輩</span><p>よし、始めるぞ。まずは実際に手を動かして、戦い方を覚えていこう。</p></div>';
+      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.png" alt="先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">先輩</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.hidden=false;
     startTutorialBattleBgm();
     requestAnimationFrame(()=>{intro.classList.add('show');curtain.classList.add('lift');});
     setTimeout(()=>curtain.remove(),950);
+    setTimeout(()=>tutorialDialogue('よし、始めるぞ。まずは実際に手を動かして、戦い方を覚えていこう。',()=>{
+      tutorialDialogue('戦闘は、まずお互いにこのスペルカードをドローするところから始まる。',beginSpellDrawLesson);
+    }),980);
   },720);
 }
 function startChapterOne(){
@@ -795,5 +849,5 @@ chapterOneStyle.textContent='.chapter-one-scene{position:fixed;z-index:215;inset
 document.head.append(chapterOneStyle);
 chapterOneStyle.textContent+='.chapter-one-scene{z-index:199;isolation:isolate;background:#020509}.chapter-one-scene.preparing{opacity:1;visibility:visible}.chapter-one-scene:before{content:"";position:absolute;z-index:0;inset:0;background:url("assets/story-training-ground.jpg") center/cover no-repeat;opacity:0;transition:opacity 1.25s ease}.chapter-one-scene.show:before{opacity:1}.chapter-one-scene:after{z-index:1}.chapter-one-scene.show{opacity:1;visibility:visible}';
 chapterOneStyle.textContent+='.chapter-dialogue{font:inherit;text-align:left;cursor:pointer}.chapter-dialogue[data-ended="true"] .chapter-next-mark{opacity:0}.chapter-npc-card{position:absolute;z-index:2;right:6vw;bottom:22vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-npc-card[hidden]{display:none}.chapter-npc-card.enter{animation:chapter-npc-enter .55s cubic-bezier(.16,.82,.28,1) both}.chapter-npc-card.speaker-active{z-index:4;transform:translateX(-14px) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-npc-card.speaker-idle{z-index:2;transform:translateX(18px) scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-npc-enter{from{opacity:0;transform:translateX(90px) scale(.72)}to{opacity:.76;transform:translateX(18px) scale(.92)}}@media(max-width:600px){.chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}.chapter-npc-card.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-npc-card.speaker-idle{transform:translateX(8px) scale(.9)}}';
-chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-scene.leaving .chapter-dialogue,.chapter-one-scene.leaving .chapter-npc-card{pointer-events:none}#tutorialBattleCurtain{position:fixed;z-index:198;inset:0;background:#000;opacity:1;transition:opacity 1.1s ease;pointer-events:none}#tutorialBattleCurtain.lift{opacity:0}#tutorialBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease}#tutorialBattleIntro[hidden]{display:none}#tutorialBattleIntro.show{opacity:1}#tutorialBattleIntro .chapter-npc-card{position:fixed}#tutorialBattleIntro .tutorial-battle-dialogue{position:fixed;z-index:5;cursor:default}@media(max-width:600px){#tutorialBattleIntro .chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}}';
+chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-scene.leaving .chapter-dialogue,.chapter-one-scene.leaving .chapter-npc-card{pointer-events:none}#tutorialBattleCurtain{position:fixed;z-index:198;inset:0;background:#000;opacity:1;transition:opacity 1.1s ease;pointer-events:none}#tutorialBattleCurtain.lift{opacity:0}#tutorialBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease}#tutorialBattleIntro[hidden]{display:none}#tutorialBattleIntro.show{opacity:1}#tutorialBattleIntro .chapter-npc-card{position:fixed}#tutorialBattleIntro .tutorial-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}#tutorialInputLock{position:fixed;z-index:155;inset:0;pointer-events:auto}#tutorialInputLock[hidden]{display:none}.tutorial-focus-button{position:fixed;z-index:1;border:2px solid #ffe37d;border-radius:7px;background:transparent;box-shadow:0 0 0 100vmax rgba(0,0,0,.76),0 0 12px 4px rgba(255,218,104,.9),inset 0 0 13px rgba(255,239,150,.5);cursor:pointer;animation:tutorial-target-pulse 1.05s ease-in-out infinite}@keyframes tutorial-target-pulse{0%,100%{filter:brightness(1);transform:scale(1)}50%{filter:brightness(1.36);transform:scale(1.035)}}.tutorial-card-glow{position:relative;z-index:25;filter:brightness(1.36)!important;box-shadow:0 0 0 2px #ffe584,0 0 23px 8px rgba(255,201,67,.9)!important;animation:tutorial-card-pulse 1s ease-in-out infinite}@keyframes tutorial-card-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}@media(max-width:600px){#tutorialBattleIntro .chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}}';
 chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34px;right:auto;top:58px}.story-active .battle-settings-panel{z-index:231;left:34px;right:auto;top:108px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}@media(max-width:600px){.story-active .battle-settings{left:16px;right:auto;top:50px}.story-active .battle-settings-panel{left:16px;right:auto;top:96px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}}';
