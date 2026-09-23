@@ -99,7 +99,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -111,6 +111,26 @@ function stopTitleBgm(){
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;titleBgmStarted=false;
   const music=document.querySelector('#titleBgm');
   if(music){music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function ensureChapterOneBgm(){
+  let music=document.querySelector('#chapterOneBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='chapterOneBgm';music.src='assets/story-training-ground-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopChapterOneBgm(){
+  cancelAnimationFrame(chapterOneBgmFadeFrame);chapterOneBgmFadeFrame=0;
+  const music=document.querySelector('#chapterOneBgm');
+  if(music){music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function startChapterOneBgm(){
+  const music=ensureChapterOneBgm();
+  cancelAnimationFrame(chapterOneBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='1';
+  music.play().then(()=>{
+    const began=performance.now(),duration=1300;
+    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)chapterOneBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
+    chapterOneBgmFadeFrame=requestAnimationFrame(fade);
+  }).catch(()=>{music.dataset.fading='';});
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
@@ -485,6 +505,7 @@ function applySoundLevels(){
   const sfx=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsSfxVolume')??70)));
   const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
+  const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
   document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo').forEach(sound=>sound.volume=sfx/100);
   return {bgm,sfx};
 }
@@ -572,6 +593,7 @@ function playChapterOneSelectSfx(){
 function startChapterOne(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
+  stopTitleBgm();stopChapterOneBgm();
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
     {speaker:'先輩',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
@@ -604,7 +626,7 @@ function startChapterOne(){
   scene.classList.remove('preparing','show');
   title?.classList.add('dismiss');
   scene.classList.add('preparing');
-  setTimeout(()=>scene.classList.add('show'),1120);
+  setTimeout(()=>{scene.classList.add('show');startChapterOneBgm();},1120);
   setTimeout(()=>{if(scene.classList.contains('show')){dialogue.hidden=false;renderLine();}},2570);
 }
 window.startChapterOne=startChapterOne;
