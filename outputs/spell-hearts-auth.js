@@ -724,18 +724,41 @@ function tutorialAmplifiedPursuit(){
     }));
   }));
 }
+function tutorialFinishChapterOne(scene){
+  stopChapterOneBgm();
+  const title=document.querySelector('#titleScreen');
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);}
+  curtain.classList.add('returning');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.remove('lift')));
+  scene.classList.add('leaving');
+  setTimeout(()=>{
+    scene.hidden=true;scene.classList.remove('show','preparing','leaving');
+    document.body.classList.remove('story-active');title?.classList.remove('dismiss');startTitleBgm();
+    requestAnimationFrame(()=>curtain.classList.add('lift'));
+    setTimeout(()=>curtain.remove(),1150);
+  },1120);
+}
 function tutorialReturnToStory(){
   tutorialUnlock();stopTutorialBattleBgm();
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
-  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  curtain.classList.add('returning');curtain.classList.remove('lift');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.remove('lift')));}
+  else{curtain.classList.add('returning');curtain.classList.remove('lift');}
   setTimeout(()=>{
     intro?.classList.remove('show');if(intro)intro.hidden=true;
     const npc=scene.querySelector('.chapter-npc-card'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
+    const epilogue=[
+      {speaker:'先輩',text:'流石だ。筋がいいぞ。'},
+      {speaker:'先輩',text:'これからお前も戦場に出たり、誰かを守ったりすることもあるだろう。'},
+      {speaker:'先輩',text:'そんなときは、今の戦い方を思い出すんだぞ。'},
+      {speaker:'主人公',text:'・・・はい、先輩！'}
+    ];
+    let lineIndex=0;
+    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='先輩';speaker.textContent=line.speaker;copy.textContent=line.text;npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
     scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
     npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
-    speaker.textContent='先輩';copy.textContent='流石だ、筋がいいぞ。';dialogue.hidden=false;dialogue.dataset.ended='true';dialogue.onclick=()=>{};
+    dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else tutorialFinishChapterOne(scene);};renderEpilogue();
     startChapterOneBgm();requestAnimationFrame(()=>curtain.classList.add('lift'));
     setTimeout(()=>curtain.classList.remove('returning'),1050);
   },1120);
