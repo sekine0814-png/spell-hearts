@@ -77,7 +77,7 @@
       battleDeck.style.cursor=canPass||net.phase==='pick'&&own&&!net.picked&&!chooser?'pointer':'default';
       const spellDeck=$(spellSlot(w));
       spellDeck.innerHTML=s.deckCount?back(w,'spell'):'';
-      spellDeck.classList.toggle('opening-spell-deck',net.phase==='opening'&&!s.hasSpell);
+      spellDeck.classList.toggle('opening-spell-deck',net.phase==='opening'&&own&&!s.hasSpell);
       spellDeck.onclick=net.phase==='opening'&&own&&!s.spell?()=>send('draw'):null;
       spellDeck.style.cursor=net.phase==='opening'&&own&&!s.spell?'pointer':'default';
       const amplifier=$(charge(w));
