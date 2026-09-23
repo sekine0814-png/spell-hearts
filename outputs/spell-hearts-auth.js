@@ -563,6 +563,12 @@ function playStoryModeSelectSfx(){
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
+function playChapterOneSelectSfx(){
+  let sound=document.querySelector('#chapterOneSelectSfx');
+  if(!sound){sound=document.createElement('audio');sound.id='chapterOneSelectSfx';sound.src='assets/chapter-one-select.mp3';sound.preload='auto';document.body.append(sound);}
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.currentTime=0;sound.play().catch(()=>{});
+}
 function startChapterOne(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
@@ -574,10 +580,11 @@ function startChapterOne(){
     scene.querySelector('.chapter-return-title').onclick=()=>location.href=location.pathname;
   }
   scene.querySelector('.chapter-dialogue').hidden=true;
-  scene.classList.remove('show');
+  scene.classList.remove('preparing','show');
   title?.classList.add('dismiss');
-  setTimeout(()=>scene.classList.add('show'),900);
-  setTimeout(()=>{if(scene.classList.contains('show'))scene.querySelector('.chapter-dialogue').hidden=false;},2350);
+  scene.classList.add('preparing');
+  setTimeout(()=>scene.classList.add('show'),1120);
+  setTimeout(()=>{if(scene.classList.contains('show'))scene.querySelector('.chapter-dialogue').hidden=false;},2570);
 }
 window.startChapterOne=startChapterOne;
 function openStoryMode(){
@@ -596,7 +603,7 @@ function openStoryMode(){
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'旅立ち':'挑戦できる章'):'🔒 LOCKED'}</small></button>`;
   }).join('');
   note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{if(button.dataset.storyChapter==='1')startChapterOne();else note.textContent=`Chapter ${button.dataset.storyChapter} は準備中です。`;});
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{if(button.dataset.storyChapter==='1'){playChapterOneSelectSfx();startChapterOne();}else note.textContent=`Chapter ${button.dataset.storyChapter} は準備中です。`;});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
@@ -698,3 +705,4 @@ document.head.append(storyModeStyle);
 const chapterOneStyle=document.createElement('style');
 chapterOneStyle.textContent='.chapter-one-scene{position:fixed;z-index:215;inset:0;overflow:hidden;background:#020509 url("assets/story-training-ground.jpg") center/cover no-repeat;opacity:0;visibility:hidden;transition:opacity 1.25s ease,visibility 1.25s ease}.chapter-one-scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,17,.1),rgba(2,5,10,.5) 78%,rgba(0,0,0,.76));pointer-events:none}.chapter-one-scene.show{opacity:1;visibility:visible}.chapter-return-title{position:absolute;z-index:3;top:14px;right:16px;padding:10px 18px;border:1px solid #d8ae4e;border-radius:4px;background:linear-gradient(180deg,rgba(81,57,18,.93),rgba(23,14,5,.96));box-shadow:inset 0 0 13px rgba(255,220,126,.18),0 2px 14px #0009;color:#fff0ba;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.1em;text-shadow:0 1px 3px #000;cursor:pointer}.chapter-return-title:hover{filter:brightness(1.27)}.chapter-dialogue{position:absolute;z-index:2;left:50%;bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;transform:translateX(-50%);border:1px solid #d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;animation:chapter-dialogue-in .46s ease-out both}.chapter-dialogue[hidden]{display:none}.chapter-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter-speaker{position:absolute;left:26px;top:-17px;min-width:130px;padding:7px 17px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-align:center;text-shadow:0 1px 3px #000}.chapter-dialogue p{position:relative;margin:18px 20px 0;font:clamp(18px,2.25vw,28px)/1.7 "Yu Mincho",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter-next-mark{position:absolute;right:24px;bottom:16px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c;filter:drop-shadow(0 1px 3px #000);animation:chapter-next-bob .82s ease-in-out infinite}.chapter-next-mark:before{content:"";position:absolute;left:-10px;top:-18px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c}@keyframes chapter-dialogue-in{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}@keyframes chapter-next-bob{0%,100%{transform:translateY(0);opacity:.56}50%{transform:translateY(7px);opacity:1}}@media(max-width:600px){.chapter-return-title{top:10px;right:10px;padding:8px 12px;font-size:12px}.chapter-dialogue{bottom:3.5vh;width:94vw;min-height:122px;padding:23px 16px 26px}.chapter-speaker{left:18px;top:-15px;min-width:104px;padding:6px 12px;font-size:13px}.chapter-dialogue p{margin:16px 8px 0;font-size:16px}.chapter-next-mark{right:17px;bottom:13px}}';
 document.head.append(chapterOneStyle);
+chapterOneStyle.textContent+='.chapter-one-scene{z-index:199;isolation:isolate;background:#020509}.chapter-one-scene.preparing{opacity:1;visibility:visible}.chapter-one-scene:before{content:"";position:absolute;z-index:0;inset:0;background:url("assets/story-training-ground.jpg") center/cover no-repeat;opacity:0;transition:opacity 1.25s ease}.chapter-one-scene.show:before{opacity:1}.chapter-one-scene:after{z-index:1}.chapter-one-scene.show{opacity:1;visibility:visible}';
