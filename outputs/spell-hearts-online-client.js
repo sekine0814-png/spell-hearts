@@ -10,6 +10,7 @@
   const grave=w=>w==='p'?'#pGrave':'#cGrave';
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
   const back=(w,kind)=>`<img class="spell-back" src="${A+(w==='p'?(kind==='battle'?'red-battle-back.png':'red-spell-back.png'):(kind==='battle'?'blue-battle-back.jpg':'blue-spell-back.jpg'))}" alt="">`;
+  const battleFace=(w,key)=>A+(window.getSpellHeartsBattleArt?.((w==='p'?net?.red:net?.blue)?.cosmetics,key)||cards[key].i);
   const onlineStyle=document.createElement('style');
   onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.flight-target{display:block!important;visibility:hidden}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
   document.head.append(onlineStyle);
@@ -18,7 +19,7 @@
   onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
 
   function hand(){
-    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${img(cards[k].i)}</button>`).join('')}</div>`;
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${img(battleFace(net.side,k))}</button>`).join('')}</div>`;
   }
 
   function showResult(){
@@ -94,8 +95,8 @@
       $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${A+card.image}" title="${card.title}" alt="">`).join('');
     }
     const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
-    $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):img(cards[battle.a].i)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
-    $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):img(cards[battle.b].i)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
+    $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):img(battleFace('p',battle.a))):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
+    $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):img(battleFace('c',battle.b))):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
     let message=net.waiting?'対戦相手の入室を待っています。':net.message||'';
     if(net.phase==='pick')message=`ROUND ${net.round} ― <span class="battle-select-prompt">バトルカードを選択</span>`;
     $('#message').innerHTML=message;
@@ -146,7 +147,7 @@
     joining=true;
     document.body.classList.add('online-mode');
     socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
-    socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
+    socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
     socket.onmessage=event=>{
       let message; try{message=JSON.parse(event.data)}catch{return;}
       if(message.type==='error'){ $('#roomNote').textContent=message.message; joining=false; return; }
@@ -209,4 +210,5 @@
     connect(code);
   };
   if(query.get('room')){activateOnlineControls();connect(query.get('room'));}
+  window.addEventListener('spellhearts-cosmeticschange',event=>send('cosmetics',event.detail));
 })();
