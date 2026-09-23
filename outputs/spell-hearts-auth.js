@@ -631,8 +631,9 @@ function tutorialFocusElement(target,onChoose){
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
   const button=document.createElement('button');
   button.type='button';button.className='tutorial-focus-button';button.setAttribute('aria-label','ここを選択');
-  const place=()=>{const box=target.getBoundingClientRect();Object.assign(button.style,{left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
-  place();lock.append(button);requestAnimationFrame(place);
+  const place=()=>{const visual=target.querySelector('img')||target,box=visual.getBoundingClientRect();Object.assign(button.style,{left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
+  const follow=()=>{if(!button.isConnected)return;place();requestAnimationFrame(follow);};
+  place();lock.append(button);requestAnimationFrame(follow);
   button.onclick=()=>{tutorialUnlock();onChoose?.();};
 }
 function tutorialFocus(selector,onChoose){tutorialFocusElement(document.querySelector(selector),onChoose);}
