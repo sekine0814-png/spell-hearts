@@ -617,7 +617,7 @@ function tutorialLock(){
   lock.hidden=false;lock.classList.remove('focus');lock.replaceChildren();
   return lock;
 }
-function tutorialUnlock(){const lock=document.querySelector('#tutorialInputLock');if(lock){lock.hidden=true;lock.replaceChildren();}}
+function tutorialUnlock(){const lock=document.querySelector('#tutorialInputLock');if(lock){lock.hidden=true;lock.replaceChildren();}document.querySelectorAll('.tutorial-focus-target').forEach(target=>target.classList.remove('tutorial-focus-target'));}
 function tutorialDialogue(text,next){
   const intro=document.querySelector('#tutorialBattleIntro');if(!intro)return;
   const dialogue=intro.querySelector('.tutorial-battle-dialogue'),copy=dialogue.querySelector('p');
@@ -629,10 +629,8 @@ function tutorialFocusElement(target,onChoose){
   const intro=document.querySelector('#tutorialBattleIntro'),lock=tutorialLock();
   if(!target)return;
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
-  const box=target.getBoundingClientRect(),button=document.createElement('button');
-  button.type='button';button.className='tutorial-focus-button';button.setAttribute('aria-label','ここを選択');
-  Object.assign(button.style,{left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`});
-  button.onclick=()=>{tutorialUnlock();onChoose?.();};lock.append(button);
+  target.classList.add('tutorial-focus-target');
+  target.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();tutorialUnlock();onChoose?.();},{once:true,capture:true});
 }
 function tutorialFocus(selector,onChoose){tutorialFocusElement(document.querySelector(selector),onChoose);}
 function tutorialFocusCard(card,onChoose){
@@ -949,3 +947,4 @@ chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-
 chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34px;right:auto;top:58px}.story-active .battle-settings-panel{z-index:231;left:34px;right:auto;top:108px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}@media(max-width:600px){.story-active .battle-settings{left:16px;right:auto;top:50px}.story-active .battle-settings-panel{left:16px;right:auto;top:96px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}}';
 chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
 chapterOneStyle.textContent+='.story-active .below{display:none}';
+chapterOneStyle.textContent+='#tutorialInputLock{background:rgba(0,0,0,.76)}.tutorial-focus-target{position:relative!important;z-index:156!important;filter:brightness(1.34)!important;outline:2px solid #ffe37d!important;outline-offset:2px;border-radius:7px;box-shadow:0 0 12px 4px rgba(255,218,104,.92),inset 0 0 13px rgba(255,239,150,.48)!important;animation:tutorial-target-pulse 1.05s ease-in-out infinite!important}.tutorial-focus-target *{pointer-events:none}';
