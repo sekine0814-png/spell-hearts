@@ -611,6 +611,12 @@ function playChapterOneSelectSfx(){
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
+function preloadStorySelectSfx(){
+  for(const [id,src] of [['storyModeSelectSfx','assets/story-mode-select.mp3'],['chapterOneSelectSfx','assets/chapter-one-select.mp3']]){
+    if(document.querySelector('#'+id))continue;
+    const sound=document.createElement('audio');sound.id=id;sound.src=src;sound.preload='auto';sound.load();document.body.append(sound);
+  }
+}
 function tutorialLock(){
   let lock=document.querySelector('#tutorialInputLock');
   if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
@@ -680,7 +686,7 @@ function tutorialRoundOne(){
     tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>{
       tutorialDialogue('スペルカードは、使っても使わなくてもいい。\n使わない場合は、バトルカード山札の「OK！」を押すんだ。',()=>{
         tutorialDialogue('今回は追い打ちを使ってみろ。',()=>tutorialUseSpell(()=>{
-          tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n俺に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
+          tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n相手に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
         }));
       });
     });
@@ -942,6 +948,7 @@ makeDressupButton();
 makeRecordButton();
 makeTutorialButton();
 makeBattleSettings();
+preloadStorySelectSfx();
 installTitleBgm();
 
 const style=document.createElement('style');
