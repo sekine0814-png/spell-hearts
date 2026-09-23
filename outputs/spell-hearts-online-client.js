@@ -153,6 +153,7 @@
       if(message.type==='error'){ $('#roomNote').textContent=message.message; joining=false; return; }
       if(message.type==='joined'){
         history.replaceState({},'',location.pathname+'?room='+encodeURIComponent(message.room));
+        window.setBattleBackdrop?.();
         $('#titleScreen').classList.add('dismiss');
       }
       if(message.type==='state'){
