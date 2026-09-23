@@ -555,6 +555,27 @@ function makeRecordButton(){
   if(!form||document.querySelector('#recordButton'))return;
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
+function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
+function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
+function openStoryMode(){
+  let panel=document.querySelector('#storyModePanel');
+  if(!panel){
+    panel=document.createElement('section');panel.id='storyModePanel';panel.className='story-mode-panel';
+    panel.innerHTML='<div class="story-mode-book" role="dialog" aria-modal="true" aria-labelledby="storyModeTitle"><button class="story-mode-close" type="button" aria-label="閉じる">×</button><p class="story-mode-kicker">SPELL HEART CHRONICLE</p><h2 id="storyModeTitle">ストーリーモード</h2><p class="story-mode-copy">進む道を選んでください</p><div class="story-chapters"></div><p class="story-mode-note"></p></div>';
+    document.body.append(panel);
+    panel.querySelector('.story-mode-close').onclick=()=>panel.hidden=true;
+    panel.onclick=event=>{if(event.target===panel)panel.hidden=true;};
+  }
+  const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
+  chapters.innerHTML=[1,2].map(chapter=>{
+    const available=chapter<=unlocked;
+    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?'挑戦できる章':'🔒 LOCKED'}</small></button>`;
+  }).join('');
+  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{note.textContent=`Chapter ${button.dataset.storyChapter} は準備中です。`;});
+  panel.hidden=false;
+}
+window.openStoryMode=openStoryMode;
 function openTutorial(){
   let modal=document.querySelector('#tutorialPanel');
   if(!modal){
@@ -647,3 +668,6 @@ tutorialStyle.textContent+='.tutorial-book{width:min(94vw,680px)}.tutorial-rule,
 recordStyle.textContent+='.record-panel{position:fixed;top:50%;bottom:auto;transform:translate(-50%,-50%)}';
 style.textContent+='.auth-form .auth-nickname{display:none}.auth-form.registering .auth-nickname{display:grid}';
 style.textContent+='.title-settings{position:absolute;z-index:3;top:28px;left:34px;width:42px;height:42px;border:1px solid #d8ae4e;border-radius:50%;background:radial-gradient(circle at 35% 28%,#88703a,#251a0a 67%);box-shadow:inset 0 0 10px #ffe19a44,0 2px 12px #0009;color:#ffe9a0;font:25px/1 serif;text-shadow:0 1px 3px #000;cursor:pointer;transition:filter .2s,transform .3s}.title-settings:hover{filter:brightness(1.3)}.title-settings.open{transform:rotate(90deg)}.settings-panel{position:absolute;z-index:4;top:78px;left:34px;width:245px;padding:16px;border:1px solid #d8ae4e;border-radius:5px;background:linear-gradient(145deg,rgba(32,30,22,.97),rgba(7,9,14,.98));box-shadow:inset 0 0 20px #d99d2e22,0 9px 25px #000b;color:#f9e7ad;font:13px Georgia,"Yu Mincho",serif}.settings-panel[hidden]{display:none}.settings-heading{margin-bottom:13px;color:#ffe9a0;font-size:16px;letter-spacing:.16em;text-align:center;text-shadow:0 0 8px #d69320}.settings-panel label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:10px 0}.settings-name{grid-column:1/-1;width:100%;padding:7px;border:1px solid #8d6c2e;background:#0b0c11;color:#fff0bd;font:14px Georgia,"Yu Mincho",serif}.settings-save{width:100%;padding:7px;border:1px solid #c79c37;background:linear-gradient(#72531c,#291906);color:#fff1b6;font:13px Georgia,"Yu Mincho",serif;cursor:pointer}.settings-panel input[type=range]{accent-color:#e8b543}.settings-panel output{justify-self:end;color:#ffeaa5}@media(max-width:600px){.title-settings{top:16px;left:16px;width:36px;height:36px;font-size:22px}.settings-panel{top:58px;left:16px;width:225px}}';
+const storyModeStyle=document.createElement('style');
+storyModeStyle.textContent='.story-mode-panel{position:fixed;z-index:275;inset:0;display:grid;place-items:center;padding:20px;background:rgba(1,4,9,.8);backdrop-filter:blur(5px)}.story-mode-panel[hidden]{display:none}.story-mode-book{position:relative;width:min(92vw,610px);padding:42px 48px 40px;border:1px solid #d8ae4e;border-radius:8px;background:radial-gradient(ellipse at 50% 18%,rgba(74,54,101,.97),rgba(11,10,18,.99) 70%);box-shadow:inset 0 0 48px rgba(181,136,255,.15),0 22px 68px #000;color:#f7e7bc;text-align:center}.story-mode-book:before{content:"";position:absolute;inset:10px;border:1px solid rgba(225,184,77,.34);border-radius:4px;pointer-events:none}.story-mode-close{position:absolute;z-index:1;right:18px;top:14px;border:0;background:transparent;color:#e4cb82;font:29px/1 Georgia,serif;cursor:pointer}.story-mode-kicker,.story-mode-book h2,.story-mode-copy,.story-chapters,.story-mode-note{position:relative}.story-mode-kicker{margin:0;color:#c9b182;font:11px Georgia,serif;letter-spacing:.24em}.story-mode-book h2{margin:10px 0 9px;color:#fff0b0;font:32px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-shadow:0 0 14px #dba432}.story-mode-copy{margin:0 0 24px;color:#d9ca9f;font:14px "Yu Gothic",sans-serif}.story-chapters{display:grid;grid-template-columns:1fr 1fr;gap:18px}.story-chapter{min-height:164px;padding:20px 16px;border:1px solid rgba(216,174,78,.72);border-radius:5px;background:linear-gradient(145deg,rgba(48,39,63,.92),rgba(8,8,14,.96));box-shadow:inset 0 0 22px rgba(193,154,255,.11),0 5px 14px #0008;color:#ffe8a4;cursor:pointer;transition:transform .18s ease,filter .18s ease}.story-chapter.available:hover{transform:translateY(-5px);filter:brightness(1.25)}.story-chapter-number{display:block;margin:22px 0 13px;font:25px Georgia,"Yu Mincho",serif;letter-spacing:.08em}.story-chapter small{display:block;color:#d7c394;font:12px "Yu Gothic",sans-serif}.story-chapter.locked{border-color:rgba(132,124,145,.48);background:linear-gradient(145deg,rgba(30,30,38,.9),rgba(8,8,12,.98));box-shadow:none;color:#777080;cursor:not-allowed;filter:saturate(.35)}.story-chapter.locked .story-chapter-number{color:#92899a}.story-mode-note{min-height:1.5em;margin:22px 0 0;color:#c5b68d;font:13px "Yu Gothic",sans-serif}@media(max-width:600px){.story-mode-book{padding:39px 26px 30px}.story-chapters{gap:9px}.story-chapter{min-height:135px;padding:14px 7px}.story-chapter-number{margin:17px 0 10px;font-size:19px}.story-mode-book h2{font-size:26px}}';
+document.head.append(storyModeStyle);
