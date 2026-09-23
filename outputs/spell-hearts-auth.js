@@ -639,13 +639,13 @@ function tutorialGlowCard(card){
 }
 function beginBattleCardLesson(){
   window.openBattle?.();
-  setTimeout(()=>tutorialDialogue('バトルカードは4種類あるぞ。基本はグー、チョキ、パーのジャンケンだ。',()=>{
+  setTimeout(()=>tutorialDialogue('バトルカードは4種類あるぞ。\n基本はグー、チョキ、パーのジャンケンだ。',()=>{
     tutorialDialogue('それと、アンプリファイアと呼ばれる特殊カードが1枚。',()=>{
       tutorialDialogue('バトルの基本はジャンケンだ。ただし普通のジャンケンではない。',()=>{
         tutorialGlowCard('rock');tutorialDialogue('グーで勝つと1ダメージ。',()=>{
           tutorialGlowCard('scissors');tutorialDialogue('チョキで勝つと2ダメージ。',()=>{
             tutorialGlowCard('paper');tutorialDialogue('パーで勝つと5ダメージ。',()=>{
-              tutorialGlowCard('');tutorialDialogue('ジャンケンで勝った方が負けた方にダメージを与える。自分のHPは10ポイントで、先に相手のHPを0にした方の勝ちだ。');
+              tutorialGlowCard('');tutorialDialogue('ジャンケンで勝った方が負けた方にダメージを与える。\n自分のHPは10ポイントで、先に相手のHPを0にした方の勝ちだ。');
             });
           });
         });
@@ -657,7 +657,7 @@ function beginSpellDrawLesson(){
   tutorialFocus('#pSpell',()=>{
     if(typeof g!=='undefined'){g.p.deck=['block','scheme','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     window.drawInitial?.();
-    setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、チャージエリアに伏せて置かれる。',()=>{
+    setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、\nチャージエリアに伏せて置かれる。',()=>{
       tutorialDialogue('次は、このバトルカードをドローするんだ。',()=>tutorialFocus('#pBattle',beginBattleCardLesson));
     }),780);
   });
@@ -683,7 +683,7 @@ function beginChapterOneTutorial(scene){
     startTutorialBattleBgm();
     requestAnimationFrame(()=>{intro.classList.add('show');curtain.classList.add('lift');});
     setTimeout(()=>curtain.remove(),950);
-    setTimeout(()=>tutorialDialogue('よし、始めるぞ。まずは実際に手を動かして、戦い方を覚えていこう。',()=>{
+    setTimeout(()=>tutorialDialogue('よし、始めるぞ。まずは実際に手を動かして、\n戦い方を覚えていこう。',()=>{
       tutorialDialogue('戦闘は、まずお互いにこのスペルカードをドローするところから始まる。',beginSpellDrawLesson);
     }),980);
   },720);
@@ -698,9 +698,9 @@ function startChapterOne(){
     {speaker:'先輩',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
     {speaker:'主人公',text:'先輩。うん、昨日の型がどうにも決まらなくて。'},
     {speaker:'先輩',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
-    {speaker:'先輩',text:'ほら、基本の型はこうだ。足を置いて、相手の動きを見てから手を出す。'},
+    {speaker:'先輩',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
     {speaker:'主人公',text:'なるほど……先に当てにいこうとしてた。'},
-    {speaker:'先輩',text:'その通り。今日は俺が相手になる。遊びながら、戦い方のコツを教えてやるよ。'}
+    {speaker:'先輩',text:'その通り。今日は俺が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
   ];
   let scene=document.querySelector('#chapterOneScene');
   if(!scene){
@@ -851,3 +851,4 @@ chapterOneStyle.textContent+='.chapter-one-scene{z-index:199;isolation:isolate;b
 chapterOneStyle.textContent+='.chapter-dialogue{font:inherit;text-align:left;cursor:pointer}.chapter-dialogue[data-ended="true"] .chapter-next-mark{opacity:0}.chapter-npc-card{position:absolute;z-index:2;right:6vw;bottom:22vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-npc-card[hidden]{display:none}.chapter-npc-card.enter{animation:chapter-npc-enter .55s cubic-bezier(.16,.82,.28,1) both}.chapter-npc-card.speaker-active{z-index:4;transform:translateX(-14px) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-npc-card.speaker-idle{z-index:2;transform:translateX(18px) scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-npc-enter{from{opacity:0;transform:translateX(90px) scale(.72)}to{opacity:.76;transform:translateX(18px) scale(.92)}}@media(max-width:600px){.chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}.chapter-npc-card.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-npc-card.speaker-idle{transform:translateX(8px) scale(.9)}}';
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-scene.leaving .chapter-dialogue,.chapter-one-scene.leaving .chapter-npc-card{pointer-events:none}#tutorialBattleCurtain{position:fixed;z-index:198;inset:0;background:#000;opacity:1;transition:opacity 1.1s ease;pointer-events:none}#tutorialBattleCurtain.lift{opacity:0}#tutorialBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease}#tutorialBattleIntro[hidden]{display:none}#tutorialBattleIntro.show{opacity:1}#tutorialBattleIntro .chapter-npc-card{position:fixed}#tutorialBattleIntro .tutorial-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}#tutorialInputLock{position:fixed;z-index:155;inset:0;pointer-events:auto}#tutorialInputLock[hidden]{display:none}.tutorial-focus-button{position:fixed;z-index:1;border:2px solid #ffe37d;border-radius:7px;background:transparent;box-shadow:0 0 0 100vmax rgba(0,0,0,.76),0 0 12px 4px rgba(255,218,104,.9),inset 0 0 13px rgba(255,239,150,.5);cursor:pointer;animation:tutorial-target-pulse 1.05s ease-in-out infinite}@keyframes tutorial-target-pulse{0%,100%{filter:brightness(1);transform:scale(1)}50%{filter:brightness(1.36);transform:scale(1.035)}}.tutorial-card-glow{position:relative;z-index:25;filter:brightness(1.36)!important;box-shadow:0 0 0 2px #ffe584,0 0 23px 8px rgba(255,201,67,.9)!important;animation:tutorial-card-pulse 1s ease-in-out infinite}@keyframes tutorial-card-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}@media(max-width:600px){#tutorialBattleIntro .chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}}';
 chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34px;right:auto;top:58px}.story-active .battle-settings-panel{z-index:231;left:34px;right:auto;top:108px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}@media(max-width:600px){.story-active .battle-settings{left:16px;right:auto;top:50px}.story-active .battle-settings-panel{left:16px;right:auto;top:96px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}}';
+chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
