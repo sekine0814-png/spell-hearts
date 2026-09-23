@@ -147,6 +147,68 @@ function openAstrologianConfirm(item){
     dialog.querySelector('.exchange-confirm-no').onclick=close;
   };
 }
+const normalDressupItems={
+  'バトルカード':[
+    {name:'グー',image:'assets/rock.jpg'},
+    {name:'チョキ',image:'assets/scissors.jpg'},
+    {name:'パー',image:'assets/paper.jpg'}
+  ],
+  'バトルカードシュリンク':[{name:'ノーマル',image:'assets/red-battle-back.png'}],
+  'スペルカードシュリンク':[{name:'ノーマル',image:'assets/blue-spell-back.jpg'}]
+};
+function showDressupOwnedItems(hall,category){
+  const content=hall.querySelector('.item-exchange-detail-content'),items=normalDressupItems[category]||[];
+  content.innerHTML=`<h3>ノーマルシリーズ</h3><p>所持しているアイテム</p><div class="dressup-owned-items">${items.map(item=>`<button type="button" data-dressup-item="${item.name}"><img src="${item.image}" alt="${category} ${item.name}"><span>${item.name}</span></button>`).join('')}</div>`;
+  content.querySelectorAll('[data-dressup-item]').forEach(button=>button.onclick=()=>{
+    const item=items.find(entry=>entry.name===button.dataset.dressupItem);
+    if(item)openDressupConfirm(category,item);
+  });
+}
+function showDressupSeries(hall,category){
+  const content=hall.querySelector('.item-exchange-detail-content'),preview=(normalDressupItems[category]||[])[0];
+  content.innerHTML=`<button class="dressup-series" type="button"><img src="${preview.image}" alt="ノーマルシリーズ"><span>ノーマルシリーズ</span><small>所持済み</small></button>`;
+  content.querySelector('.dressup-series').onclick=()=>showDressupOwnedItems(hall,category);
+}
+function openDressupConfirm(category,item){
+  let dialog=document.querySelector('#dressupConfirm');
+  if(!dialog){dialog=document.createElement('section');dialog.id='dressupConfirm';dialog.className='item-exchange-confirm';document.body.append(dialog);}
+  const close=()=>dialog.hidden=true;
+  dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="${category} ${item.name}"><p>${category}「${item.name}」を着せ替えますか？</p><div><button type="button" class="dressup-confirm-yes">はい</button><button type="button" class="exchange-confirm-no">いいえ</button></div></div>`;
+  dialog.hidden=false;
+  dialog.onclick=event=>{if(event.target===dialog)close();};
+  dialog.querySelector('.exchange-confirm-no').onclick=close;
+  dialog.querySelector('.dressup-confirm-yes').onclick=()=>{
+    dialog.querySelector('.item-exchange-confirm-box').innerHTML=`<img src="${item.image}" alt="${category} ${item.name}"><p>${category}「${item.name}」を着せ替えました！</p><button type="button" class="exchange-confirm-no">閉じる</button>`;
+    dialog.querySelector('.exchange-confirm-no').onclick=close;
+  };
+}
+function openDressupMenu(){
+  let hall=document.querySelector('#dressupPanel');
+  if(!hall){
+    hall=document.createElement('section');hall.id='dressupPanel';hall.className='item-exchange-panel dressup-panel';
+    hall.innerHTML='<div class="item-exchange-book" role="dialog" aria-modal="true" aria-labelledby="dressupTitle"><button class="item-exchange-close" type="button" aria-label="閉じる">×</button><p class="item-exchange-kicker">WARDROBE</p><h2 id="dressupTitle">着せ替え</h2><p class="item-exchange-copy">着せ替えたいカードの種類を選んでください</p><div class="item-exchange-categories"><button type="button" data-dressup-category="バトルカード"><img src="assets/rock.jpg" alt="バトルカード"><span>バトルカード</span></button><button type="button" data-dressup-category="バトルカードシュリンク"><img src="assets/red-battle-back.png" alt="バトルカードシュリンク"><span>バトルカード<br>シュリンク</span></button><button type="button" data-dressup-category="スペルカードシュリンク"><img src="assets/blue-spell-back.jpg" alt="スペルカードシュリンク"><span>スペルカード<br>シュリンク</span></button></div><div class="item-exchange-detail" hidden><button class="item-exchange-detail-back" type="button">← カードの種類を選ぶ</button><div class="item-exchange-detail-content"></div></div><button class="item-exchange-return" type="button">戻る</button></div>';
+    document.body.append(hall);
+    hall.querySelector('.item-exchange-close').onclick=()=>hall.hidden=true;
+    hall.querySelector('.item-exchange-return').onclick=()=>hall.hidden=true;
+    hall.querySelector('.item-exchange-detail-back').onclick=()=>{
+      hall.querySelector('.item-exchange-detail').hidden=true;
+      hall.querySelector('.item-exchange-categories').hidden=false;
+      hall.querySelector('.item-exchange-copy').hidden=false;
+    };
+    hall.querySelectorAll('[data-dressup-category]').forEach(button=>button.onclick=()=>{
+      const category=button.dataset.dressupCategory;
+      hall.querySelector('.item-exchange-categories').hidden=true;
+      hall.querySelector('.item-exchange-copy').hidden=true;
+      showDressupSeries(hall,category);
+      hall.querySelector('.item-exchange-detail').hidden=false;
+    });
+    hall.onclick=event=>{if(event.target===hall)hall.hidden=true;};
+  }
+  hall.querySelector('.item-exchange-detail').hidden=true;
+  hall.querySelector('.item-exchange-categories').hidden=false;
+  hall.querySelector('.item-exchange-copy').hidden=false;
+  hall.hidden=false;
+}
 function openItemExchange(){
   const summonPanel=document.querySelector('#summonGatePanel');
   if(summonPanel)summonPanel.hidden=true;
@@ -223,7 +285,7 @@ function makeDressupButton(){
   const button=document.createElement('button');
   button.id='dressupButton';button.className='dressup-button';button.type='button';button.setAttribute('aria-label','着せ替え');
   button.innerHTML='<span>着せ替え</span><img class="dressup-card" src="assets/spell-hearts-dressup-card.png" alt="">';
-  title.append(button);
+  button.onclick=openDressupMenu;title.append(button);
 }
 window.awardSpellHeartsTokens=(amount,matchId)=>{
   const reward=Math.max(0,Number(amount)||0),matchKey=`spellHeartsTokensAwarded:${matchId}`;
@@ -496,7 +558,7 @@ summonStyle.textContent+='.summon-exchange{position:relative;display:block;width
 summonStyle.textContent+='.item-exchange-panel{position:fixed;z-index:280;inset:0;display:grid;place-items:center;padding:24px;background:rgba(1,3,8,.84);backdrop-filter:blur(7px)}.item-exchange-panel[hidden]{display:none}.item-exchange-book{position:relative;width:min(92vw,810px);min-height:430px;padding:42px 54px 32px;border:1px solid #d8ae4e;border-radius:9px;background:radial-gradient(ellipse at 50% 15%,rgba(86,60,28,.7),rgba(12,11,15,.97) 68%);box-shadow:inset 0 0 52px rgba(201,150,50,.18),0 25px 78px #000;color:#f8e8bc;text-align:center}.item-exchange-book:before{content:"";position:absolute;inset:11px;border:1px solid rgba(225,184,77,.38);border-radius:5px;pointer-events:none}.item-exchange-close{position:absolute;z-index:1;right:18px;top:14px;border:0;background:transparent;color:#e4cb82;font:29px/1 Georgia,serif;cursor:pointer}.item-exchange-kicker,.item-exchange-book h2,.item-exchange-copy,.item-exchange-categories,.item-exchange-detail,.item-exchange-return{position:relative}.item-exchange-kicker{margin:0;color:#c9b182;font:11px Georgia,serif;letter-spacing:.26em}.item-exchange-book h2{margin:10px 0 9px;color:#fff0b0;font:32px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-shadow:0 0 14px #dba432}.item-exchange-copy{margin:0 0 24px;color:#d9ca9f;font:14px "Yu Gothic",sans-serif}.item-exchange-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:19px;align-items:start}.item-exchange-categories button{min-height:238px;padding:12px 10px 14px;border:1px solid rgba(216,174,78,.72);border-radius:5px;background:linear-gradient(145deg,rgba(49,37,23,.88),rgba(7,8,13,.92));box-shadow:inset 0 0 22px rgba(197,145,42,.12),0 6px 16px #0008;color:#ffe8a4;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.08em;cursor:pointer;transition:transform .18s ease,filter .18s ease}.item-exchange-categories button:hover{filter:brightness(1.25);transform:translateY(-5px)}.item-exchange-categories img{display:block;width:136px;height:168px;margin:0 auto 12px;object-fit:contain;filter:drop-shadow(0 5px 6px #000)}.item-exchange-categories span{display:block;line-height:1.35}.item-exchange-detail{min-height:252px;padding:22px 12px}.item-exchange-detail-back{position:absolute;left:6px;top:3px;border:0;background:transparent;color:#d8c38b;font:13px Georgia,"Yu Mincho",serif;cursor:pointer}.item-exchange-detail-content{display:grid;place-items:center;gap:12px;min-height:230px;padding:18px;border:1px solid rgba(216,174,78,.35);background:rgba(2,3,7,.48)}.item-exchange-detail-content h3{margin:0;color:#ffe7a0;font:25px Georgia,"Yu Mincho",serif}.item-exchange-detail-content p{margin:0;color:#d8c8a0;font:14px "Yu Gothic",sans-serif}.item-exchange-empty{width:min(100%,410px);padding:24px 12px;border:1px dashed rgba(216,174,78,.48);color:#ad9a74;font:14px "Yu Gothic",sans-serif}.item-exchange-return{margin-top:22px;min-width:150px;padding:9px 15px;border:1px solid #c59b38;border-radius:3px;background:linear-gradient(#684a16,#261704);color:#fff0b2;font:14px Georgia,"Yu Mincho",serif;cursor:pointer}.item-exchange-return:hover{filter:brightness(1.25)}@media(max-width:600px){.item-exchange-book{min-height:450px;padding:38px 25px 24px}.item-exchange-categories{gap:8px}.item-exchange-categories button{min-height:170px;padding:8px 4px;font-size:12px}.item-exchange-categories img{width:76px;height:108px;margin-bottom:8px}.item-exchange-detail{min-height:230px;padding-top:30px}.item-exchange-detail-content{min-height:190px}.item-exchange-book h2{font-size:26px}}';
 const itemExchangeStyle=document.createElement('style');
 itemExchangeStyle.textContent='.astrologian-feature{display:grid;gap:12px;place-items:center;width:min(100%,240px);margin:auto;padding:8px 8px 13px;border:1px solid rgba(216,174,78,.72);border-radius:5px;background:linear-gradient(145deg,rgba(35,47,71,.88),rgba(7,8,13,.92));box-shadow:inset 0 0 22px rgba(157,190,255,.16),0 6px 16px #0008;color:#ffe8a4;font:20px Georgia,"Yu Mincho",serif;letter-spacing:.1em;cursor:pointer;transition:transform .18s ease,filter .18s ease}.astrologian-feature:hover{filter:brightness(1.22);transform:translateY(-4px)}.astrologian-feature img{width:180px;height:212px;object-fit:cover;object-position:center;box-shadow:0 5px 13px #000}.astrologian-items{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:min(100%,590px);margin:4px auto 0}.astrologian-items button{padding:7px 6px 9px;border:1px solid rgba(216,174,78,.65);border-radius:4px;background:linear-gradient(145deg,rgba(37,45,67,.94),rgba(7,8,13,.95));color:#ffe8a4;font:15px Georgia,"Yu Mincho",serif;cursor:pointer;transition:transform .18s ease,filter .18s ease}.astrologian-items button:hover{filter:brightness(1.26);transform:translateY(-4px)}.astrologian-items img{display:block;width:100%;height:172px;margin-bottom:7px;object-fit:cover;object-position:center;box-shadow:0 4px 10px #000}.item-exchange-confirm{position:fixed;z-index:290;inset:0;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.62);backdrop-filter:blur(3px)}.item-exchange-confirm[hidden]{display:none}.item-exchange-confirm-box{width:min(86vw,350px);padding:24px;border:1px solid #d8ae4e;border-radius:6px;background:linear-gradient(145deg,rgba(30,32,46,.98),rgba(7,8,13,.99));box-shadow:inset 0 0 27px rgba(153,187,255,.15),0 15px 45px #000;color:#fff0bd;text-align:center}.item-exchange-confirm-box img{display:block;width:104px;height:125px;margin:-2px auto 12px;object-fit:cover;box-shadow:0 4px 12px #000}.item-exchange-confirm-box p{margin:0 0 19px;font:16px/1.65 "Yu Gothic",sans-serif}.item-exchange-confirm-box>div{display:flex;justify-content:center;gap:15px}.item-exchange-confirm-box button{min-width:104px;padding:9px 14px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(#72531c,#291906);color:#fff0b2;font:14px Georgia,"Yu Mincho",serif;cursor:pointer}.item-exchange-confirm-box .exchange-confirm-no{border-color:#aaa5b2;background:linear-gradient(#4b4851,#1b1920)}@media(max-width:600px){.astrologian-feature{width:190px}.astrologian-feature img{width:145px;height:171px}.astrologian-items{gap:6px}.astrologian-items button{font-size:12px;padding:5px}.astrologian-items img{height:112px}}';
-itemExchangeStyle.textContent+='.astrologian-items [data-astrologian-item="チョキ"] img{object-position:center 20%}.astrologian-items [data-astrologian-item="パー"] img{object-position:center 24%}';
+itemExchangeStyle.textContent+='.astrologian-items [data-astrologian-item="チョキ"] img{object-position:center 20%}.astrologian-items [data-astrologian-item="パー"] img{object-position:center 24%}.dressup-series{display:grid;place-items:center;gap:7px;width:min(100%,236px);margin:4px auto;padding:9px 9px 13px;border:1px solid rgba(216,174,78,.72);border-radius:5px;background:linear-gradient(145deg,rgba(38,40,53,.9),rgba(7,8,13,.95));box-shadow:inset 0 0 22px rgba(234,197,111,.1),0 6px 16px #0008;color:#ffe8a4;cursor:pointer;transition:transform .18s ease,filter .18s ease}.dressup-series:hover{transform:translateY(-4px);filter:brightness(1.22)}.dressup-series img{width:170px;height:201px;object-fit:cover;object-position:center;box-shadow:0 5px 13px #000}.dressup-series span{font:20px Georgia,"Yu Mincho",serif;letter-spacing:.08em}.dressup-series small{font:13px "Yu Gothic",sans-serif;color:#cbb987}.dressup-owned-items{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;width:min(100%,590px);margin:4px auto 0}.dressup-owned-items button{width:calc((100% - 24px)/3);min-width:128px;padding:7px 6px 9px;border:1px solid rgba(216,174,78,.65);border-radius:4px;background:linear-gradient(145deg,rgba(40,42,54,.94),rgba(7,8,13,.96));color:#ffe8a4;font:15px Georgia,"Yu Mincho",serif;cursor:pointer;transition:transform .18s ease,filter .18s ease}.dressup-owned-items button:hover{transform:translateY(-4px);filter:brightness(1.26)}.dressup-owned-items img{display:block;width:100%;height:172px;margin-bottom:7px;object-fit:cover;object-position:center;box-shadow:0 4px 10px #000}@media(max-width:600px){.dressup-series{width:190px}.dressup-series img{width:145px;height:171px}.dressup-owned-items{gap:6px}.dressup-owned-items button{min-width:0;padding:5px;font-size:12px}.dressup-owned-items img{height:112px}}';
 document.head.append(itemExchangeStyle);
 const googleButtonStyle=document.createElement('style');
 googleButtonStyle.textContent='.auth-google{position:relative;width:100%;margin:0 0 14px;padding:10px;border:1px solid #a08e62;border-radius:3px;background:#f8f8f6;color:#28231c;font:14px "Yu Gothic",sans-serif;font-weight:bold;cursor:pointer}.auth-google:hover{filter:brightness(.94)}.auth-google:disabled{opacity:.55;cursor:wait}.auth-google span{display:inline-grid;place-items:center;width:19px;height:19px;margin-right:8px;border-radius:50%;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 0 50%,#fbbc05 0 75%,#ea4335 0);color:#fff;font:bold 12px Arial;text-shadow:0 1px 1px #0006}';
