@@ -673,7 +673,7 @@ function tutorialFinishRound(nextRound,next){
   },6000);
 }
 function tutorialRoundOne(){
-  tutorialDialogue('では実戦だ。グーを選んでみろ。相手はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
+  tutorialDialogue('では実戦だ。グーを選んでみろ。俺はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
     tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>{
       tutorialDialogue('スペルカードは、使っても使わなくてもいい。\n使わない場合は、バトルカード山札の「OK！」を押すんだ。',()=>{
         tutorialDialogue('今回は追い打ちを使ってみろ。',()=>tutorialUseSpell(()=>{
@@ -704,7 +704,7 @@ function tutorialBeginAmplifyLesson(){
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
       window.drawInitial?.();
-      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n相手はグーを出してくる。',()=>{
+      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n俺はグーを出してくる。',()=>{
         window.openBattle?.();setTimeout(()=>tutorialPick('amplify','rock',tutorialExplainAmplify),350);
       }),680);
     })),500);
@@ -734,8 +734,8 @@ function tutorialFinishChapterOne(scene){
   scene.classList.add('leaving');
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');
-    document.body.classList.remove('story-active');title?.classList.remove('dismiss');startTitleBgm();
-    requestAnimationFrame(()=>curtain.classList.add('lift'));
+    document.body.classList.remove('story-active');title?.classList.remove('dismiss');title?.classList.add('chapter-title-reveal');startTitleBgm();
+    requestAnimationFrame(()=>{curtain.classList.add('lift');requestAnimationFrame(()=>title?.classList.remove('chapter-title-reveal'));});
     setTimeout(()=>curtain.remove(),1150);
   },1120);
 }
@@ -764,7 +764,7 @@ function tutorialReturnToStory(){
   },1120);
 }
 function tutorialFinalStrike(){
-  tutorialDialogue('最後はチョキだ。相手はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
+  tutorialDialogue('最後はチョキだ。俺はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
     if(typeof g!=='undefined'){g.c.hp=0;g.phase='spell';window.render?.();}
     tutorialDialogue('よくやった。これで相手のHPは0だ。\n本来ならここで勝利となる。',()=>{
       tutorialDialogue('強化ブロックは、受けるダメージを0にして、\nさらに自分のHPを1回復する。',()=>{
@@ -994,3 +994,4 @@ chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-heigh
 chapterOneStyle.textContent+='.story-active .below{display:none}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutorial-focus-target{position:relative!important;z-index:auto!important;filter:none!important;outline:0!important;box-shadow:none!important;animation:none!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain.returning{z-index:220}';
+chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
