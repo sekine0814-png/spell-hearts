@@ -644,6 +644,9 @@ function tutorialFocusCard(card,onChoose){
 function tutorialGlowCard(card){
   document.querySelectorAll('#pBattle .pick').forEach(button=>button.classList.toggle('tutorial-card-glow',button.getAttribute('onclick')?.includes(`pick('${card}')`)));
 }
+function tutorialGlowHp(on){
+  for(const id of ['pHp','cHp'])document.querySelector('#'+id)?.classList.toggle('tutorial-hp-glow',on);
+}
 function tutorialWaitFor(ready,done,tries=0){
   if(ready()){done?.();return;}
   if(tries<150)setTimeout(()=>tutorialWaitFor(ready,done,tries+1),100);
@@ -712,7 +715,7 @@ function tutorialBeginAmplifyLesson(){
 }
 function tutorialExplainAmplify(){
   tutorialDialogue('アンプリファイアは、バトルカードの代わりに出す特殊カードだ。',()=>{
-    tutorialDialogue('そのターンは俺の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
+    tutorialDialogue('そのターンは相手の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
       tutorialDialogue('その代わり、次に使用するスペルの効果を強化できる。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
     });
   });
@@ -783,7 +786,7 @@ function beginBattleCardLesson(){
         tutorialGlowCard('rock');tutorialDialogue('グーで勝つと1ダメージ。',()=>{
           tutorialGlowCard('scissors');tutorialDialogue('チョキで勝つと2ダメージ。',()=>{
             tutorialGlowCard('paper');tutorialDialogue('パーで勝つと5ダメージ。',()=>{
-              tutorialGlowCard('');tutorialDialogue('ジャンケンで勝った方が負けた方にダメージを与える。\n自分のHPは10ポイントで、先に相手のHPを0にした方の勝ちだ。',tutorialRoundOne);
+              tutorialGlowCard('');tutorialGlowHp(true);tutorialDialogue('ジャンケンで勝った方が負けた方にダメージを与える。\n自分のHPは10ポイントで、先に相手のHPを0にした方の勝ちだ。',()=>{tutorialGlowHp(false);tutorialRoundOne();});
             });
           });
         });
@@ -995,3 +998,4 @@ chapterOneStyle.textContent+='.story-active .below{display:none}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutorial-focus-target{position:relative!important;z-index:auto!important;filter:none!important;outline:0!important;box-shadow:none!important;animation:none!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain.returning{z-index:220}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
+chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
