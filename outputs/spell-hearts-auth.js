@@ -677,14 +677,14 @@ function tutorialRoundOne(){
     tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>{
       tutorialDialogue('スペルカードは、使っても使わなくてもいい。\n使わない場合は、バトルカード山札の「OK！」を押すんだ。',()=>{
         tutorialDialogue('今回は追い打ちを使ってみろ。',()=>tutorialUseSpell(()=>{
-          tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n相手に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
+          tutorialDialogue('追い打ちは、バトルに勝ったときに使えるスペルだ。\n俺に与えるダメージを、さらに1増やす。',()=>tutorialFinishRound(2,tutorialRoundTwo));
         }));
       });
     });
   }));
 }
 function tutorialRoundTwo(){
-  tutorialDialogue('次はチョキだ。相手のグーには負けるが、\nブロックを使えば被害を抑えられる。',()=>tutorialPick('scissors','rock',()=>{
+  tutorialDialogue('次はチョキだ。俺のグーには負けるが、\nブロックを使えば被害を抑えられる。',()=>tutorialPick('scissors','rock',()=>{
     tutorialDialogue('惜しい。チョキはグーに負ける。だが、ここでブロックの出番だ。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('ブロックは負けたときに使える。\n受けるダメージを1減らせる。',()=>tutorialFinishRound(3,tutorialRoundThree));
     }));
@@ -692,7 +692,7 @@ function tutorialRoundTwo(){
 }
 function tutorialRoundThree(){
   if(typeof g!=='undefined'){g.c.spell='block';window.render?.();}
-  tutorialDialogue('最後はパーだ。相手もパーを出すから、あいこになる。',()=>tutorialPick('paper','paper',()=>{
+  tutorialDialogue('最後はパーだ。俺もパーを出すから、あいこになる。',()=>tutorialPick('paper','paper',()=>{
     tutorialDialogue('あいこでは互いに1ダメージを受ける。\nここでは謀略を使ってみよう。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('謀略はあいこのときに使える。\n自分だけダメージを受けずに済む。',tutorialBeginAmplifyLesson);
     }));
@@ -704,7 +704,7 @@ function tutorialBeginAmplifyLesson(){
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
       window.drawInitial?.();
-      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n俺はグーを出してくる。',()=>{
+      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n俺はグーを出す。',()=>{
         window.openBattle?.();setTimeout(()=>tutorialPick('amplify','rock',tutorialExplainAmplify),350);
       }),680);
     })),500);
@@ -712,13 +712,13 @@ function tutorialBeginAmplifyLesson(){
 }
 function tutorialExplainAmplify(){
   tutorialDialogue('アンプリファイアは、バトルカードの代わりに出す特殊カードだ。',()=>{
-    tutorialDialogue('そのターンは相手の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
+    tutorialDialogue('そのターンは俺の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
       tutorialDialogue('その代わり、次に使用するスペルの効果を強化できる。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
     });
   });
 }
 function tutorialAmplifiedPursuit(){
-  tutorialDialogue('次はパーだ。相手のグーに勝って、\n強化された追い打ちを使ってみろ。',()=>tutorialPick('paper','rock',()=>{
+  tutorialDialogue('次はパーだ。俺のグーに勝って、\n強化された追い打ちを使ってみろ。',()=>tutorialPick('paper','rock',()=>{
     tutorialDialogue('パーの5ダメージに、強化追い打ちの3ダメージが加わる。\n合計8ダメージだ。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('残りHPは2。次の一手で決めよう。',()=>tutorialFinishRound(3,tutorialFinalStrike));
     }));
@@ -731,7 +731,7 @@ function tutorialFinishChapterOne(scene){
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);}
   curtain.classList.add('returning');
   requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.remove('lift')));
-  scene.classList.add('leaving');
+  /* 暗転が完全に覆うまでストーリー背景を残し、盤面を露出させない。 */
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');
     document.body.classList.remove('story-active');title?.classList.remove('dismiss');title?.classList.add('chapter-title-reveal');startTitleBgm();
@@ -766,9 +766,9 @@ function tutorialReturnToStory(){
 function tutorialFinalStrike(){
   tutorialDialogue('最後はチョキだ。俺はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
     if(typeof g!=='undefined'){g.c.hp=0;g.phase='spell';window.render?.();}
-    tutorialDialogue('よくやった。これで相手のHPは0だ。\n本来ならここで勝利となる。',()=>{
+    tutorialDialogue('よくやった。これで俺のHPは0だ。\n本来ならここで勝利となる。',()=>{
       tutorialDialogue('強化ブロックは、受けるダメージを0にして、\nさらに自分のHPを1回復する。',()=>{
-        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n相手に2ダメージを与える強力な一手だ。',()=>{
+        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n俺に2ダメージを与える強力な一手だ。',()=>{
           tutorialDialogue('よくやった、これで訓練は終了だ。',tutorialReturnToStory);
         });
       });
