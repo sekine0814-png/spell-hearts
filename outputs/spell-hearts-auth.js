@@ -99,7 +99,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -132,6 +132,26 @@ function startChapterOneBgm(){
     chapterOneBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
 }
+function ensureTutorialBattleBgm(){
+  let music=document.querySelector('#tutorialBattleBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopTutorialBattleBgm(){
+  cancelAnimationFrame(tutorialBattleBgmFadeFrame);tutorialBattleBgmFadeFrame=0;
+  const music=document.querySelector('#tutorialBattleBgm');
+  if(music){music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function startTutorialBattleBgm(){
+  const music=ensureTutorialBattleBgm();
+  cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='1';
+  music.play().then(()=>{
+    const began=performance.now(),duration=1150;
+    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
+    tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);
+  }).catch(()=>{music.dataset.fading='';});
+}
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
   if(titleBgmStarted||title?.classList.contains('dismiss'))return;
@@ -147,7 +167,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{stopTitleBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -506,6 +526,7 @@ function applySoundLevels(){
   const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
+  const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100;
   document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo').forEach(sound=>sound.volume=sfx/100);
   return {bgm,sfx};
 }
@@ -590,6 +611,29 @@ function playChapterOneSelectSfx(){
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
+function beginChapterOneTutorial(scene){
+  if(scene.dataset.transitioning==='true')return;
+  scene.dataset.transitioning='true';
+  stopChapterOneBgm();
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  curtain.classList.remove('lift');
+  scene.classList.add('leaving');
+  setTimeout(()=>{
+    scene.hidden=true;
+    window.start?.();
+    let intro=document.querySelector('#tutorialBattleIntro');
+    if(!intro){
+      intro=document.createElement('section');intro.id='tutorialBattleIntro';
+      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.png" alt="先輩"><div class="chapter-dialogue tutorial-battle-dialogue"><span class="chapter-speaker">先輩</span><p>よし、始めるぞ。まずは実際に手を動かして、戦い方を覚えていこう。</p></div>';
+      document.body.append(intro);
+    }
+    intro.hidden=false;
+    startTutorialBattleBgm();
+    requestAnimationFrame(()=>{intro.classList.add('show');curtain.classList.add('lift');});
+    setTimeout(()=>curtain.remove(),950);
+  },720);
+}
 function startChapterOne(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
@@ -621,9 +665,9 @@ function startChapterOne(){
     npc.classList.toggle('speaker-idle',!npcSpeaking);
     dialogue.dataset.ended=String(currentLine===lines.length-1);
   };
-  dialogue.onclick=()=>{if(currentLine<lines.length-1){currentLine+=1;renderLine();}};
+  dialogue.onclick=()=>{if(currentLine<lines.length-1){currentLine+=1;renderLine();}else beginChapterOneTutorial(scene);};
   dialogue.hidden=true;npc.hidden=true;
-  scene.classList.remove('preparing','show');
+  scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('preparing','show','leaving');
   title?.classList.add('dismiss');
   scene.classList.add('preparing');
   setTimeout(()=>{scene.classList.add('show');startChapterOneBgm();},1120);
@@ -750,3 +794,4 @@ chapterOneStyle.textContent='.chapter-one-scene{position:fixed;z-index:215;inset
 document.head.append(chapterOneStyle);
 chapterOneStyle.textContent+='.chapter-one-scene{z-index:199;isolation:isolate;background:#020509}.chapter-one-scene.preparing{opacity:1;visibility:visible}.chapter-one-scene:before{content:"";position:absolute;z-index:0;inset:0;background:url("assets/story-training-ground.jpg") center/cover no-repeat;opacity:0;transition:opacity 1.25s ease}.chapter-one-scene.show:before{opacity:1}.chapter-one-scene:after{z-index:1}.chapter-one-scene.show{opacity:1;visibility:visible}';
 chapterOneStyle.textContent+='.chapter-dialogue{font:inherit;text-align:left;cursor:pointer}.chapter-dialogue[data-ended="true"] .chapter-next-mark{opacity:0}.chapter-npc-card{position:absolute;z-index:2;right:6vw;bottom:22vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-npc-card[hidden]{display:none}.chapter-npc-card.enter{animation:chapter-npc-enter .55s cubic-bezier(.16,.82,.28,1) both}.chapter-npc-card.speaker-active{z-index:4;transform:translateX(-14px) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-npc-card.speaker-idle{z-index:2;transform:translateX(18px) scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-npc-enter{from{opacity:0;transform:translateX(90px) scale(.72)}to{opacity:.76;transform:translateX(18px) scale(.92)}}@media(max-width:600px){.chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}.chapter-npc-card.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-npc-card.speaker-idle{transform:translateX(8px) scale(.9)}}';
+chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-scene.leaving .chapter-dialogue,.chapter-one-scene.leaving .chapter-npc-card{pointer-events:none}#tutorialBattleCurtain{position:fixed;z-index:198;inset:0;background:#000;opacity:1;transition:opacity 1.1s ease;pointer-events:none}#tutorialBattleCurtain.lift{opacity:0}#tutorialBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease}#tutorialBattleIntro[hidden]{display:none}#tutorialBattleIntro.show{opacity:1}#tutorialBattleIntro .chapter-npc-card{position:fixed}#tutorialBattleIntro .tutorial-battle-dialogue{position:fixed;z-index:5;cursor:default}@media(max-width:600px){#tutorialBattleIntro .chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}}';
