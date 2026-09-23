@@ -629,6 +629,36 @@ function installAmplifyChargeSfx(){
   const enhanced=function(fromSelector,toSelector,...rest){if(toSelector==='#pCharge'||toSelector==='#cCharge')playAmplifyChargeSfx();return original.call(this,fromSelector,toSelector,...rest);};
   enhanced.amplifyChargeSfxInstalled=true;window.slideCard=enhanced;
 }
+function localBattleAsset(card){
+  const file=window.getSpellHeartsBattleArt?.(window.getSpellHeartsCosmetics?.(),card)||battleArt[card];
+  return file?`assets/${file}`:'';
+}
+function localSpellShrinkAsset(){
+  /* 裏面デザインが追加された際も、所持・装備設定の参照先をここへ集約する。 */
+  const cosmetics=window.getSpellHeartsCosmetics?.();
+  const series=cosmetics?.spellShrink||'normal';
+  return series==='normal'?'assets/red-spell-back.png':'assets/red-spell-back.png';
+}
+const spellShrinkArt={normal:{p:'red-spell-back.png',c:'blue-spell-back.jpg'}};
+window.getSpellHeartsSpellShrinkArt=(cosmetics,side)=>{
+  const series=cosmetics?.spellShrink||'normal';
+  return spellShrinkArt[series]?.[side]||spellShrinkArt.normal[side];
+};
+function installLocalCosmeticSync(){
+  const original=window.slideCard;
+  if(typeof original==='function'&&!original.localCosmeticSyncInstalled){
+    const enhanced=function(fromSelector,toSelector,source){
+      if((fromSelector==='#pCharge'||toSelector==='#pCharge')&&/amplify\.jpg(?:$|[?#])/.test(source))source=localBattleAsset('amplify')||source;
+      return original.call(this,fromSelector,toSelector,source);
+    };
+    enhanced.localCosmeticSyncInstalled=true;window.slideCard=enhanced;
+  }
+  const sync=()=>{
+    const amplifier=document.querySelector('#pCharge img');if(amplifier)amplifier.src=localBattleAsset('amplify')||amplifier.src;
+    const spell=document.querySelector('#pChargeSpell img');if(spell&&spell.dataset.shrinkBack==='true')spell.src=localSpellShrinkAsset();
+  };
+  const stage=document.querySelector('.stage');if(stage){new MutationObserver(sync).observe(stage,{childList:true,subtree:true});sync();}
+}
 function tutorialLock(){
   let lock=document.querySelector('#tutorialInputLock');
   if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
@@ -961,6 +991,7 @@ makeRecordButton();
 makeTutorialButton();
 makeBattleSettings();
 preloadStorySelectSfx();
+installLocalCosmeticSync();
 installAmplifyChargeSfx();
 installTitleBgm();
 

@@ -9,7 +9,12 @@
   const chargeSpell=w=>w==='p'?'#pChargeSpell':'#cChargeSpell';
   const grave=w=>w==='p'?'#pGrave':'#cGrave';
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
-  const back=(w,kind)=>`<img class="spell-back" src="${A+(w==='p'?(kind==='battle'?'red-battle-back.png':'red-spell-back.png'):(kind==='battle'?'blue-battle-back.jpg':'blue-spell-back.jpg'))}" alt="">`;
+  const back=(w,kind)=>{
+    const fallback=w==='p'?(kind==='battle'?'red-battle-back.png':'red-spell-back.png'):(kind==='battle'?'blue-battle-back.jpg':'blue-spell-back.jpg');
+    const cosmetics=(w==='p'?net?.red:net?.blue)?.cosmetics;
+    const selected=kind==='spell'?window.getSpellHeartsSpellShrinkArt?.(cosmetics,w):fallback;
+    return `<img class="spell-back" src="${A+(selected||fallback)}" alt="">`;
+  };
   const battleFallback={rock:'rock.jpg',scissors:'scissors.jpg',paper:'paper.jpg',amplify:'amplify.jpg'};
   const battleFace=(w,key)=>{
     const fallback=battleFallback[key]||'rock.jpg';
@@ -17,6 +22,19 @@
     catch(error){console.warn('Battle art fallback:',error);return A+fallback;}
   };
   const battleImage=(w,key)=>{const fallback=A+(battleFallback[key]||'rock.jpg');return `<img src="${battleFace(w,key)}" onerror="this.onerror=null;this.src='${fallback}'" alt="">`;};
+  const amplifyFace=w=>battleFace(w,'amplify');
+  const installOnlineAmplifyArt=()=>{
+    const original=window.slideCard;
+    if(typeof original!=='function'||original.onlineAmplifyArtInstalled)return;
+    const enhanced=function(fromSelector,toSelector,source){
+      const w=toSelector==='#pCharge'||fromSelector==='#pCharge'?'p':toSelector==='#cCharge'||fromSelector==='#cCharge'?'c':null;
+      if(w&&/amplify\.jpg(?:$|[?#])/.test(source))source=amplifyFace(w);
+      return original.call(this,fromSelector,toSelector,source);
+    };
+    enhanced.onlineAmplifyArtInstalled=true;
+    window.slideCard=enhanced;
+  };
+  installOnlineAmplifyArt();
   const onlineStyle=document.createElement('style');
   onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .pick img{display:block!important;width:100%!important;height:100%!important;opacity:1!important;visibility:visible!important;filter:none!important}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.flight-target{display:block!important;visibility:hidden}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
   document.head.append(onlineStyle);
@@ -88,7 +106,7 @@
       spellDeck.onclick=net.phase==='opening'&&own&&!s.spell?()=>send('draw'):null;
       spellDeck.style.cursor=net.phase==='opening'&&own&&!s.spell?'pointer':'default';
       const amplifier=$(charge(w));
-      amplifier.innerHTML=s.amp==='charged'?`<img src="${A+cards.amplify.i}" title="${cardTip('amplify')}" alt="アンプリファイア">`:'';
+      amplifier.innerHTML=s.amp==='charged'?`<img src="${amplifyFace(w)}" onerror="this.onerror=null;this.src='${A+battleFallback.amplify}'" title="${cardTip('amplify')}" alt="アンプリファイア">`:'';
       const isOpeningAmplifier=net.phase==='reveal'&&(w==='p'?battle?.a:battle?.b)==='amplify';
       amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
       const held=$(chargeSpell(w));
@@ -97,8 +115,8 @@
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
       const visibleSpells=spellInTransit[w]?s.grave.slice(0,-1):s.grave;
-      const graveCards=[...visibleSpells.map(k=>({image:spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:cards.amplify.i,title:'アンプリファイア'}]:[])];
-      $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${A+card.image}" title="${card.title}" alt="">`).join('');
+      const graveCards=[...visibleSpells.map(k=>({image:A+spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:amplifyFace(w),title:'アンプリファイア'}]:[])];
+      $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${card.image}" title="${card.title}" alt="">`).join('');
     }
     const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
     $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):battleImage('p',battle.a)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
