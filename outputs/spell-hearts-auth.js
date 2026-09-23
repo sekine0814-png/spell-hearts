@@ -557,6 +557,12 @@ function makeRecordButton(){
 }
 function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
 function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
+function playStoryModeSelectSfx(){
+  let sound=document.querySelector('#storyModeSelectSfx');
+  if(!sound){sound=document.createElement('audio');sound.id='storyModeSelectSfx';sound.src='assets/story-mode-select.mp3';sound.preload='auto';document.body.append(sound);}
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.currentTime=0;sound.play().catch(()=>{});
+}
 function startChapterOne(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
@@ -575,6 +581,7 @@ function startChapterOne(){
 }
 window.startChapterOne=startChapterOne;
 function openStoryMode(){
+  playStoryModeSelectSfx();
   let panel=document.querySelector('#storyModePanel');
   if(!panel){
     panel=document.createElement('section');panel.id='storyModePanel';panel.className='story-mode-panel';
