@@ -617,6 +617,18 @@ function preloadStorySelectSfx(){
     const sound=document.createElement('audio');sound.id=id;sound.src=src;sound.preload='auto';sound.load();document.body.append(sound);
   }
 }
+function playAmplifyChargeSfx(){
+  let sound=document.querySelector('#amplifyChargeSfx');
+  if(!sound){sound=document.createElement('audio');sound.id='amplifyChargeSfx';sound.src='assets/amplify-charge-sfx.mp3';sound.preload='auto';document.body.append(sound);}
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.currentTime=0;sound.play().catch(()=>{});
+}
+function installAmplifyChargeSfx(){
+  const original=window.slideCard;
+  if(typeof original!=='function'||original.amplifyChargeSfxInstalled)return;
+  const enhanced=function(fromSelector,toSelector,...rest){if(toSelector==='#pCharge'||toSelector==='#cCharge')playAmplifyChargeSfx();return original.call(this,fromSelector,toSelector,...rest);};
+  enhanced.amplifyChargeSfxInstalled=true;window.slideCard=enhanced;
+}
 function tutorialLock(){
   let lock=document.querySelector('#tutorialInputLock');
   if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
@@ -949,6 +961,7 @@ makeRecordButton();
 makeTutorialButton();
 makeBattleSettings();
 preloadStorySelectSfx();
+installAmplifyChargeSfx();
 installTitleBgm();
 
 const style=document.createElement('style');
