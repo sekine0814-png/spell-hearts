@@ -746,6 +746,34 @@ function installAmplifyChargeSfx(){
   const enhanced=function(fromSelector,toSelector,...rest){if(toSelector==='#pCharge'||toSelector==='#cCharge')playAmplifyChargeSfx();return original.call(this,fromSelector,toSelector,...rest);};
   enhanced.amplifyChargeSfxInstalled=true;window.slideCard=enhanced;
 }
+function playEnhancedHpSfx(kind){
+  const id=kind==='drain'?'enhancedSchemeDrainSfx':'enhancedBlockHealSfx';
+  const source=kind==='drain'?'assets/enhanced-scheme-drain-sfx.mp3':'assets/enhanced-block-heal-sfx.mp3';
+  let sound=document.querySelector('#'+id);
+  if(!sound){sound=new Audio(source);sound.id=id;sound.preload='auto';document.body.append(sound);}
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100))*.72;
+  sound.currentTime=0;sound.play().catch(()=>{});
+}
+function installEnhancedSpellHpSfx(tries=0){
+  const original=window.runDamage;
+  if(typeof original!=='function'){
+    if(tries<30)setTimeout(()=>installEnhancedSpellHpSfx(tries+1),80);
+    return;
+  }
+  if(original.enhancedSpellHpSfxInstalled)return;
+  const enhanced=function(effect){
+    /* HPが増え、かつダメージも同時に起きるのは強化謀略。回復のみは強化ブロック。 */
+    if(!effect.started){
+      const healed=['p','c'].some(side=>Number(effect.to?.[side])>Number(effect.old?.[side]));
+      const damaged=['p','c'].some(side=>Number(effect.damage?.[side])>0);
+      if(healed)setTimeout(()=>playEnhancedHpSfx(damaged?'drain':'heal'),640);
+    }
+    return original.apply(this,arguments);
+  };
+  enhanced.enhancedSpellHpSfxInstalled=true;
+  window.runDamage=enhanced;
+}
+setTimeout(installEnhancedSpellHpSfx,0);
 function localBattleAsset(card){
   const file=window.getSpellHeartsBattleArt?.(window.getSpellHeartsCosmetics?.(),card)||battleArt[card];
   return file?`assets/${file}`:'';
