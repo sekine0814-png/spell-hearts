@@ -1357,3 +1357,60 @@ chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background
 function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0);if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),5000);}setTimeout(showStoryRewardNotice,350);
 chapterOneStyle.textContent+='.story-reward-notice{position:fixed;z-index:300;left:50%;top:50%;width:min(86vw,480px);padding:28px 30px;border:1px solid #d8ae4e;border-radius:7px;background:radial-gradient(ellipse at 50% 0,rgba(95,68,25,.98),rgba(11,9,11,.98) 72%);box-shadow:inset 0 0 30px rgba(255,217,129,.18),0 14px 48px #000;transform:translate(-50%,-50%);color:#fff0ae;text-align:center;animation:story-reward-in .45s ease-out both}.story-reward-notice b{display:block;margin-bottom:12px;font:26px Georgia,"Yu Mincho",serif;letter-spacing:.1em}.story-reward-notice span{display:flex;align-items:center;justify-content:center;gap:10px;font:18px "Yu Gothic",sans-serif}.story-reward-notice img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}@keyframes story-reward-in{from{opacity:0;transform:translate(-50%,-46%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
 chapterOneStyle.textContent+='.story-warrior-card.smile-card{box-sizing:border-box;padding:3px;border:2px solid rgba(229,196,116,.96);border-radius:6px;background:linear-gradient(135deg,#6d5429,#f2dc97,#5f461f);box-shadow:0 0 0 1px rgba(35,24,10,.95),0 0 13px rgba(241,211,129,.46),0 5px 15px #0008}';
+const mobileLandscapeStyle=document.createElement('style');
+mobileLandscapeStyle.textContent=`
+/* 横向きスマホでは、画面の高さを基準に盤面と操作部を一画面へ収める。 */
+@media (orientation:landscape) and (max-height:620px){
+  html,body{width:100%;min-height:100%;overflow-x:hidden}
+  body{overscroll-behavior:none}
+  main{width:100%;padding:3px 6px}
+  .top{min-height:25px;margin:0 auto 2px;max-width:min(100%,calc((100vh - 78px)*1.67))}
+  .top h1{font-size:clamp(16px,3vw,25px);line-height:1;letter-spacing:.1em}
+  .top .btn{min-height:24px;padding:4px 8px;border-radius:4px;font-size:10px}
+  .stage-wrap{overflow:visible!important}
+  .stage{min-width:0!important;width:min(100%,calc((100vh - 78px)*1.67));max-width:100%;margin:0 auto}
+  .below{max-width:min(100%,calc((100vh - 78px)*1.67));margin:2px auto;font-size:11px;line-height:1.25}
+  .spell-info{margin:2px 4px;font-size:10px}
+  .actions{margin:2px}.actions .btn{min-height:25px;padding:4px 9px;font-size:10px}
+  .log{display:none}
+  .message{font-size:clamp(8px,1.75vw,13px)}
+  .picks{transform:scale(1.18);transform-origin:center}
+  .battle-settings{top:8px!important;right:8px!important;left:auto!important;transform:scale(.78);transform-origin:top right}
+  .battle-settings-panel{top:42px!important;right:8px!important;left:auto!important;max-height:calc(100vh - 48px);overflow:auto;transform:scale(.82);transform-origin:top right}
+  .story-active .battle-settings{top:8px!important;left:8px!important;right:auto!important;transform-origin:top left}
+  .story-active .battle-settings-panel{top:42px!important;left:8px!important;right:auto!important;transform-origin:top left}
+
+  #titleScreen{padding-bottom:10px}
+  .title-menu{gap:4px;min-width:min(68vw,390px);transform:scale(.72);transform-origin:bottom center}
+  .push-screen{margin-bottom:3px!important;padding:7px 15px!important;font-size:clamp(14px,2.8vw,23px)!important}
+  .room-form{padding:6px;width:min(66vw,340px);gap:5px}.room-form label{font-size:10px}.room-code{padding:6px 8px;font-size:13px}.room-enter{padding:0 9px;font-size:12px}.room-note{font-size:9px}
+  .title-login{top:10px!important;right:12px!important;padding:7px 12px!important;font-size:14px!important}.title-login::before{font-size:12px!important}
+  .title-settings{top:8px!important;left:12px!important;width:32px!important;height:32px!important;font-size:19px!important}
+  .settings-panel{top:46px!important;left:10px!important;width:218px!important;max-height:calc(100vh - 52px);overflow:auto;padding:10px;font-size:11px}
+  .settings-panel label{margin:6px 0}.settings-heading{margin-bottom:7px;font-size:14px}
+  .summon-button,.dressup-button{transform:scale(.7);transform-origin:bottom center}
+
+  .story-mode-panel,.item-exchange-panel,.dressup-panel,.summon-gate-panel{padding:6px}
+  .story-mode-book,.item-exchange-book,.summon-gate-book{width:min(92vw,760px);max-height:94vh;overflow:auto;padding:23px 32px 20px}
+  .story-mode-book h2,.summon-gate-book h2{margin:5px 0;font-size:22px}.story-mode-copy,.summon-gate-copy{margin-bottom:10px;font-size:11px}
+  .story-chapters{gap:9px}.story-chapter{min-height:95px;padding:8px}.story-chapter-number{margin:10px 0 6px;font-size:17px}.story-mode-note{margin-top:9px;font-size:11px}
+  .item-exchange-detail,.item-exchange-confirm-box,.summon-confirm-box,.summon-result-box{max-height:92vh;overflow:auto}
+  .dressup-panel{overflow:auto}.dressup-card{transform:scale(.83);transform-origin:top center}
+
+  .chapter-return-title{top:7px;right:9px;padding:5px 9px;font-size:10px}
+  .chapter-dialogue{bottom:9px;width:min(74vw,920px);min-height:86px;padding:15px 22px 18px}
+  .chapter-speaker{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}
+  .chapter-dialogue p{margin:9px 7px 0;font-size:clamp(12px,2.2vh,16px);line-height:1.48;letter-spacing:.045em}
+  .chapter-next-mark{right:13px;bottom:9px;transform:scale(.68)}
+  .chapter-npc-card,.chapter-story-card{bottom:15vh;width:min(22vw,185px);max-height:65vh}
+  .story-wolf-card{right:1vw}.story-warrior-card{left:1vw}
+  .story-battle-opponent-card{right:0;bottom:15vh;width:min(22vw,185px);max-height:65vh}
+  #tutorialBattleIntro .chapter-npc-card{right:0;bottom:15vh;width:min(22vw,185px);max-height:65vh}
+  #villageBattleIntro .chapter-dialogue{width:min(74vw,920px)}
+  #chapterOneEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterOneEndScreen small{top:63%;font-size:10px}
+  .story-reward-notice{width:min(72vw,430px);padding:16px 20px}.story-reward-notice b{margin-bottom:7px;font-size:19px}.story-reward-notice span{font-size:13px}.story-reward-notice img{width:32px;height:32px}
+  #resultScreen{padding-bottom:4vh}.result-word{font-size:clamp(42px,16vh,92px)}.result-actions{margin-top:2vh}.result-retry{padding:6px 10px!important;font-size:14px!important}
+  .title-return-box{padding:16px;transform:scale(.88)}.title-return-box p{margin-bottom:14px;font-size:14px}.title-return-actions button{min-width:82px;padding:7px 10px;font-size:12px}
+}
+`;
+document.head.append(mobileLandscapeStyle);
