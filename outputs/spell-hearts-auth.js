@@ -207,7 +207,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{document.body.classList.remove('story-cinematic');stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -842,13 +842,14 @@ function tutorialFinishChapterOne(scene){
   /* 暗転が完全に覆うまでストーリー背景を残し、盤面を露出させない。 */
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');
-    document.body.classList.remove('story-active');title?.classList.remove('dismiss');title?.classList.add('chapter-title-reveal');startTitleBgm();
+    document.body.classList.remove('story-active','story-cinematic');title?.classList.remove('dismiss');title?.classList.add('chapter-title-reveal');startTitleBgm();
     requestAnimationFrame(()=>{revealStoryCurtain(curtain);requestAnimationFrame(()=>title?.classList.remove('chapter-title-reveal'));});
     setTimeout(()=>curtain.remove(),1150);
   },1120);
 }
 function tutorialReturnToStory(){
   tutorialUnlock();stopTutorialBattleBgm();
+  document.body.classList.add('story-cinematic');
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);requestAnimationFrame(()=>requestAnimationFrame(()=>coverStoryCurtain(curtain)));}
@@ -938,7 +939,7 @@ function beginVillageBattle(scene){
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   coverStoryCurtain(curtain);scene.classList.add('leaving');
   setTimeout(()=>{
-    scene.hidden=true;scene.classList.remove('show','preparing','leaving');
+    scene.hidden=true;scene.classList.remove('show','preparing','leaving');document.body.classList.remove('story-cinematic');
     window.start?.();window.setBattleBackdrop?.('story-village.jpg');startWolfBattleBgm();
     let intro=document.querySelector('#villageBattleIntro');
     if(!intro){
@@ -997,7 +998,7 @@ function beginChapterOneTutorial(scene){
   coverStoryCurtain(curtain);
   scene.classList.add('leaving');
   setTimeout(()=>{
-    scene.hidden=true;
+    scene.hidden=true;document.body.classList.remove('story-cinematic');
     window.start?.();
     window.setBattleBackdrop?.('story-training-ground.jpg');
     let intro=document.querySelector('#tutorialBattleIntro');
@@ -1018,7 +1019,7 @@ function beginChapterOneTutorial(scene){
 function startChapterOne(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
-  document.body.classList.add('story-active');
+  document.body.classList.add('story-active','story-cinematic');
   stopTitleBgm();stopChapterOneBgm();
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
@@ -1190,6 +1191,7 @@ chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-
 chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34px;right:auto;top:58px}.story-active .battle-settings-panel{z-index:231;left:34px;right:auto;top:108px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}@media(max-width:600px){.story-active .battle-settings{left:16px;right:auto;top:50px}.story-active .battle-settings-panel{left:16px;right:auto;top:96px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}}';
 chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
 chapterOneStyle.textContent+='.story-active .below{display:none}';
+chapterOneStyle.textContent+='body.story-cinematic main{visibility:hidden!important}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutorial-focus-target{position:relative!important;z-index:auto!important;filter:none!important;outline:0!important;box-shadow:none!important;animation:none!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.returning{z-index:9999!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transition:none!important}#tutorialBattleCurtain.lift{opacity:0!important;transition:opacity 1.1s ease!important}';
