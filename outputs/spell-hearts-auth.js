@@ -1373,7 +1373,7 @@ chapterOneStyle.textContent+='.story-warrior-card.smile-card{box-sizing:border-b
 const mobileLandscapeStyle=document.createElement('style');
 mobileLandscapeStyle.textContent=`
 /* 横向きスマホでは、画面の高さを基準に盤面と操作部を一画面へ収める。 */
-@media (orientation:landscape) and (max-height:620px){
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
   html,body{width:100%;min-height:100%;overflow-x:hidden}
   body{overscroll-behavior:none}
   main{width:100%;padding:3px 6px}
