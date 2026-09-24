@@ -4,7 +4,7 @@ const root=__dirname,rooms=new Map(),all=['rock','scissors','paper','amplify'];
 const beat={rock:'scissors',scissors:'paper',paper:'rock'};
 const cardDamage={rock:1,scissors:2,paper:5};
 const spellName={pursuit:'追い打ち',block:'ブロック',scheme:'謀略'};
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.mp3':'audio/mpeg'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp3':'audio/mpeg'};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 function side(){return {hp:10,deck:shuffle(['pursuit','block','scheme']),spell:null,grave:[],amp:'ready',ampGrave:false}}

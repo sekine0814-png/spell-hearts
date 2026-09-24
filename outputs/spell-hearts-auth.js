@@ -57,8 +57,8 @@ function displayedTokens(){return isGameOwner()?'∞':readTokens();}
 function shardKey(){return `spellHeartsStardust:${currentUser?.uid||'guest'}`;}
 function readStardust(){return Math.max(0,Number.parseInt(localStorage.getItem(shardKey())||'0',10)||0);}
 function displayedStardust(){return isGameOwner()?'∞':readStardust();}
-const battleArt={rock:'rock.jpg',scissors:'scissors.jpg',paper:'paper.jpg',amplify:'amplify.jpg'};
-const astrologianArt={rock:'astrologian-rock.png',scissors:'astrologian-scissors.png',paper:'astrologian-paper.png',amplify:'astrologian-amplify.png'};
+const battleArt={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
+const astrologianArt={rock:'astrologian-rock.webp',scissors:'astrologian-scissors.webp',paper:'astrologian-paper.webp',amplify:'astrologian-amplify.webp'};
 function defaultCosmetics(){return {owned:{battle:{astrologian:{}}},equipped:{battle:{rock:'normal',scissors:'normal',paper:'normal',amplify:'normal'},battleShrink:'normal',spellShrink:'normal'}};}
 function normalizeCosmetics(value){
   const base=defaultCosmetics(),source=value&&typeof value==='object'?value:{},owned=source.owned?.battle?.astrologian||{},equipped=source.equipped||{};
@@ -104,7 +104,7 @@ function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getIte
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-old-growth-forest.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-old-growth-forest.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopTitleBgm(){
@@ -115,7 +115,7 @@ function stopTitleBgm(){
 function ensureChapterOneBgm(){
   let music=document.querySelector('#chapterOneBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='chapterOneBgm';music.src='assets/story-training-ground-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='chapterOneBgm';music.src='assets/story-training-ground-bgm.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopChapterOneBgm(){
@@ -135,7 +135,7 @@ function startChapterOneBgm(){
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopTutorialBattleBgm(){
@@ -155,7 +155,7 @@ function startTutorialBattleBgm(){
 function ensureVillageAmbience(){
   let music=document.querySelector('#villageAmbience');
   if(music)return music;
-  music=document.createElement('audio');music.id='villageAmbience';music.src='assets/story-village-ambience.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='villageAmbience';music.src='assets/story-village-ambience.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopVillageAmbience(){
@@ -175,7 +175,7 @@ function startVillageAmbience(){
 function ensureVillageDangerBgm(){
   let music=document.querySelector('#villageDangerBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='villageDangerBgm';music.src='assets/story-village-danger-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='villageDangerBgm';music.src='assets/story-village-danger-bgm.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopVillageDangerBgm(){
@@ -221,7 +221,7 @@ function makeTokenBalance(){
   if(!title||document.querySelector('#tokenBalance'))return;
   const balance=document.createElement('div');
   balance.id='tokenBalance';balance.className='token-balance';balance.title='所持トークン';
-  balance.innerHTML='<img class="token-coin" src="assets/spell-hearts-token.png" alt="金貨"><span class="token-count">0</span>';
+  balance.innerHTML='<img class="token-coin" src="assets/spell-hearts-token.webp" alt="金貨"><span class="token-count">0</span>';
   title.append(balance);renderTokenBalance();
 }
 function openSummonGate(){
@@ -240,14 +240,14 @@ function openSummonGate(){
   modal.hidden=false;
 }
 const astrologianItems=[
-  {key:'rock',name:'グー',image:'assets/astrologian-rock.png'},
-  {key:'scissors',name:'チョキ',image:'assets/astrologian-scissors.png'},
-  {key:'paper',name:'パー',image:'assets/astrologian-paper.png'},
-  {key:'amplify',name:'アンプリファイア',image:'assets/astrologian-amplify.png'}
+  {key:'rock',name:'グー',image:'assets/astrologian-rock.webp'},
+  {key:'scissors',name:'チョキ',image:'assets/astrologian-scissors.webp'},
+  {key:'paper',name:'パー',image:'assets/astrologian-paper.webp'},
+  {key:'amplify',name:'アンプリファイア',image:'assets/astrologian-amplify.webp'}
 ];
 function showAstrologianCollection(hall){
   const content=hall.querySelector('.item-exchange-detail-content');
-  content.innerHTML='<button class="astrologian-feature" type="button"><img src="assets/astrologian-rock.png" alt="astrologian グー"><span>astrologian</span></button>';
+  content.innerHTML='<button class="astrologian-feature" type="button"><img src="assets/astrologian-rock.webp" alt="astrologian グー"><span>astrologian</span></button>';
   content.querySelector('.astrologian-feature').onclick=()=>{
     content.innerHTML='<h3>astrologian</h3><p>交換したいバトルカードを選んでください</p><div class="astrologian-items">'+astrologianItems.map(item=>`<button type="button" data-astrologian-item="${item.name}"><img src="${item.image}" alt="astrologian ${item.name}"><span>${item.name}</span></button>`).join('')+'</div>';
     content.querySelectorAll('[data-astrologian-item]').forEach(button=>button.onclick=()=>{
@@ -257,8 +257,8 @@ function showAstrologianCollection(hall){
   };
 }
 function playExchangeAnimation(dialog,item,onComplete){
-  const sparks=Array.from({length:12},(_,index)=>`<img class="exchange-spark exchange-spark-${index}" src="assets/spell-hearts-star-fragment.png" alt="">`).join('');
-  dialog.innerHTML=`<div class="exchange-animation-box" aria-label="交換中"><div class="exchange-magic-ring"></div>${sparks}<img class="exchange-core-shard" src="assets/spell-hearts-star-fragment.png" alt="星のカケラ"><img class="exchange-reward-card" src="${item.image}" alt="astrologian ${item.name}"><p>星のカケラが光をまとっていく……</p></div>`;
+  const sparks=Array.from({length:12},(_,index)=>`<img class="exchange-spark exchange-spark-${index}" src="assets/spell-hearts-star-fragment.webp" alt="">`).join('');
+  dialog.innerHTML=`<div class="exchange-animation-box" aria-label="交換中"><div class="exchange-magic-ring"></div>${sparks}<img class="exchange-core-shard" src="assets/spell-hearts-star-fragment.webp" alt="星のカケラ"><img class="exchange-reward-card" src="${item.image}" alt="astrologian ${item.name}"><p>星のカケラが光をまとっていく……</p></div>`;
   dialog.classList.add('exchange-animating');
   setTimeout(()=>{
     dialog.classList.remove('exchange-animating');
@@ -285,13 +285,13 @@ function openAstrologianConfirm(item){
 }
 const normalDressupItems={
   'バトルカード':[
-    {key:'rock',name:'グー',image:'assets/rock.jpg'},
-    {key:'scissors',name:'チョキ',image:'assets/scissors.jpg'},
-    {key:'paper',name:'パー',image:'assets/paper.jpg'},
-    {key:'amplify',name:'アンプリファイア',image:'assets/amplify.jpg'}
+    {key:'rock',name:'グー',image:'assets/rock.webp'},
+    {key:'scissors',name:'チョキ',image:'assets/scissors.webp'},
+    {key:'paper',name:'パー',image:'assets/paper.webp'},
+    {key:'amplify',name:'アンプリファイア',image:'assets/amplify.webp'}
   ],
-  'バトルカードシュリンク':[{name:'ノーマル',image:'assets/red-battle-back.png'}],
-  'スペルカードシュリンク':[{name:'ノーマル',image:'assets/blue-spell-back.jpg'}]
+  'バトルカードシュリンク':[{name:'ノーマル',image:'assets/red-battle-back.webp'}],
+  'スペルカードシュリンク':[{name:'ノーマル',image:'assets/blue-spell-back.webp'}]
 };
 function dressupItems(category,series){
   if(series==='normal')return normalDressupItems[category]||[];
@@ -308,7 +308,7 @@ function showDressupOwnedItems(hall,category,series){
 }
 function showDressupSeries(hall,category){
   const content=hall.querySelector('.item-exchange-detail-content'),normal=(normalDressupItems[category]||[])[0],series=[{key:'normal',name:'ノーマルシリーズ',image:normal.image}];
-  if(category==='バトルカード'&&Object.keys(cosmeticProfile.owned.battle.astrologian).length)series.push({key:'astrologian',name:'astrologian',image:'assets/astrologian-rock.png'});
+  if(category==='バトルカード'&&Object.keys(cosmeticProfile.owned.battle.astrologian).length)series.push({key:'astrologian',name:'astrologian',image:'assets/astrologian-rock.webp'});
   content.innerHTML=`<p>シリーズを選んでください</p><div class="dressup-series-list">${series.map(entry=>`<button class="dressup-series" type="button" data-dressup-series="${entry.key}"><img src="${entry.image}" alt="${entry.name}"><span>${entry.name}</span><small>所持済み</small></button>`).join('')}</div>`;
   content.querySelectorAll('[data-dressup-series]').forEach(button=>button.onclick=()=>showDressupOwnedItems(hall,category,button.dataset.dressupSeries));
 }
@@ -334,7 +334,7 @@ function openDressupMenu(){
   let hall=document.querySelector('#dressupPanel');
   if(!hall){
     hall=document.createElement('section');hall.id='dressupPanel';hall.className='item-exchange-panel dressup-panel';
-    hall.innerHTML='<div class="item-exchange-book" role="dialog" aria-modal="true" aria-labelledby="dressupTitle"><button class="item-exchange-close" type="button" aria-label="閉じる">×</button><p class="item-exchange-kicker">WARDROBE</p><h2 id="dressupTitle">着せ替え</h2><p class="item-exchange-copy">着せ替えたいカードの種類を選んでください</p><div class="item-exchange-categories"><button type="button" data-dressup-category="バトルカード"><img src="assets/rock.jpg" alt="バトルカード"><span>バトルカード</span></button><button type="button" data-dressup-category="バトルカードシュリンク"><img src="assets/red-battle-back.png" alt="バトルカードシュリンク"><span>バトルカード<br>シュリンク</span></button><button type="button" data-dressup-category="スペルカードシュリンク"><img src="assets/blue-spell-back.jpg" alt="スペルカードシュリンク"><span>スペルカード<br>シュリンク</span></button></div><div class="item-exchange-detail" hidden><button class="item-exchange-detail-back" type="button">← カードの種類を選ぶ</button><div class="item-exchange-detail-content"></div></div><button class="item-exchange-return" type="button">戻る</button></div>';
+    hall.innerHTML='<div class="item-exchange-book" role="dialog" aria-modal="true" aria-labelledby="dressupTitle"><button class="item-exchange-close" type="button" aria-label="閉じる">×</button><p class="item-exchange-kicker">WARDROBE</p><h2 id="dressupTitle">着せ替え</h2><p class="item-exchange-copy">着せ替えたいカードの種類を選んでください</p><div class="item-exchange-categories"><button type="button" data-dressup-category="バトルカード"><img src="assets/rock.webp" alt="バトルカード"><span>バトルカード</span></button><button type="button" data-dressup-category="バトルカードシュリンク"><img src="assets/red-battle-back.webp" alt="バトルカードシュリンク"><span>バトルカード<br>シュリンク</span></button><button type="button" data-dressup-category="スペルカードシュリンク"><img src="assets/blue-spell-back.webp" alt="スペルカードシュリンク"><span>スペルカード<br>シュリンク</span></button></div><div class="item-exchange-detail" hidden><button class="item-exchange-detail-back" type="button">← カードの種類を選ぶ</button><div class="item-exchange-detail-content"></div></div><button class="item-exchange-return" type="button">戻る</button></div>';
     document.body.append(hall);
     hall.querySelector('.item-exchange-close').onclick=()=>hall.hidden=true;
     hall.querySelector('.item-exchange-return').onclick=()=>hall.hidden=true;
@@ -363,7 +363,7 @@ function openItemExchange(){
   let hall=document.querySelector('#itemExchangePanel');
   if(!hall){
     hall=document.createElement('section');hall.id='itemExchangePanel';hall.className='item-exchange-panel';
-    hall.innerHTML='<div class="item-exchange-book" role="dialog" aria-modal="true" aria-labelledby="itemExchangeTitle"><button class="item-exchange-close" type="button" aria-label="閉じる">×</button><p class="item-exchange-kicker">ARCANE EXCHANGE</p><h2 id="itemExchangeTitle">アイテム交換所</h2><p class="item-exchange-copy">交換したいカードの種類を選んでください</p><div class="item-exchange-categories"><button type="button" data-exchange-category="バトルカード"><img src="assets/rock.jpg" alt="バトルカード"><span>バトルカード</span></button><button type="button" data-exchange-category="バトルカードシュリンク"><img src="assets/red-battle-back.png" alt="バトルカードシュリンク"><span>バトルカード<br>シュリンク</span></button><button type="button" data-exchange-category="スペルカードシュリンク"><img src="assets/blue-spell-back.jpg" alt="スペルカードシュリンク"><span>スペルカード<br>シュリンク</span></button></div><div class="item-exchange-detail" hidden><button class="item-exchange-detail-back" type="button">← カードの種類を選ぶ</button><div class="item-exchange-detail-content"></div></div><button class="item-exchange-return" type="button">召喚の門へ戻る</button></div>';
+    hall.innerHTML='<div class="item-exchange-book" role="dialog" aria-modal="true" aria-labelledby="itemExchangeTitle"><button class="item-exchange-close" type="button" aria-label="閉じる">×</button><p class="item-exchange-kicker">ARCANE EXCHANGE</p><h2 id="itemExchangeTitle">アイテム交換所</h2><p class="item-exchange-copy">交換したいカードの種類を選んでください</p><div class="item-exchange-categories"><button type="button" data-exchange-category="バトルカード"><img src="assets/rock.webp" alt="バトルカード"><span>バトルカード</span></button><button type="button" data-exchange-category="バトルカードシュリンク"><img src="assets/red-battle-back.webp" alt="バトルカードシュリンク"><span>バトルカード<br>シュリンク</span></button><button type="button" data-exchange-category="スペルカードシュリンク"><img src="assets/blue-spell-back.webp" alt="スペルカードシュリンク"><span>スペルカード<br>シュリンク</span></button></div><div class="item-exchange-detail" hidden><button class="item-exchange-detail-back" type="button">← カードの種類を選ぶ</button><div class="item-exchange-detail-content"></div></div><button class="item-exchange-return" type="button">召喚の門へ戻る</button></div>';
     document.body.append(hall);
     hall.querySelector('.item-exchange-close').onclick=()=>hall.hidden=true;
     hall.querySelector('.item-exchange-return').onclick=()=>{hall.hidden=true;openSummonGate();};
@@ -408,13 +408,13 @@ function openSummonConfirm(){
   if(yes)yes.onclick=()=>{
     if(!isGameOwner()&&readTokens()<10){dialog.querySelector('.summon-confirm-box').innerHTML='<p>金貨が足りません。</p><button type="button" class="summon-confirm-no">戻る</button>';dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;return;}
     dialog.classList.add('summoning');
-    dialog.innerHTML='<div class="summon-animation-box" aria-label="召喚中"><img class="summon-vortex" src="assets/spell-hearts-star-vortex.png" alt=""><img class="summon-animation-gate" src="assets/spell-hearts-summon-gate.png" alt=""><div class="summon-particles"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><img class="summon-falling-shard" src="assets/spell-hearts-star-fragment.png" alt="星のカケラ"></div>';
+    dialog.innerHTML='<div class="summon-animation-box" aria-label="召喚中"><img class="summon-vortex" src="assets/spell-hearts-star-vortex.webp" alt=""><img class="summon-animation-gate" src="assets/spell-hearts-summon-gate.webp" alt=""><div class="summon-particles"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><img class="summon-falling-shard" src="assets/spell-hearts-star-fragment.webp" alt="星のカケラ"></div>';
     setTimeout(()=>{
       if(!isGameOwner())localStorage.setItem(tokenKey(),String(readTokens()-10));
       if(!isGameOwner())localStorage.setItem(shardKey(),String(readStardust()+1));
       renderTokenBalance();renderSummonStock();
       dialog.classList.remove('summoning');
-      dialog.innerHTML='<div class="summon-confirm-box summon-result-box"><img class="summon-result-shard" src="assets/spell-hearts-star-fragment.png" alt="星のカケラ"><p>星のカケラがひとつ落ちてきました</p><button type="button" class="summon-confirm-no">受け取る</button>';
+      dialog.innerHTML='<div class="summon-confirm-box summon-result-box"><img class="summon-result-shard" src="assets/spell-hearts-star-fragment.webp" alt="星のカケラ"><p>星のカケラがひとつ落ちてきました</p><button type="button" class="summon-confirm-no">受け取る</button>';
       dialog.querySelector('.summon-confirm-no').onclick=()=>dialog.hidden=true;
     },2600);
   };
@@ -424,7 +424,7 @@ function makeSummonButton(){
   if(!title||document.querySelector('#summonButton'))return;
   const button=document.createElement('button');
   button.id='summonButton';button.className='summon-button';button.type='button';button.setAttribute('aria-label','召喚の門を開く');
-  button.innerHTML='<span>召 喚</span><img class="summon-portal" src="assets/spell-hearts-summon-gate.png" alt="">';
+  button.innerHTML='<span>召 喚</span><img class="summon-portal" src="assets/spell-hearts-summon-gate.webp" alt="">';
   button.onclick=openSummonGate;title.append(button);
 }
 function makeDressupButton(){
@@ -432,7 +432,7 @@ function makeDressupButton(){
   if(!title||document.querySelector('#dressupButton'))return;
   const button=document.createElement('button');
   button.id='dressupButton';button.className='dressup-button';button.type='button';button.setAttribute('aria-label','着せ替え');
-  button.innerHTML='<span>着せ替え</span><img class="dressup-card" src="assets/spell-hearts-dressup-card.png" alt="">';
+  button.innerHTML='<span>着せ替え</span><img class="dressup-card" src="assets/spell-hearts-dressup-card.webp" alt="">';
   button.onclick=openDressupMenu;title.append(button);
 }
 window.awardSpellHeartsTokens=(amount,matchId)=>{
@@ -651,25 +651,25 @@ function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid|
 function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
 function playStoryModeSelectSfx(){
   let sound=document.querySelector('#storyModeSelectSfx');
-  if(!sound){sound=document.createElement('audio');sound.id='storyModeSelectSfx';sound.src='assets/story-mode-select.mp3';sound.preload='auto';document.body.append(sound);}
+  if(!sound){sound=document.createElement('audio');sound.id='storyModeSelectSfx';sound.src='assets/story-mode-select.mp3';sound.preload='none';document.body.append(sound);}
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
 function playChapterOneSelectSfx(){
   let sound=document.querySelector('#chapterOneSelectSfx');
-  if(!sound){sound=document.createElement('audio');sound.id='chapterOneSelectSfx';sound.src='assets/chapter-one-select.mp3';sound.preload='auto';document.body.append(sound);}
+  if(!sound){sound=document.createElement('audio');sound.id='chapterOneSelectSfx';sound.src='assets/chapter-one-select.mp3';sound.preload='none';document.body.append(sound);}
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
 function preloadStorySelectSfx(){
   for(const [id,src] of [['storyModeSelectSfx','assets/story-mode-select.mp3'],['chapterOneSelectSfx','assets/chapter-one-select.mp3']]){
     if(document.querySelector('#'+id))continue;
-    const sound=document.createElement('audio');sound.id=id;sound.src=src;sound.preload='auto';sound.load();document.body.append(sound);
+    const sound=document.createElement('audio');sound.id=id;sound.src=src;sound.preload='none';sound.load();document.body.append(sound);
   }
 }
 function playAmplifyChargeSfx(){
   let sound=document.querySelector('#amplifyChargeSfx');
-  if(!sound){sound=document.createElement('audio');sound.id='amplifyChargeSfx';sound.src='assets/amplify-charge-sfx.mp3';sound.preload='auto';document.body.append(sound);}
+  if(!sound){sound=document.createElement('audio');sound.id='amplifyChargeSfx';sound.src='assets/amplify-charge-sfx.mp3';sound.preload='none';document.body.append(sound);}
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
@@ -687,9 +687,9 @@ function localSpellShrinkAsset(){
   /* 裏面デザインが追加された際も、所持・装備設定の参照先をここへ集約する。 */
   const cosmetics=window.getSpellHeartsCosmetics?.();
   const series=cosmetics?.spellShrink||'normal';
-  return series==='normal'?'assets/red-spell-back.png':'assets/red-spell-back.png';
+  return series==='normal'?'assets/red-spell-back.webp':'assets/red-spell-back.webp';
 }
-const spellShrinkArt={normal:{p:'red-spell-back.png',c:'blue-spell-back.jpg'}};
+const spellShrinkArt={normal:{p:'red-spell-back.webp',c:'blue-spell-back.webp'}};
 window.getSpellHeartsSpellShrinkArt=(cosmetics,side)=>{
   const series=cosmetics?.spellShrink||'normal';
   return spellShrinkArt[series]?.[side]||spellShrinkArt.normal[side];
@@ -801,7 +801,7 @@ function tutorialRoundThree(){
 }
 function tutorialBeginAmplifyLesson(){
   tutorialDialogue('次はアンプリファイアだ。盤面を整えて、\nその力を実際に確かめてみよう。',()=>{
-    window.start?.();window.setBattleBackdrop?.('story-training-ground.jpg');
+    window.start?.();window.setBattleBackdrop?.('story-training-ground.webp');
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
       window.drawInitial?.();
@@ -892,8 +892,8 @@ function beginVillageEncounter(scene){
     const speaker=scene.querySelector('.chapter-speaker');
     const copy=dialogue.querySelector('p');
     let wolf=scene.querySelector('.story-wolf-card'),warrior=scene.querySelector('.story-warrior-card');
-    if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';wolf.src='assets/story-wolf-monster.png';wolf.alt='狼のような魔物';scene.append(wolf);}
-    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';warrior.src='assets/story-woman-warrior.png';warrior.alt='女性戦士';scene.append(warrior);}
+    if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';wolf.src='assets/story-wolf-monster.webp';wolf.alt='狼のような魔物';scene.append(wolf);}
+    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';warrior.src='assets/story-woman-warrior.webp';warrior.alt='女性戦士';scene.append(warrior);}
     const lines=[
       {speaker:'主人公',text:'演習場からの帰り道、買い物をしていくことにした。'},
       {speaker:'主人公',text:'「えーと、あとは塩コショウ、玉ねぎ、それから……」\n呟きながら商店街を歩いていた。'},
@@ -951,10 +951,10 @@ function beginVillageBattle(scene){
     window.storyWolfBattleActive=true;window.storyWolfBattleResolved=false;
     window.start?.();
     if(typeof g!=='undefined'){g.c.deck=['pursuit','scheme','block'];g.p.deck=['pursuit','block','scheme'];window.render?.();}
-    window.setBattleBackdrop?.('story-village.jpg');startWolfBattleBgm();
+    window.setBattleBackdrop?.('story-village.webp');startWolfBattleBgm();
     let opponent=document.querySelector('#storyBattleOpponentCard');
     if(!opponent){opponent=document.createElement('img');opponent.id='storyBattleOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
-    opponent.src='assets/story-wolf-monster.png';opponent.alt='狼のような魔物';opponent.hidden=false;
+    opponent.src='assets/story-wolf-monster.webp';opponent.alt='狼のような魔物';opponent.hidden=false;
     let intro=document.querySelector('#villageBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='villageBattleIntro';
@@ -987,9 +987,9 @@ function beginWolfAftermath(){
   setTimeout(()=>{
     let wolf=scene.querySelector('.story-wolf-card'),warrior=scene.querySelector('.story-warrior-card'),yuto=scene.querySelector('.chapter-npc-card');
     const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
-    if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';scene.append(wolf);}wolf.src='assets/story-wolf-monster.png';wolf.alt='狼のような魔物';
-    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';scene.append(warrior);}warrior.src='assets/story-woman-warrior.png';warrior.alt='エア・ノエル';
-    yuto.src='assets/story-senior-warrior.png';yuto.alt='ユート先輩';
+    if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';scene.append(wolf);}wolf.src='assets/story-wolf-monster.webp';wolf.alt='狼のような魔物';
+    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';scene.append(warrior);}warrior.src='assets/story-woman-warrior.webp';warrior.alt='エア・ノエル';
+    yuto.src='assets/story-senior-warrior.webp';yuto.alt='ユート先輩';
     const lines=[
       {speaker:'魔物',text:'「グアアアアッ！！」',wolf:true},
       {speaker:'主人公',text:'「これで……終わりだっ！」',wolf:true},
@@ -1030,7 +1030,7 @@ function beginWolfAftermath(){
     const renderLine=()=>{
       const line=lines[index];speaker.textContent=line.speaker;copy.textContent=line.text;
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;yuto.hidden=!line.yuto;scene.classList.toggle('night-village',!!line.night);
-      if(line.smile)warrior.src='assets/story-woman-warrior-smile.png';
+      if(line.smile)warrior.src='assets/story-woman-warrior-smile.webp';
       wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
       warrior.classList.toggle('speaker-active',line.speaker==='？？？'||line.speaker==='エア');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='？？？'&&line.speaker!=='エア');
       yuto.classList.toggle('speaker-active',line.speaker==='ユート先輩');yuto.classList.toggle('speaker-idle',line.yuto&&line.speaker!=='ユート先輩');
@@ -1135,11 +1135,11 @@ function beginChapterOneTutorial(scene){
   setTimeout(()=>{
     scene.hidden=true;document.body.classList.remove('story-cinematic');
     window.start?.();
-    window.setBattleBackdrop?.('story-training-ground.jpg');
+    window.setBattleBackdrop?.('story-training-ground.webp');
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
-      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.png" alt="ユート先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">ユート先輩</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="ユート先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">ユート先輩</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.hidden=false;
@@ -1168,7 +1168,7 @@ function startChapterOne(){
   let scene=document.querySelector('#chapterOneScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
-    scene.innerHTML='<button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.png" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    scene.innerHTML='<button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
     scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
@@ -1323,9 +1323,9 @@ const storyModeStyle=document.createElement('style');
 storyModeStyle.textContent='.story-mode-panel{position:fixed;z-index:275;inset:0;display:grid;place-items:center;padding:20px;background:rgba(1,4,9,.8);backdrop-filter:blur(5px)}.story-mode-panel[hidden]{display:none}.story-mode-book{position:relative;width:min(92vw,610px);padding:42px 48px 40px;border:1px solid #d8ae4e;border-radius:8px;background:radial-gradient(ellipse at 50% 18%,rgba(74,54,101,.97),rgba(11,10,18,.99) 70%);box-shadow:inset 0 0 48px rgba(181,136,255,.15),0 22px 68px #000;color:#f7e7bc;text-align:center}.story-mode-book:before{content:"";position:absolute;inset:10px;border:1px solid rgba(225,184,77,.34);border-radius:4px;pointer-events:none}.story-mode-close{position:absolute;z-index:1;right:18px;top:14px;border:0;background:transparent;color:#e4cb82;font:29px/1 Georgia,serif;cursor:pointer}.story-mode-kicker,.story-mode-book h2,.story-mode-copy,.story-chapters,.story-mode-note{position:relative}.story-mode-kicker{margin:0;color:#c9b182;font:11px Georgia,serif;letter-spacing:.24em}.story-mode-book h2{margin:10px 0 9px;color:#fff0b0;font:32px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-shadow:0 0 14px #dba432}.story-mode-copy{margin:0 0 24px;color:#d9ca9f;font:14px "Yu Gothic",sans-serif}.story-chapters{display:grid;grid-template-columns:1fr 1fr;gap:18px}.story-chapter{min-height:164px;padding:20px 16px;border:1px solid rgba(216,174,78,.72);border-radius:5px;background:linear-gradient(145deg,rgba(48,39,63,.92),rgba(8,8,14,.96));box-shadow:inset 0 0 22px rgba(193,154,255,.11),0 5px 14px #0008;color:#ffe8a4;cursor:pointer;transition:transform .18s ease,filter .18s ease}.story-chapter.available{background:linear-gradient(145deg,rgba(38,113,153,.96),rgba(8,42,75,.98));box-shadow:inset 0 0 25px rgba(112,224,255,.26),0 5px 14px #0008}.story-chapter.available:hover{transform:translateY(-5px);filter:brightness(1.25)}.story-chapter-number{display:block;margin:22px 0 13px;font:25px Georgia,"Yu Mincho",serif;letter-spacing:.08em}.story-chapter small{display:block;color:#d7c394;font:12px "Yu Gothic",sans-serif}.story-chapter.available small{color:#c6f3ff}.story-chapter.locked{border-color:rgba(132,124,145,.48);background:linear-gradient(145deg,rgba(30,30,38,.9),rgba(8,8,12,.98));box-shadow:none;color:#777080;cursor:not-allowed;filter:saturate(.35)}.story-chapter.locked .story-chapter-number{color:#92899a}.story-mode-note{min-height:1.5em;margin:22px 0 0;color:#c5b68d;font:13px "Yu Gothic",sans-serif}@media(max-width:600px){.story-mode-book{padding:39px 26px 30px}.story-chapters{gap:9px}.story-chapter{min-height:135px;padding:14px 7px}.story-chapter-number{margin:17px 0 10px;font-size:19px}.story-mode-book h2{font-size:26px}}';
 document.head.append(storyModeStyle);
 const chapterOneStyle=document.createElement('style');
-chapterOneStyle.textContent='.chapter-one-scene{position:fixed;z-index:215;inset:0;overflow:hidden;background:#020509 url("assets/story-training-ground.jpg") center/cover no-repeat;opacity:0;visibility:hidden;transition:opacity 1.25s ease,visibility 1.25s ease}.chapter-one-scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,17,.1),rgba(2,5,10,.5) 78%,rgba(0,0,0,.76));pointer-events:none}.chapter-one-scene.show{opacity:1;visibility:visible}.chapter-return-title{position:absolute;z-index:3;top:14px;right:16px;padding:10px 18px;border:1px solid #d8ae4e;border-radius:4px;background:linear-gradient(180deg,rgba(81,57,18,.93),rgba(23,14,5,.96));box-shadow:inset 0 0 13px rgba(255,220,126,.18),0 2px 14px #0009;color:#fff0ba;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.1em;text-shadow:0 1px 3px #000;cursor:pointer}.chapter-return-title:hover{filter:brightness(1.27)}.chapter-dialogue{position:absolute;z-index:2;left:50%;bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;transform:translateX(-50%);border:1px solid #d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;animation:chapter-dialogue-in .46s ease-out both}.chapter-dialogue[hidden]{display:none}.chapter-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter-speaker{position:absolute;left:26px;top:-17px;min-width:130px;padding:7px 17px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-align:center;text-shadow:0 1px 3px #000}.chapter-dialogue p{position:relative;margin:18px 20px 0;font:clamp(18px,2.25vw,28px)/1.7 "Yu Mincho",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter-next-mark{position:absolute;right:24px;bottom:16px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c;filter:drop-shadow(0 1px 3px #000);animation:chapter-next-bob .82s ease-in-out infinite}.chapter-next-mark:before{content:"";position:absolute;left:-10px;top:-18px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c}@keyframes chapter-dialogue-in{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}@keyframes chapter-next-bob{0%,100%{transform:translateY(0);opacity:.56}50%{transform:translateY(7px);opacity:1}}@media(max-width:600px){.chapter-return-title{top:10px;right:10px;padding:8px 12px;font-size:12px}.chapter-dialogue{bottom:3.5vh;width:94vw;min-height:122px;padding:23px 16px 26px}.chapter-speaker{left:18px;top:-15px;min-width:104px;padding:6px 12px;font-size:13px}.chapter-dialogue p{margin:16px 8px 0;font-size:16px}.chapter-next-mark{right:17px;bottom:13px}}';
+chapterOneStyle.textContent='.chapter-one-scene{position:fixed;z-index:215;inset:0;overflow:hidden;background:#020509 url("assets/story-training-ground.webp") center/cover no-repeat;opacity:0;visibility:hidden;transition:opacity 1.25s ease,visibility 1.25s ease}.chapter-one-scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,17,.1),rgba(2,5,10,.5) 78%,rgba(0,0,0,.76));pointer-events:none}.chapter-one-scene.show{opacity:1;visibility:visible}.chapter-return-title{position:absolute;z-index:3;top:14px;right:16px;padding:10px 18px;border:1px solid #d8ae4e;border-radius:4px;background:linear-gradient(180deg,rgba(81,57,18,.93),rgba(23,14,5,.96));box-shadow:inset 0 0 13px rgba(255,220,126,.18),0 2px 14px #0009;color:#fff0ba;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.1em;text-shadow:0 1px 3px #000;cursor:pointer}.chapter-return-title:hover{filter:brightness(1.27)}.chapter-dialogue{position:absolute;z-index:2;left:50%;bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;transform:translateX(-50%);border:1px solid #d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;animation:chapter-dialogue-in .46s ease-out both}.chapter-dialogue[hidden]{display:none}.chapter-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter-speaker{position:absolute;left:26px;top:-17px;min-width:130px;padding:7px 17px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-align:center;text-shadow:0 1px 3px #000}.chapter-dialogue p{position:relative;margin:18px 20px 0;font:clamp(18px,2.25vw,28px)/1.7 "Yu Mincho",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter-next-mark{position:absolute;right:24px;bottom:16px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c;filter:drop-shadow(0 1px 3px #000);animation:chapter-next-bob .82s ease-in-out infinite}.chapter-next-mark:before{content:"";position:absolute;left:-10px;top:-18px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c}@keyframes chapter-dialogue-in{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}@keyframes chapter-next-bob{0%,100%{transform:translateY(0);opacity:.56}50%{transform:translateY(7px);opacity:1}}@media(max-width:600px){.chapter-return-title{top:10px;right:10px;padding:8px 12px;font-size:12px}.chapter-dialogue{bottom:3.5vh;width:94vw;min-height:122px;padding:23px 16px 26px}.chapter-speaker{left:18px;top:-15px;min-width:104px;padding:6px 12px;font-size:13px}.chapter-dialogue p{margin:16px 8px 0;font-size:16px}.chapter-next-mark{right:17px;bottom:13px}}';
 document.head.append(chapterOneStyle);
-chapterOneStyle.textContent+='.chapter-one-scene{z-index:199;isolation:isolate;background:#020509}.chapter-one-scene.preparing{opacity:1;visibility:visible}.chapter-one-scene:before{content:"";position:absolute;z-index:0;inset:0;background:url("assets/story-training-ground.jpg") center/cover no-repeat;opacity:0;transition:opacity 1.25s ease}.chapter-one-scene.show:before{opacity:1}.chapter-one-scene:after{z-index:1}.chapter-one-scene.show{opacity:1;visibility:visible}';
+chapterOneStyle.textContent+='.chapter-one-scene{z-index:199;isolation:isolate;background:#020509}.chapter-one-scene.preparing{opacity:1;visibility:visible}.chapter-one-scene:before{content:"";position:absolute;z-index:0;inset:0;background:url("assets/story-training-ground.webp") center/cover no-repeat;opacity:0;transition:opacity 1.25s ease}.chapter-one-scene.show:before{opacity:1}.chapter-one-scene:after{z-index:1}.chapter-one-scene.show{opacity:1;visibility:visible}';
 chapterOneStyle.textContent+='.chapter-dialogue{font:inherit;text-align:left;cursor:pointer}.chapter-dialogue[data-ended="true"] .chapter-next-mark{opacity:0}.chapter-npc-card{position:absolute;z-index:2;right:6vw;bottom:22vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-npc-card[hidden]{display:none}.chapter-npc-card.enter{animation:chapter-npc-enter .55s cubic-bezier(.16,.82,.28,1) both}.chapter-npc-card.speaker-active{z-index:4;transform:translateX(-14px) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-npc-card.speaker-idle{z-index:2;transform:translateX(18px) scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-npc-enter{from{opacity:0;transform:translateX(90px) scale(.72)}to{opacity:.76;transform:translateX(18px) scale(.92)}}@media(max-width:600px){.chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}.chapter-npc-card.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-npc-card.speaker-idle{transform:translateX(8px) scale(.9)}}';
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:0}.chapter-one-scene.leaving .chapter-dialogue,.chapter-one-scene.leaving .chapter-npc-card{pointer-events:none}#tutorialBattleCurtain{position:fixed;z-index:198;inset:0;background:#000;opacity:1;transition:opacity 1.1s ease;pointer-events:none}#tutorialBattleCurtain.lift{opacity:0}#tutorialBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease}#tutorialBattleIntro[hidden]{display:none}#tutorialBattleIntro.show{opacity:1}#tutorialBattleIntro .chapter-npc-card{position:fixed}#tutorialBattleIntro .tutorial-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}#tutorialInputLock{position:fixed;z-index:155;inset:0;pointer-events:auto}#tutorialInputLock[hidden]{display:none}.tutorial-focus-button{position:fixed;z-index:1;border:2px solid #ffe37d;border-radius:7px;background:transparent;box-shadow:0 0 0 100vmax rgba(0,0,0,.76),0 0 12px 4px rgba(255,218,104,.9),inset 0 0 13px rgba(255,239,150,.5);cursor:pointer;animation:tutorial-target-pulse 1.05s ease-in-out infinite}@keyframes tutorial-target-pulse{0%,100%{filter:brightness(1);transform:scale(1)}50%{filter:brightness(1.36);transform:scale(1.035)}}.tutorial-card-glow{position:relative;z-index:25;filter:brightness(1.36)!important;box-shadow:0 0 0 2px #ffe584,0 0 23px 8px rgba(255,201,67,.9)!important;animation:tutorial-card-pulse 1s ease-in-out infinite}@keyframes tutorial-card-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}@media(max-width:600px){#tutorialBattleIntro .chapter-npc-card{right:1vw;bottom:20vh;width:32vw;max-height:48vh}}';
 chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34px;right:auto;top:58px}.story-active .battle-settings-panel{z-index:231;left:34px;right:auto;top:108px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}@media(max-width:600px){.story-active .battle-settings{left:16px;right:auto;top:50px}.story-active .battle-settings-panel{left:16px;right:auto;top:96px}.story-active #tutorialBattleIntro .chapter-npc-card{right:0}}';
@@ -1337,6 +1337,6 @@ chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.retu
 chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transition:none!important}#tutorialBattleCurtain.lift{opacity:0!important;transition:opacity 1.1s ease!important}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
-chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.png")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
-function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0);if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.png" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),5000);}setTimeout(showStoryRewardNotice,350);
+chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
+function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0);if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),5000);}setTimeout(showStoryRewardNotice,350);
 chapterOneStyle.textContent+='.story-reward-notice{position:fixed;z-index:300;left:50%;top:50%;width:min(86vw,480px);padding:28px 30px;border:1px solid #d8ae4e;border-radius:7px;background:radial-gradient(ellipse at 50% 0,rgba(95,68,25,.98),rgba(11,9,11,.98) 72%);box-shadow:inset 0 0 30px rgba(255,217,129,.18),0 14px 48px #000;transform:translate(-50%,-50%);color:#fff0ae;text-align:center;animation:story-reward-in .45s ease-out both}.story-reward-notice b{display:block;margin-bottom:12px;font:26px Georgia,"Yu Mincho",serif;letter-spacing:.1em}.story-reward-notice span{display:flex;align-items:center;justify-content:center;gap:10px;font:18px "Yu Gothic",sans-serif}.story-reward-notice img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}@keyframes story-reward-in{from{opacity:0;transform:translate(-50%,-46%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';

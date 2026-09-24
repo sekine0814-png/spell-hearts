@@ -10,18 +10,18 @@
   const grave=w=>w==='p'?'#pGrave':'#cGrave';
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
   const back=(w,kind)=>{
-    const fallback=w==='p'?(kind==='battle'?'red-battle-back.png':'red-spell-back.png'):(kind==='battle'?'blue-battle-back.jpg':'blue-spell-back.jpg');
+    const fallback=w==='p'?(kind==='battle'?'red-battle-back.webp':'red-spell-back.webp'):(kind==='battle'?'blue-battle-back.webp':'blue-spell-back.webp');
     const cosmetics=(w==='p'?net?.red:net?.blue)?.cosmetics;
     const selected=kind==='spell'?window.getSpellHeartsSpellShrinkArt?.(cosmetics,w):fallback;
     return `<img class="spell-back" src="${A+(selected||fallback)}" alt="">`;
   };
-  const battleFallback={rock:'rock.jpg',scissors:'scissors.jpg',paper:'paper.jpg',amplify:'amplify.jpg'};
+  const battleFallback={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
   const battleFace=(w,key)=>{
-    const fallback=battleFallback[key]||'rock.jpg';
+    const fallback=battleFallback[key]||'rock.webp';
     try{const selected=window.getSpellHeartsBattleArt?.((w==='p'?net?.red:net?.blue)?.cosmetics,key);return A+(typeof selected==='string'&&selected?selected:fallback);}
     catch(error){console.warn('Battle art fallback:',error);return A+fallback;}
   };
-  const battleImage=(w,key)=>{const fallback=A+(battleFallback[key]||'rock.jpg');return `<img src="${battleFace(w,key)}" onerror="this.onerror=null;this.src='${fallback}'" alt="">`;};
+  const battleImage=(w,key)=>{const fallback=A+(battleFallback[key]||'rock.webp');return `<img src="${battleFace(w,key)}" onerror="this.onerror=null;this.src='${fallback}'" alt="">`;};
   const amplifyFace=w=>battleFace(w,'amplify');
   const installOnlineAmplifyArt=()=>{
     const original=window.slideCard;
@@ -54,7 +54,7 @@
       const winner=red?'p':blue?'c':null;
       const reward=winner===net.side?2:1;
       const rematchLabel=net.rematchReady?'相手の返答を待っています…':'もう一度対戦';
-      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><div class="result-token-reward"><img class="token-coin" src="assets/spell-hearts-token.png" alt="金貨"><span>+${reward}</span></div><div class="result-actions"><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div></div>`;
+      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><div class="result-token-reward"><img class="token-coin" src="assets/spell-hearts-token.webp" alt="金貨"><span>+${reward}</span></div><div class="result-actions"><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div></div>`;
       if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.();}
       requestAnimationFrame(()=>result.classList.add('show'));
     }else{ resultSoundPlayed=false; result.classList.remove('show'); result.innerHTML=''; }
@@ -200,7 +200,7 @@
         try{ renderOnline(); }
         catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
         if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
-        if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
+        if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
         if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),A+cards.amplify.i);playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
         newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
         if(damaged)runOnlineDamage(previous,incoming);
@@ -220,7 +220,7 @@
     controlsActive=true;
     window.drawInitial=()=>send('draw');
     window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
-    window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.png':'blue-battle-back.jpg'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
+    window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
     window.use=()=>send('use');
     window.confirmPlayerOk=()=>send('ok');
     window.endRound=()=>send('ok');
