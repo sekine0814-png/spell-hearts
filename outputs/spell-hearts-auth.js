@@ -187,6 +187,11 @@ function startVillageDangerBgm(){
   if(!music.paused)return;
   music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
 }
+function startWolfBattleBgm(){
+  const music=document.querySelector('#battleBgm');
+  if(!music)return;
+  music.pause();music.loop=true;music.src='assets/story-wolf-battle-bgm.mp3';music.load();music.volume=titleBgmLevel();music.play().catch(()=>{});
+}
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
   if(titleBgmStarted||title?.classList.contains('dismiss'))return;
@@ -564,7 +569,7 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo').forEach(sound=>sound.volume=sfx/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.48:sfx)/100);
   return {bgm,sfx};
 }
 
@@ -814,18 +819,31 @@ function tutorialAmplifiedPursuit(){
     }));
   }));
 }
+function coverStoryCurtain(curtain){
+  coverStoryCurtain(curtain);
+  curtain.style.setProperty('z-index','2147483647','important');
+  curtain.style.setProperty('opacity','1','important');
+  curtain.style.setProperty('transition','none','important');
+  void curtain.offsetWidth;
+}
+function revealStoryCurtain(curtain){
+  curtain.style.removeProperty('opacity');
+  curtain.style.removeProperty('transition');
+  void curtain.offsetWidth;
+  curtain.classList.add('lift');
+}
 function tutorialFinishChapterOne(scene){
   stopChapterOneBgm();
   const title=document.querySelector('#titleScreen');
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);}
   curtain.classList.add('returning');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.remove('lift')));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>coverStoryCurtain(curtain)));
   /* 暗転が完全に覆うまでストーリー背景を残し、盤面を露出させない。 */
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');
     document.body.classList.remove('story-active');title?.classList.remove('dismiss');title?.classList.add('chapter-title-reveal');startTitleBgm();
-    requestAnimationFrame(()=>{curtain.classList.add('lift');requestAnimationFrame(()=>title?.classList.remove('chapter-title-reveal'));});
+    requestAnimationFrame(()=>{revealStoryCurtain(curtain);requestAnimationFrame(()=>title?.classList.remove('chapter-title-reveal'));});
     setTimeout(()=>curtain.remove(),1150);
   },1120);
 }
@@ -833,8 +851,8 @@ function tutorialReturnToStory(){
   tutorialUnlock();stopTutorialBattleBgm();
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
-  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.remove('lift')));}
-  else{curtain.classList.add('returning');curtain.classList.remove('lift');}
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);requestAnimationFrame(()=>requestAnimationFrame(()=>coverStoryCurtain(curtain)));}
+  else{curtain.classList.add('returning');coverStoryCurtain(curtain);}
   setTimeout(()=>{
     intro?.classList.remove('show');if(intro)intro.hidden=true;
     const npc=scene.querySelector('.chapter-npc-card'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
@@ -849,7 +867,7 @@ function tutorialReturnToStory(){
     scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
     npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
     dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else beginVillageEncounter(scene);};renderEpilogue();
-    startChapterOneBgm();requestAnimationFrame(()=>curtain.classList.add('lift'));
+    startChapterOneBgm();requestAnimationFrame(()=>revealStoryCurtain(curtain));
     setTimeout(()=>curtain.classList.remove('returning'),1050);
   },1120);
 }
@@ -857,7 +875,7 @@ function beginVillageEncounter(scene){
   stopChapterOneBgm();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  curtain.classList.remove('lift');
+  coverStoryCurtain(curtain);
   scene.classList.add('leaving');
   setTimeout(()=>{
     const senior=scene.querySelector('.chapter-npc-card');
@@ -911,24 +929,24 @@ function beginVillageEncounter(scene){
     dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else beginVillageBattle(scene);};
     renderLine();
     startVillageAmbience();
-    requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.add('lift')));
+    requestAnimationFrame(()=>requestAnimationFrame(()=>revealStoryCurtain(curtain)));
   },980);
 }
 function beginVillageBattle(scene){
   stopVillageAmbience();stopVillageDangerBgm();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  curtain.classList.remove('lift');scene.classList.add('leaving');
+  coverStoryCurtain(curtain);scene.classList.add('leaving');
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');
-    window.start?.();window.setBattleBackdrop?.('story-village.jpg');
+    window.start?.();window.setBattleBackdrop?.('story-village.jpg');startWolfBattleBgm();
     let intro=document.querySelector('#villageBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='villageBattleIntro';
       intro.innerHTML='<img class="village-battle-wolf" src="assets/story-wolf-monster.png" alt="狼のような魔物"><button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
-    intro.hidden=false;requestAnimationFrame(()=>{intro.classList.add('show');curtain.classList.add('lift');});
+    intro.hidden=false;requestAnimationFrame(()=>{intro.classList.add('show');revealStoryCurtain(curtain);});
     intro.querySelector('.village-battle-dialogue').onclick=()=>{intro.classList.remove('show');setTimeout(()=>{intro.hidden=true;},350);};
     setTimeout(()=>curtain.remove(),1150);
   },1000);
@@ -990,7 +1008,7 @@ function beginChapterOneTutorial(scene){
     }
     intro.hidden=false;
     startTutorialBattleBgm();
-    requestAnimationFrame(()=>{intro.classList.add('show');curtain.classList.add('lift');});
+    requestAnimationFrame(()=>{intro.classList.add('show');revealStoryCurtain(curtain);});
     setTimeout(()=>curtain.remove(),950);
     setTimeout(()=>tutorialDialogue('よし、始めるぞ。まずは実際に手を動かして、\n戦い方を覚えていこう。',()=>{
       tutorialDialogue('戦闘は、まずお互いにこのスペルカードをドローするところから始まる。',beginSpellDrawLesson);
@@ -1113,6 +1131,10 @@ preloadStorySelectSfx();
 installLocalCosmeticSync();
 installAmplifyChargeSfx();
 installTitleBgm();
+document.addEventListener('DOMContentLoaded',()=>{
+  const pursuit=document.querySelector('#pursuitSfx');
+  if(pursuit)pursuit.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.48));
+});
 
 const style=document.createElement('style');
 style.textContent=`
