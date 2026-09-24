@@ -1391,9 +1391,13 @@ mobileLandscapeStyle.textContent=`
   .title-settings{top:8px!important;left:12px!important;width:32px!important;height:32px!important;font-size:19px!important}
   .settings-panel{top:46px!important;left:10px!important;width:218px!important;max-height:calc(100vh - 52px);overflow:auto;padding:10px;font-size:11px}
   .settings-panel label{margin:6px 0}.settings-heading{margin-bottom:7px;font-size:14px}
-  .summon-button{right:10px;bottom:calc(3vh + 64px);width:78px;height:88px;font-size:12px}
-  .summon-button>span{left:-16px;width:66px}.summon-portal{width:66px;height:77px;transform:translateX(-16px)}
-  .dressup-button{transform:none}
+  /* タイトル右端は、アカウント・着せ替え・召喚・通貨を小さな二段構成で並べる。 */
+  .token-balance{right:12px;bottom:8px;gap:5px;font-size:17px}
+  .token-balance .token-coin{width:42px;height:42px}
+  .summon-button{right:14px;bottom:49px;width:62px;height:70px;font-size:10px}
+  .summon-button>span{left:-2px;width:66px}.summon-portal{width:62px;height:70px;transform:none}
+  .dressup-button{right:91px;bottom:49px;width:62px;height:70px;font-size:10px;transform:none}
+  .dressup-button>span{left:-2px;width:66px}.dressup-card{width:58px;height:70px;transform:none}
 
   .story-mode-panel,.item-exchange-panel,.dressup-panel,.summon-gate-panel{padding:6px}
   .story-mode-book,.item-exchange-book,.summon-gate-book{width:min(92vw,760px);max-height:94vh;overflow:auto;padding:23px 32px 20px}
@@ -1403,19 +1407,24 @@ mobileLandscapeStyle.textContent=`
   .dressup-panel{overflow:auto}.dressup-card{transform:scale(.83);transform-origin:top center}
 
   .chapter-return-title{top:7px;right:9px;padding:5px 9px;font-size:10px}
-  .chapter-dialogue{bottom:9px;width:min(74vw,920px);min-height:86px;padding:15px 22px 18px}
+  /* 両端のキャラカードと会話欄が決して重ならないよう、中央の会話領域を確保する。 */
+  .chapter-dialogue{bottom:8px;width:min(60vw,760px);min-height:94px;padding:15px 20px 18px}
   .chapter-speaker{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}
-  .chapter-dialogue p{margin:9px 7px 0;font-size:clamp(12px,2.2vh,16px);line-height:1.48;letter-spacing:.045em}
+  .chapter-dialogue p{margin:9px 6px 0;font-size:clamp(11px,2vh,14px);line-height:1.45;letter-spacing:.035em}
   .chapter-next-mark{right:13px;bottom:9px;transform:scale(.68)}
-  .chapter-npc-card,.chapter-story-card{bottom:15vh;width:min(22vw,185px);max-height:65vh}
+  .chapter-npc-card,.chapter-story-card{bottom:112px;width:min(17vw,150px);max-height:calc(100vh - 148px)}
   .story-wolf-card{right:1vw}.story-warrior-card{left:1vw}
-  .story-battle-opponent-card{right:0;bottom:15vh;width:min(22vw,185px);max-height:65vh}
-  #tutorialBattleIntro .chapter-npc-card{right:0;bottom:15vh;width:min(22vw,185px);max-height:65vh}
+  .story-battle-opponent-card{right:0;bottom:112px;width:min(17vw,150px);max-height:calc(100vh - 148px)}
+  #tutorialBattleIntro .chapter-npc-card{right:0;bottom:112px;width:min(17vw,150px);max-height:calc(100vh - 148px)}
   #villageBattleIntro .chapter-dialogue{width:min(74vw,920px)}
   #chapterOneEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterOneEndScreen small{top:63%;font-size:10px}
   .story-reward-notice{width:min(72vw,430px);padding:16px 20px}.story-reward-notice b{margin-bottom:7px;font-size:19px}.story-reward-notice span{font-size:13px}.story-reward-notice img{width:32px;height:32px}
   #resultScreen{padding-bottom:4vh}.result-word{font-size:clamp(42px,16vh,92px)}.result-actions{margin-top:2vh}.result-retry{padding:6px 10px!important;font-size:14px!important}
   .title-return-box{padding:16px;transform:scale(.88)}.title-return-box p{margin-bottom:14px;font-size:14px}.title-return-actions button{min-width:82px;padding:7px 10px;font-size:12px}
+  /* 縦に長いログイン内容は、横画面でも必ず下までスクロールして操作できる。 */
+  .auth-modal{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
+  .auth-panel{width:min(86vw,410px);max-height:calc(100vh - 24px);margin:0 auto;padding:18px 22px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .auth-crown{font-size:22px}.auth-panel h2{font-size:21px}.auth-subtitle{margin-bottom:10px;font-size:10px}.auth-tabs{margin-bottom:9px}.auth-tab{padding:6px;font-size:12px}.auth-form{gap:7px}.auth-form label{font-size:11px}.auth-form input{padding:7px;font-size:13px}.auth-submit{padding:8px;font-size:13px}.auth-status{min-height:1.8em;font-size:10px}.auth-guest-note{margin-top:8px;font-size:9px}
 }
 `;
 document.head.append(mobileLandscapeStyle);
