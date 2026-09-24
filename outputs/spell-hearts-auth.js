@@ -1111,7 +1111,7 @@ function beginSpellDrawLesson(){
   tutorialFocus('#pSpell',()=>{
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     window.drawInitial?.();
-    setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、\nチャージエリアに伏せて置かれる。',()=>{
+    setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、\nチャージエリアに自分だけ見える形で伏せて置かれる。',()=>{
       tutorialDialogue('次は、このバトルカードをドローするんだ。',()=>tutorialFocus('#pBattle',beginBattleCardLesson));
     }),780);
   });
