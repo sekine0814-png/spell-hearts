@@ -24,6 +24,15 @@ let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
 
+// 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
+function syncTouchLandscapeLayout(){
+  const touch=navigator.maxTouchPoints>0||'ontouchstart' in window;
+  document.body?.classList.toggle('touch-landscape',touch&&window.innerWidth>window.innerHeight);
+}
+window.addEventListener('resize',syncTouchLandscapeLayout,{passive:true});
+window.addEventListener('orientationchange',syncTouchLandscapeLayout,{passive:true});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTouchLandscapeLayout,{once:true});else syncTouchLandscapeLayout();
+
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
 
 function authMessage(error){
@@ -1444,3 +1453,14 @@ document.head.append(mobileLandscapeStyle);
 const tutorialTargetStyle=document.createElement('style');
 tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}';
 document.head.append(tutorialTargetStyle);
+const touchLandscapeStyle=document.createElement('style');
+touchLandscapeStyle.textContent=`
+/* 一部のスマホが高解像度 desktop 表示を返しても、実機のタッチ領域を優先する。 */
+body.touch-landscape{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body.touch-landscape #pBattle .picks{transform:scale(3.5)!important;transform-origin:left top!important}
+body.touch-landscape #cBattle .picks{transform:scale(3.5)!important;transform-origin:right top!important}
+body.touch-landscape .push-screen{position:relative;z-index:5;touch-action:manipulation}
+body.touch-landscape .push-screen:before{content:"";position:absolute;z-index:-1;inset:-28px -36px}
+body.touch-landscape .title-menu,.touch-landscape .push-screen,.touch-landscape .room-form,.touch-landscape .title-login{transform:none!important}
+`;
+document.head.append(touchLandscapeStyle);
