@@ -444,6 +444,14 @@ window.awardSpellHeartsTokens=(amount,matchId)=>{
   renderTokenBalance();
   return total;
 };
+function claimStoryChapterReward(chapter,amount){
+  if(!currentUser||currentUser.isAnonymous)return false;
+  const rewardKey=`spellHeartsStoryReward:${currentUser.uid}:${chapter}`;
+  if(localStorage.getItem(rewardKey)==='claimed')return false;
+  window.awardSpellHeartsTokens?.(amount,`story-${chapter}`);
+  localStorage.setItem(rewardKey,'claimed');
+  return true;
+}
 
 onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();void loadAccountCosmetics();});
 
@@ -1037,7 +1045,7 @@ function showChapterOneEnd(scene){
   stopVillageDangerBgm();let end=document.querySelector('#chapterOneEndScreen');
   if(!end){end=document.createElement('button');end.id='chapterOneEndScreen';end.type='button';end.innerHTML='<span>Chapter 1 END</span><small>クリックしてタイトルへ戻る</small>';document.body.append(end);}
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
-  end.onclick=()=>{window.awardSpellHeartsTokens?.(5,'story-chapter-one');sessionStorage.setItem('spellHeartsStoryRewardNotice','5');window.returnToTitle?.();};
+  end.onclick=()=>{if(claimStoryChapterReward('chapter-one',5))sessionStorage.setItem('spellHeartsStoryRewardNotice','5');window.returnToTitle?.();};
 }
 function installStoryWolfResultHandler(){
   const original=window.render;
