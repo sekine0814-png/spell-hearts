@@ -994,7 +994,7 @@ function beginChapterOneTutorial(scene){
   stopChapterOneBgm();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  curtain.classList.remove('lift');
+  coverStoryCurtain(curtain);
   scene.classList.add('leaving');
   setTimeout(()=>{
     scene.hidden=true;
