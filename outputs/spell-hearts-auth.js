@@ -1389,8 +1389,8 @@ mobileLandscapeStyle.textContent=`
   .message{font-size:clamp(8px,1.75vw,13px)}
   /* 展開した手札だけは十分なタップ領域を確保する。枠は実際の表示座標を追従する。 */
   .picks{transform:scale(1.04);transform-origin:center}
-  #pBattle .picks{transform:scale(1.75);transform-origin:left top}
-  #cBattle .picks{transform:scale(1.75);transform-origin:right top}
+  #pBattle .picks{transform:scale(3.5);transform-origin:left top}
+  #cBattle .picks{transform:scale(3.5);transform-origin:right top}
   .battle-settings{top:8px!important;right:8px!important;left:auto!important;transform:scale(.78);transform-origin:top right}
   .battle-settings-panel{top:42px!important;right:8px!important;left:auto!important;max-height:calc(100vh - 48px);overflow:auto;transform:scale(.82);transform-origin:top right}
   .story-active .battle-settings{top:8px!important;left:8px!important;right:auto!important;transform-origin:top left}
