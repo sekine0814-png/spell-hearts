@@ -760,17 +760,31 @@ function tutorialDialogue(text,next){
 function tutorialFocusElement(target,onChoose){
   const intro=document.querySelector('#tutorialBattleIntro'),lock=tutorialLock();
   const resolve=typeof target==='function'?target:()=>target;
-  // 手札の展開アニメーション中は対象がまだ DOM にないことがあるため、
-  // 出現するまで待機してから枠を表示する。
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
-  const button=document.createElement('button');
-  button.type='button';button.className='tutorial-focus-button';button.setAttribute('aria-label','ここを選択');
-  // ロック層を基準に置く。スマホでは fixed 要素の座標系が画面の拡大縮小時にずれるため、
-  // 画面直下のロック層からの相対座標へ変換して、見えているカードとタップ範囲を一致させる。
-  const place=()=>{const current=resolve();if(!current||!current.isConnected){button.style.visibility='hidden';return;}const visual=current.querySelector('img')||current,box=visual.getBoundingClientRect(),lockBox=lock.getBoundingClientRect();button.style.visibility='visible';Object.assign(button.style,{left:`${box.left-lockBox.left}px`,top:`${box.top-lockBox.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
-  const follow=()=>{if(!button.isConnected)return;place();requestAnimationFrame(follow);};
-  place();lock.append(button);requestAnimationFrame(follow);
-  button.onclick=()=>{resumeTutorialBattleBgm();tutorialUnlock();onChoose?.();};
+  let active=null,activeHand=null,finished=false;
+  const clear=()=>{
+    if(active){active.classList.remove('tutorial-focus-target');active.style.removeProperty('pointer-events');active.style.removeProperty('z-index');active.style.removeProperty('position');}
+    if(activeHand){activeHand.style.removeProperty('position');activeHand.style.removeProperty('z-index');activeHand.querySelectorAll('.pick').forEach(card=>card.style.removeProperty('pointer-events'));}
+    active=null;activeHand=null;
+  };
+  // 座標を別の要素へ写さず、見えている実カードを直接発光・最前面化する。
+  // これで再描画や高解像度端末でも誘導枠がずれない。
+  const sync=()=>{
+    if(finished)return;
+    const current=resolve();
+    if(!current||!current.isConnected||current===active){requestAnimationFrame(sync);return;}
+    clear();active=current;active.classList.add('tutorial-focus-target');active.style.zIndex='170';
+    const hand=active.closest('.picks');
+    if(hand){activeHand=hand;active.style.position='relative';hand.style.position='relative';hand.style.zIndex='170';hand.querySelectorAll('.pick').forEach(card=>card.style.pointerEvents=card===active?'auto':'none');}
+    requestAnimationFrame(sync);
+  };
+  const choose=event=>{
+    const current=resolve();
+    event.preventDefault();event.stopImmediatePropagation();
+    if(!current||!current.contains(event.target))return;
+    finished=true;document.removeEventListener('click',choose,true);clear();resumeTutorialBattleBgm();tutorialUnlock();onChoose?.();
+  };
+  document.addEventListener('click',choose,true);requestAnimationFrame(sync);
 }
 function tutorialFocus(selector,onChoose){tutorialFocusElement(()=>document.querySelector(selector),onChoose);}
 function tutorialFocusCard(card,onChoose){
@@ -1398,8 +1412,8 @@ mobileLandscapeStyle.textContent=`
   .message{font-size:clamp(8px,1.75vw,13px)}
   /* 展開した手札だけは十分なタップ領域を確保する。枠は実際の表示座標を追従する。 */
   .picks{transform:scale(1.04);transform-origin:center}
-  #pBattle .picks{transform:scale(3.5);transform-origin:left top}
-  #cBattle .picks{transform:scale(3.5);transform-origin:right top}
+  #pBattle .picks{transform:scale(1.75);transform-origin:left top}
+  #cBattle .picks{transform:scale(1.75);transform-origin:right top}
   .battle-settings{top:8px!important;right:8px!important;left:auto!important;transform:scale(.78);transform-origin:top right}
   .battle-settings-panel{top:42px!important;right:8px!important;left:auto!important;max-height:calc(100vh - 48px);overflow:auto;transform:scale(.82);transform-origin:top right}
   .story-active .battle-settings{top:8px!important;left:8px!important;right:auto!important;transform-origin:top left}
@@ -1451,14 +1465,14 @@ mobileLandscapeStyle.textContent=`
 `;
 document.head.append(mobileLandscapeStyle);
 const tutorialTargetStyle=document.createElement('style');
-tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}';
+tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}';
 document.head.append(tutorialTargetStyle);
 const touchLandscapeStyle=document.createElement('style');
 touchLandscapeStyle.textContent=`
 /* 一部のスマホが高解像度 desktop 表示を返しても、実機のタッチ領域を優先する。 */
 body.touch-landscape{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body.touch-landscape #pBattle .picks{transform:scale(3.5)!important;transform-origin:left top!important}
-body.touch-landscape #cBattle .picks{transform:scale(3.5)!important;transform-origin:right top!important}
+body.touch-landscape #pBattle .picks{transform:scale(1.75)!important;transform-origin:left top!important}
+body.touch-landscape #cBattle .picks{transform:scale(1.75)!important;transform-origin:right top!important}
 body.touch-landscape .push-screen{position:relative;z-index:5;touch-action:manipulation}
 body.touch-landscape .push-screen:before{content:"";position:absolute;z-index:-1;inset:-28px -36px}
 body.touch-landscape .title-menu,.touch-landscape .push-screen,.touch-landscape .room-form,.touch-landscape .title-login{transform:none!important}
