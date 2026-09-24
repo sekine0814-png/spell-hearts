@@ -754,6 +754,18 @@ function playEnhancedHpSfx(kind){
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100))*.72;
   sound.currentTime=0;sound.play().catch(()=>{});
 }
+function showHolyHpGlow(effect){
+  for(const side of ['p','c']){
+    if(Number(effect.to?.[side])<=Number(effect.old?.[side]))continue;
+    const hp=document.querySelector('#'+side+'Hp');
+    if(!hp)continue;
+    hp.classList.remove('holy-hp-heal');void hp.offsetWidth;hp.classList.add('holy-hp-heal');
+    setTimeout(()=>hp.classList.remove('holy-hp-heal'),1450);
+  }
+}
+const holyHealStyle=document.createElement('style');
+holyHealStyle.textContent='.hp.holy-hp-heal{z-index:45!important;color:#fff9bf!important;text-shadow:0 0 4px #fff,0 0 12px #ffe66d,0 0 24px #e9b43d,0 2px 5px #000!important;animation:holy-hp-heal-pulse 1.45s ease-out both!important}.hp.holy-hp-heal:before,.hp.holy-hp-heal:after{content:"✦";position:absolute;top:50%;color:#fffbd3;font:20px/1 Georgia,serif;text-shadow:0 0 6px #fff,0 0 14px #ffd75b;pointer-events:none;animation:holy-hp-spark 1.2s ease-out both}.hp.holy-hp-heal:before{left:-22px}.hp.holy-hp-heal:after{right:-22px;animation-delay:.14s}@keyframes holy-hp-heal-pulse{0%{filter:brightness(1);transform:scale(1)}22%{filter:brightness(2.2);transform:scale(1.14)}56%{filter:brightness(1.6);transform:scale(1.05)}100%{filter:brightness(1);transform:scale(1)}}@keyframes holy-hp-spark{0%{opacity:0;transform:translateY(9px) scale(.5)}28%{opacity:1}100%{opacity:0;transform:translateY(-26px) scale(1.2)}}';
+document.head.append(holyHealStyle);
 function installEnhancedSpellHpSfx(tries=0){
   const original=window.runDamage;
   if(typeof original!=='function'){
@@ -766,7 +778,7 @@ function installEnhancedSpellHpSfx(tries=0){
     if(!effect.started){
       const healed=['p','c'].some(side=>Number(effect.to?.[side])>Number(effect.old?.[side]));
       const damaged=['p','c'].some(side=>Number(effect.damage?.[side])>0);
-      if(healed)setTimeout(()=>playEnhancedHpSfx(damaged?'drain':'heal'),640);
+      if(healed)setTimeout(()=>{showHolyHpGlow(effect);playEnhancedHpSfx(damaged?'drain':'heal');},640);
     }
     return original.apply(this,arguments);
   };
