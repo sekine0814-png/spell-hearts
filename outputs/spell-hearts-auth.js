@@ -765,7 +765,7 @@ function tutorialExplainAmplify(){
   tutorialDialogue('アンプリファイアは、バトルカードの代わりに出す特殊カードだ。',()=>{
     tutorialDialogue('そのターンは相手の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
       tutorialDialogue('その代わり、次に使用するスペルの効果を強化できる。',()=>{
-        tutorialDialogue('強化したスペルを使うと、アンプリファイアは墓地へ送られる。\n墓地に送られたカードは、そのゲーム中はもう使えない。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
+        tutorialDialogue('強化したスペルを使うと、アンプリファイアは墓地へ送られる。\nアンプリファイアを含めて、墓地に送られたスペルカードは、そのゲーム中はもう使えない。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
       });
     });
   });
@@ -860,11 +860,13 @@ function beginVillageEncounter(scene){
     ];
     let index=0;
     const renderLine=()=>{
-      const line=lines[index];
+      const line=lines[index],wolfEntering=wolf.hidden&&line.wolf,warriorEntering=warrior.hidden&&line.warrior;
       speaker.textContent=line.speaker;copy.textContent=line.text;
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;
-      wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
-      warrior.classList.toggle('speaker-active',line.speaker==='女性戦士');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='女性戦士');
+      if(wolfEntering){wolf.classList.remove('enter');void wolf.offsetWidth;wolf.classList.add('enter');}
+      if(warriorEntering){warrior.classList.remove('enter');void warrior.offsetWidth;warrior.classList.add('enter');}
+      wolf.classList.toggle('speaker-active',wolfEntering||line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&!wolfEntering&&line.speaker!=='魔物');
+      warrior.classList.toggle('speaker-active',warriorEntering||line.speaker==='女性戦士');warrior.classList.toggle('speaker-idle',line.warrior&&!warriorEntering&&line.speaker!=='女性戦士');
       dialogue.dataset.ended=String(index===lines.length-1);
     };
     senior.hidden=true;scene.classList.add('village-scene');scene.classList.remove('leaving');scene.hidden=false;dialogue.hidden=false;
@@ -983,8 +985,8 @@ function startChapterOne(){
     speaker.textContent=line.speaker;copy.textContent=line.text;
     npc.hidden=currentLine===0;
     if(!npc.hidden&&wasHidden){npc.classList.remove('enter');void npc.offsetWidth;npc.classList.add('enter');}
-    npc.classList.toggle('speaker-active',npcSpeaking);
-    npc.classList.toggle('speaker-idle',!npcSpeaking);
+    npc.classList.toggle('speaker-active',npcSpeaking||(!npc.hidden&&wasHidden));
+    npc.classList.toggle('speaker-idle',!npcSpeaking&&!wasHidden);
     dialogue.dataset.ended=String(currentLine===lines.length-1);
   };
   dialogue.onclick=()=>{if(currentLine<lines.length-1){currentLine+=1;renderLine();}else beginChapterOneTutorial(scene);};
@@ -1028,7 +1030,7 @@ function openTutorial(){
     {chapter:'チュートリアル・第一頁',title:'バトルカードの基本',body:'<div class="tutorial-rule"><b>グー</b><span>勝利時：1ダメージ</span></div><div class="tutorial-rule"><b>チョキ</b><span>勝利時：2ダメージ</span></div><div class="tutorial-rule"><b>パー</b><span>勝利時：5ダメージ</span></div><div class="tutorial-rule"><b>あいこ</b><span>両者：1ダメージ</span></div>',hint:'先に相手のHPを0にした側の勝利。'},
     {chapter:'チュートリアル・第二頁',title:'一巡の流れ',body:'<div class="tutorial-flow"><b>① スペルを引く</b><span>伏せたままCHARGEに置かれる</span></div><div class="tutorial-flow"><b>② バトルカードを選ぶ</b><span>グー・チョキ・パー・アンプリファイア</span></div><div class="tutorial-flow"><b>③ 公開後にスペルを選ぶ</b><span>使わない場合もOKで進行する</span></div>',hint:'相手の伏せスペルは、使われるまで正体が見えない。'},
     {chapter:'チュートリアル・第三頁',title:'スペルカードの効果',body:'<div class="tutorial-rule"><b>追い打ち</b><span>勝利時：与ダメージ +1 ／ 強化：+3</span></div><div class="tutorial-rule"><b>ブロック</b><span>敗北時：受ダメージ -1 ／ 強化：0・HP+1</span></div><div class="tutorial-rule"><b>謀略</b><span>あいこ時：自分のダメージを0 ／ 強化：HP+2・相手に2ダメージ</span></div>',hint:'使える状況はカードごとに決まっている。'},
-    {chapter:'チュートリアル・最終頁',title:'アンプリファイア',body:'<div class="tutorial-rule tutorial-amp"><b>アンプリファイア</b><span>このバトルでは相手のダメージを受け、次に使うスペルを強化する。</span></div><div class="tutorial-rule tutorial-amp"><b>強化後</b><span>スペル使用後、アンプリファイアは墓地へ送られ、そのゲーム中は再使用できない。</span></div>',hint:'危険な一手が、決闘を覆す。準備は整った。',start:true}
+    {chapter:'チュートリアル・最終頁',title:'アンプリファイア',body:'<div class="tutorial-rule tutorial-amp"><b>アンプリファイア</b><span>このバトルでは相手のダメージを受け、次に使うスペルを強化する。</span></div><div class="tutorial-rule tutorial-amp"><b>強化後</b><span>アンプリファイアを含めて、墓地に送られたスペルカードは、そのゲーム中は再使用できない。</span></div>',hint:'危険な一手が、決闘を覆す。準備は整った。',start:true}
   ];
   let page=0;const pageNode=modal.querySelector('.tutorial-page'),progress=modal.querySelector('.tutorial-progress'),back=modal.querySelector('.tutorial-back'),next=modal.querySelector('.tutorial-next');
   const renderPage=()=>{const item=pages[page];pageNode.innerHTML=`<div class="tutorial-chapter">${item.chapter}</div><h2>${item.title}</h2><div class="tutorial-body">${item.body}</div><p>${item.hint}</p>`;progress.innerHTML=pages.map((_,index)=>`<i class="${index===page?'active':''}"></i>`).join('');back.disabled=page===0;next.textContent=item.start?'模擬戦を始める':'次の頁へ';};
@@ -1125,7 +1127,7 @@ chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34
 chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
 chapterOneStyle.textContent+='.story-active .below{display:none}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutorial-focus-target{position:relative!important;z-index:auto!important;filter:none!important;outline:0!important;box-shadow:none!important;animation:none!important}';
-chapterOneStyle.textContent+='#tutorialBattleCurtain.returning{z-index:220}';
+chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.returning{z-index:9999!important}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
-chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-wolf{position:fixed;z-index:4;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.village-battle-wolf{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
+chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-wolf{position:fixed;z-index:4;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.village-battle-wolf{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
