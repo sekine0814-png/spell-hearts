@@ -820,7 +820,7 @@ function tutorialAmplifiedPursuit(){
   }));
 }
 function coverStoryCurtain(curtain){
-  coverStoryCurtain(curtain);
+  curtain.classList.remove('lift');
   curtain.style.setProperty('z-index','2147483647','important');
   curtain.style.setProperty('opacity','1','important');
   curtain.style.setProperty('transition','none','important');
