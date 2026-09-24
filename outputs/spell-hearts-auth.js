@@ -187,6 +187,21 @@ function startVillageDangerBgm(){
   if(!music.paused)return;
   music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
 }
+function ensureAirSmileBgm(){
+  let music=document.querySelector('#airSmileBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='airSmileBgm';music.src='assets/story-air-smile-bgm.mp3';music.loop=true;music.preload='none';music.volume=0;
+  document.body.append(music);return music;
+}
+function startAirSmileBgm(){
+  const music=ensureAirSmileBgm();
+  if(!music.paused)return;
+  music.currentTime=0;music.volume=titleBgmLevel()*.82;music.play().catch(()=>{});
+}
+function stopAirSmileBgm(){
+  const music=document.querySelector('#airSmileBgm');
+  if(music){music.pause();music.currentTime=0;music.volume=0;}
+}
 function startWolfBattleBgm(){
   const music=document.querySelector('#battleBgm');
   if(!music)return;
@@ -207,7 +222,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{document.body.classList.remove('story-cinematic');stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{document.body.classList.remove('story-cinematic');stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -1030,7 +1045,7 @@ function beginWolfAftermath(){
     const renderLine=()=>{
       const line=lines[index];speaker.textContent=line.speaker;copy.textContent=line.text;
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;yuto.hidden=!line.yuto;scene.classList.toggle('night-village',!!line.night);
-      if(line.smile)warrior.src='assets/story-woman-warrior-smile.webp';
+      if(line.smile){warrior.src='assets/story-woman-warrior-smile.webp';stopVillageDangerBgm();startAirSmileBgm();}
       warrior.classList.toggle('smile-card',warrior.src.includes('story-woman-warrior-smile.webp'));
       wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
       warrior.classList.toggle('speaker-active',line.speaker==='？？？'||line.speaker==='エア');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='？？？'&&line.speaker!=='エア');
@@ -1043,7 +1058,7 @@ function beginWolfAftermath(){
   },1000);
 }
 function showChapterOneEnd(scene){
-  stopVillageDangerBgm();let end=document.querySelector('#chapterOneEndScreen');
+  stopVillageDangerBgm();stopAirSmileBgm();let end=document.querySelector('#chapterOneEndScreen');
   if(!end){end=document.createElement('button');end.id='chapterOneEndScreen';end.type='button';end.innerHTML='<span>Chapter 1 END</span><small>クリックしてタイトルへ戻る</small>';document.body.append(end);}
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{if(claimStoryChapterReward('chapter-one',5))sessionStorage.setItem('spellHeartsStoryRewardNotice','5');window.returnToTitle?.();};
