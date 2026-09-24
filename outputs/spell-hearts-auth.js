@@ -866,13 +866,13 @@ function tutorialReturnToStory(){
     intro?.classList.remove('show');if(intro)intro.hidden=true;
     const npc=scene.querySelector('.chapter-npc-card'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
     const epilogue=[
-      {speaker:'ユート先輩',text:'流石だ。筋がいいぞ。'},
-      {speaker:'ユート先輩',text:'これからお前も戦場に出たり、誰かを守ったりすることもあるだろう。'},
-      {speaker:'ユート先輩',text:'そんなときは、今の戦い方を思い出すんだぞ。'},
+      {speaker:'ユート',text:'流石だ。筋がいいぞ。'},
+      {speaker:'ユート',text:'これからお前も戦場に出たり、誰かを守ったりすることもあるだろう。'},
+      {speaker:'ユート',text:'そんなときは、今の戦い方を思い出すんだぞ。'},
       {speaker:'主人公',text:'・・・はい、ユート先輩！'}
     ];
     let lineIndex=0;
-    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='ユート先輩';speaker.textContent=line.speaker;copy.textContent=line.text;npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
+    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='ユート';speaker.textContent=line.speaker;copy.textContent=line.text;npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
     scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
     npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
     dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else beginVillageEncounter(scene);};renderEpilogue();
@@ -950,7 +950,7 @@ function beginVillageBattle(scene){
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');document.body.classList.remove('story-cinematic');
     window.storyWolfBattleActive=true;window.storyWolfBattleResolved=false;
     window.start?.();
-    if(typeof g!=='undefined'){g.c.deck=['pursuit','scheme','block'];g.p.deck=['pursuit','block','scheme'];window.render?.();}
+    if(typeof g!=='undefined'){g.c.deck=['pursuit','scheme','block'];g.p.deck=['scheme','block','pursuit'];window.render?.();}
     window.setBattleBackdrop?.('story-village.webp');startWolfBattleBgm();
     let opponent=document.querySelector('#storyBattleOpponentCard');
     if(!opponent){opponent=document.createElement('img');opponent.id='storyBattleOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
@@ -1010,16 +1010,16 @@ function beginWolfAftermath(){
       {speaker:'主人公',text:'それはこっちのセリフだ。5体も魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true},
       {speaker:'主人公',text:'いえ、こちらこそありがとうございました。お強いんですね。',warrior:true},
       {speaker:'？？？',text:'まあこのくらいならね。今ちょうど外から帰ってきたところだったんだ。間に合ってよかった。',warrior:true},
-      {speaker:'ユート先輩',text:'おーい、大丈夫か！',warrior:true,yuto:true},
+      {speaker:'ユート',text:'おーい、大丈夫か！',warrior:true,yuto:true},
       {speaker:'？？？',text:'ユート！ 久しぶりじゃないか。',warrior:true,yuto:true},
       {speaker:'主人公',text:'どうやらユート先輩との知り合いらしい。旧知の仲なのだろうか。',warrior:true,yuto:true},
-      {speaker:'ユート先輩',text:'帰ってきてたのか！',warrior:true,yuto:true},
+      {speaker:'ユート',text:'帰ってきてたのか！',warrior:true,yuto:true},
       {speaker:'主人公',text:'女性は俺達二人に向き直ると、俺に自己紹介をしてくれた。',warrior:true,yuto:true},
       {speaker:'？？？',text:'私の名前はエア。エア・ノエルだよ。よろしくね。',warrior:true,yuto:true},
-      {speaker:'ユート先輩',text:'訓練校まで一緒だった、俺の友達だ。',warrior:true,yuto:true},
-      {speaker:'ユート先輩',text:'二人とも、よく頑張ったな。とりあえず戦いの後片付けをしないとな。',warrior:true,yuto:true},
+      {speaker:'ユート',text:'訓練校まで一緒だった、俺の友達だ。',warrior:true,yuto:true},
+      {speaker:'ユート',text:'二人とも、よく頑張ったな。とりあえず戦いの後片付けをしないとな。',warrior:true,yuto:true},
       {speaker:'主人公',text:'俺達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true,night:true},
-      {speaker:'ユート先輩',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true,night:true},
+      {speaker:'ユート',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true,night:true},
       {speaker:'エア',text:'ほんと？ やったー！',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'俺達は夜の街へと歩き出した。',warrior:true,yuto:true,night:true},
@@ -1031,9 +1031,10 @@ function beginWolfAftermath(){
       const line=lines[index];speaker.textContent=line.speaker;copy.textContent=line.text;
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;yuto.hidden=!line.yuto;scene.classList.toggle('night-village',!!line.night);
       if(line.smile)warrior.src='assets/story-woman-warrior-smile.webp';
+      warrior.classList.toggle('smile-card',warrior.src.includes('story-woman-warrior-smile.webp'));
       wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
       warrior.classList.toggle('speaker-active',line.speaker==='？？？'||line.speaker==='エア');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='？？？'&&line.speaker!=='エア');
-      yuto.classList.toggle('speaker-active',line.speaker==='ユート先輩');yuto.classList.toggle('speaker-idle',line.yuto&&line.speaker!=='ユート先輩');
+      yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',line.yuto&&line.speaker!=='ユート');
       dialogue.dataset.ended=String(index===lines.length-1);
     };
     scene.hidden=false;scene.classList.remove('leaving');scene.classList.add('preparing','show','village-scene');dialogue.hidden=false;renderLine();
@@ -1139,7 +1140,7 @@ function beginChapterOneTutorial(scene){
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
-      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="ユート先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">ユート先輩</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="ユート先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">ユート</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.hidden=false;
@@ -1158,12 +1159,12 @@ function startChapterOne(){
   stopTitleBgm();stopChapterOneBgm();
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
-    {speaker:'ユート先輩',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
+    {speaker:'ユート',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
     {speaker:'主人公',text:'ユート先輩。うん、昨日の型がどうにも決まらなくて。'},
-    {speaker:'ユート先輩',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
-    {speaker:'ユート先輩',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
+    {speaker:'ユート',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
+    {speaker:'ユート',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
     {speaker:'主人公',text:'なるほど……先に当てにいこうとしてた。'},
-    {speaker:'ユート先輩',text:'その通り。今日は俺が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
+    {speaker:'ユート',text:'その通り。今日は俺が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
   ];
   let scene=document.querySelector('#chapterOneScene');
   if(!scene){
@@ -1175,7 +1176,7 @@ function startChapterOne(){
   const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),npc=scene.querySelector('.chapter-npc-card');
   let currentLine=0;
   const renderLine=()=>{
-    const line=lines[currentLine],npcSpeaking=line.speaker==='ユート先輩',wasHidden=npc.hidden;
+    const line=lines[currentLine],npcSpeaking=line.speaker==='ユート',wasHidden=npc.hidden;
     speaker.textContent=line.speaker;copy.textContent=line.text;
     npc.hidden=currentLine===0;
     if(!npc.hidden&&wasHidden){npc.classList.remove('enter');void npc.offsetWidth;npc.classList.add('enter');}
@@ -1340,3 +1341,4 @@ chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-h
 chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
 function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0);if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),5000);}setTimeout(showStoryRewardNotice,350);
 chapterOneStyle.textContent+='.story-reward-notice{position:fixed;z-index:300;left:50%;top:50%;width:min(86vw,480px);padding:28px 30px;border:1px solid #d8ae4e;border-radius:7px;background:radial-gradient(ellipse at 50% 0,rgba(95,68,25,.98),rgba(11,9,11,.98) 72%);box-shadow:inset 0 0 30px rgba(255,217,129,.18),0 14px 48px #000;transform:translate(-50%,-50%);color:#fff0ae;text-align:center;animation:story-reward-in .45s ease-out both}.story-reward-notice b{display:block;margin-bottom:12px;font:26px Georgia,"Yu Mincho",serif;letter-spacing:.1em}.story-reward-notice span{display:flex;align-items:center;justify-content:center;gap:10px;font:18px "Yu Gothic",sans-serif}.story-reward-notice img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}@keyframes story-reward-in{from{opacity:0;transform:translate(-50%,-46%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
+chapterOneStyle.textContent+='.story-warrior-card.smile-card{box-sizing:border-box;padding:3px;border:2px solid rgba(229,196,116,.96);border-radius:6px;background:linear-gradient(135deg,#6d5429,#f2dc97,#5f461f);box-shadow:0 0 0 1px rgba(35,24,10,.95),0 0 13px rgba(241,211,129,.46),0 5px 15px #0008}';
