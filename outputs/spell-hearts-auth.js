@@ -99,7 +99,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -139,18 +139,20 @@ function ensureTutorialBattleBgm(){
   document.body.append(music);return music;
 }
 function stopTutorialBattleBgm(){
-  cancelAnimationFrame(tutorialBattleBgmFadeFrame);tutorialBattleBgmFadeFrame=0;
+  cancelAnimationFrame(tutorialBattleBgmFadeFrame);tutorialBattleBgmFadeFrame=0;clearInterval(tutorialBattleBgmWatch);tutorialBattleBgmWatch=0;
   const music=document.querySelector('#tutorialBattleBgm');
-  if(music){music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
 }
 function startTutorialBattleBgm(){
   const music=ensureTutorialBattleBgm();
-  cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='1';
+  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
   music.play().then(()=>{
     const began=performance.now(),duration=1150;
     const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
     tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
+  // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
+  tutorialBattleBgmWatch=setInterval(()=>{if(music.dataset.keepPlaying==='1'&&music.paused)music.play().catch(()=>{});},1200);
 }
 function ensureVillageAmbience(){
   let music=document.querySelector('#villageAmbience');
@@ -183,6 +185,7 @@ function stopVillageDangerBgm(){
   if(music){music.pause();music.currentTime=0;music.volume=0;}
 }
 function startVillageDangerBgm(){
+  stopVillageAmbience();
   const music=ensureVillageDangerBgm();
   if(!music.paused)return;
   music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
@@ -740,21 +743,22 @@ function tutorialDialogue(text,next){
 }
 function tutorialFocusElement(target,onChoose){
   const intro=document.querySelector('#tutorialBattleIntro'),lock=tutorialLock();
-  if(!target)return;
+  const resolve=typeof target==='function'?target:()=>target;
+  // 手札の展開アニメーション中は対象がまだ DOM にないことがあるため、
+  // 出現するまで待機してから枠を表示する。
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
   const button=document.createElement('button');
   button.type='button';button.className='tutorial-focus-button';button.setAttribute('aria-label','ここを選択');
   // ロック層を基準に置く。スマホでは fixed 要素の座標系が画面の拡大縮小時にずれるため、
   // 画面直下のロック層からの相対座標へ変換して、見えているカードとタップ範囲を一致させる。
-  const place=()=>{const visual=target.querySelector('img')||target,box=visual.getBoundingClientRect(),lockBox=lock.getBoundingClientRect();Object.assign(button.style,{left:`${box.left-lockBox.left}px`,top:`${box.top-lockBox.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
+  const place=()=>{const current=resolve();if(!current||!current.isConnected){button.style.visibility='hidden';return;}const visual=current.querySelector('img')||current,box=visual.getBoundingClientRect(),lockBox=lock.getBoundingClientRect();button.style.visibility='visible';Object.assign(button.style,{left:`${box.left-lockBox.left}px`,top:`${box.top-lockBox.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
   const follow=()=>{if(!button.isConnected)return;place();requestAnimationFrame(follow);};
   place();lock.append(button);requestAnimationFrame(follow);
   button.onclick=()=>{tutorialUnlock();onChoose?.();};
 }
-function tutorialFocus(selector,onChoose){tutorialFocusElement(document.querySelector(selector),onChoose);}
+function tutorialFocus(selector,onChoose){tutorialFocusElement(()=>document.querySelector(selector),onChoose);}
 function tutorialFocusCard(card,onChoose){
-  const target=[...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`));
-  tutorialFocusElement(target,onChoose);
+  tutorialFocusElement(()=>[...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`)),onChoose);
 }
 function tutorialGlowCard(card){
   document.querySelectorAll('#pBattle .pick').forEach(button=>button.classList.toggle('tutorial-card-glow',button.getAttribute('onclick')?.includes(`pick('${card}')`)));
