@@ -908,9 +908,9 @@ function beginVillageEncounter(scene){
       {speaker:'主人公',text:'「ど……どうする！」\n万事休すか……！',wolf:true},
       {speaker:'？？？',text:'「キミ！」',wolf:true,warrior:true},
       {speaker:'主人公',text:'透き通るような声が響く。それは間違いなく俺へ向けられたものだった。',wolf:true,warrior:true},
-      {speaker:'女性戦士',text:'キミ、戦える？',wolf:true,warrior:true},
+      {speaker:'？？？',text:'キミ、戦える？',wolf:true,warrior:true},
       {speaker:'主人公',text:'僅かな時間を置いて質問の意図を理解した俺は、\n「っ……戦えます！」',wolf:true,warrior:true},
-      {speaker:'女性戦士',text:'よし、ここは任せるよ！ 私は向こうへ！',wolf:true,warrior:true},
+      {speaker:'？？？',text:'よし、ここは任せるよ！ 私は向こうへ！',wolf:true,warrior:true},
       {speaker:'主人公',text:'言うと、彼女はどよめく街中へ駆け出していった。\n向き直る。魔物は前足をギリギリと鳴らし、いつ襲いかかってきてもおかしくない。',wolf:true,warrior:false},
       {speaker:'主人公',text:'「いくぞ……！」\n俺は剣を抜いた。瞬間、魔物がこちらへ勢いよく駆け出してきた。',wolf:true,warrior:false}
     ];
@@ -923,7 +923,7 @@ function beginVillageEncounter(scene){
       if(wolfEntering){wolf.classList.remove('enter');void wolf.offsetWidth;wolf.classList.add('enter');}
       if(warriorEntering){warrior.classList.remove('enter');void warrior.offsetWidth;warrior.classList.add('enter');}
       wolf.classList.toggle('speaker-active',wolfEntering||line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&!wolfEntering&&line.speaker!=='魔物');
-      warrior.classList.toggle('speaker-active',warriorEntering||line.speaker==='女性戦士');warrior.classList.toggle('speaker-idle',line.warrior&&!warriorEntering&&line.speaker!=='女性戦士');
+      warrior.classList.toggle('speaker-active',warriorEntering||line.speaker==='？？？');warrior.classList.toggle('speaker-idle',line.warrior&&!warriorEntering&&line.speaker!=='？？？');
       dialogue.dataset.ended=String(index===lines.length-1);
     };
     senior.hidden=true;scene.classList.add('village-scene');scene.classList.remove('leaving');scene.hidden=false;dialogue.hidden=false;
@@ -941,7 +941,9 @@ function beginVillageBattle(scene){
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');document.body.classList.remove('story-cinematic');
     window.storyWolfBattleActive=true;window.storyWolfBattleResolved=false;
-    window.start?.();window.setBattleBackdrop?.('story-village.jpg');startWolfBattleBgm();
+    window.start?.();
+    if(typeof g!=='undefined'){g.c.deck=['pursuit','scheme','block'];g.p.deck=['pursuit','block','scheme'];window.render?.();}
+    window.setBattleBackdrop?.('story-village.jpg');startWolfBattleBgm();
     let opponent=document.querySelector('#storyBattleOpponentCard');
     if(!opponent){opponent=document.createElement('img');opponent.id='storyBattleOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
     opponent.src='assets/story-wolf-monster.png';opponent.alt='狼のような魔物';opponent.hidden=false;
@@ -967,6 +969,7 @@ function showWolfBattleContinue(){
 }
 function beginWolfAftermath(){
   const overlay=document.querySelector('#wolfBattleContinue');if(overlay)overlay.hidden=true;
+  const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyBattleOpponentCard');if(opponent)opponent.hidden=true;
   window.storyWolfBattleActive=false;stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.pause();battleMusic.currentTime=0;}
   let scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
@@ -988,40 +991,40 @@ function beginWolfAftermath(){
       {speaker:'主人公',text:'「そうだ、街中の方へ行かないと……！」'},
       {speaker:'主人公',text:'後ろで女性がお礼を言っているのが聞こえていたが、ほんの軽く頭を下げて、なりふり構わず走り出した。'},
       {speaker:'主人公',text:'街中に戻ると――'},
-      {speaker:'エア',text:'「ハァーーッ！！」',warrior:true},
+      {speaker:'？？？',text:'「ハァーーッ！！」',warrior:true},
       {speaker:'主人公',text:'気高く、しかし力強い叫びと共に、剣が風を纏って魔物の体を切り裂いていた。',warrior:true},
       {speaker:'主人公',text:'周りを見ると、5体もの魔物たちが息絶えていた。',warrior:true},
       {speaker:'主人公',text:'走ってきた俺は緊張と戦闘でクタクタだったが、女性は汗一つかいていなかった。何者なんだ、あの人……。',warrior:true},
       {speaker:'主人公',text:'女性は剣をしまい、こちらに気づくと険しい表情を緩め、笑顔を向けた。',warrior:true,smile:true},
-      {speaker:'エア',text:'あ……キミ！ 大丈夫だった？',warrior:true},
+      {speaker:'？？？',text:'あ……キミ！ 大丈夫だった？',warrior:true},
       {speaker:'主人公',text:'はい、なんとか……。',warrior:true},
-      {speaker:'エア',text:'よく頑張ったね、街を守ってくれてありがとう。',warrior:true},
+      {speaker:'？？？',text:'よく頑張ったね、街を守ってくれてありがとう。',warrior:true},
       {speaker:'主人公',text:'それはこっちのセリフだ。5体も魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true},
       {speaker:'主人公',text:'いえ、こちらこそありがとうございました。お強いんですね。',warrior:true},
-      {speaker:'エア',text:'まあこのくらいならね。今ちょうど外から帰ってきたところだったんだ。間に合ってよかった。',warrior:true},
+      {speaker:'？？？',text:'まあこのくらいならね。今ちょうど外から帰ってきたところだったんだ。間に合ってよかった。',warrior:true},
       {speaker:'ユート先輩',text:'おーい、大丈夫か！',warrior:true,yuto:true},
-      {speaker:'エア',text:'ユート！ 久しぶりじゃないか。',warrior:true,yuto:true},
+      {speaker:'？？？',text:'ユート！ 久しぶりじゃないか。',warrior:true,yuto:true},
       {speaker:'主人公',text:'どうやらユート先輩との知り合いらしい。旧知の仲なのだろうか。',warrior:true,yuto:true},
       {speaker:'ユート先輩',text:'帰ってきてたのか！',warrior:true,yuto:true},
       {speaker:'主人公',text:'女性は俺達二人に向き直ると、俺に自己紹介をしてくれた。',warrior:true,yuto:true},
-      {speaker:'エア',text:'私の名前はエア。エア・ノエルだよ。よろしくね。',warrior:true,yuto:true},
+      {speaker:'？？？',text:'私の名前はエア。エア・ノエルだよ。よろしくね。',warrior:true,yuto:true},
       {speaker:'ユート先輩',text:'訓練校まで一緒だった、俺の友達だ。',warrior:true,yuto:true},
       {speaker:'ユート先輩',text:'二人とも、よく頑張ったな。とりあえず戦いの後片付けをしないとな。',warrior:true,yuto:true},
-      {speaker:'主人公',text:'俺達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true},
-      {speaker:'ユート先輩',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true},
-      {speaker:'エア',text:'ほんと？ やったー！',warrior:true,yuto:true},
-      {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true},
-      {speaker:'主人公',text:'俺達は夜の街へと歩き出した。',warrior:true,yuto:true},
-      {speaker:'主人公',text:'このときは気づく由もない。',warrior:true,yuto:true},
-      {speaker:'主人公',text:'この戦いが、全ての始まりであったことを……。',warrior:true,yuto:true}
+      {speaker:'主人公',text:'俺達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true,night:true},
+      {speaker:'ユート先輩',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true,night:true},
+      {speaker:'エア',text:'ほんと？ やったー！',warrior:true,yuto:true,night:true},
+      {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true,night:true},
+      {speaker:'主人公',text:'俺達は夜の街へと歩き出した。',warrior:true,yuto:true,night:true},
+      {speaker:'主人公',text:'このときは気づく由もない。',warrior:true,yuto:true,night:true},
+      {speaker:'主人公',text:'この戦いが、全ての始まりであったことを……。',warrior:true,yuto:true,night:true}
     ];
     let index=0;
     const renderLine=()=>{
       const line=lines[index];speaker.textContent=line.speaker;copy.textContent=line.text;
-      wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;yuto.hidden=!line.yuto;
+      wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;yuto.hidden=!line.yuto;scene.classList.toggle('night-village',!!line.night);
       if(line.smile)warrior.src='assets/story-woman-warrior-smile.png';
       wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
-      warrior.classList.toggle('speaker-active',line.speaker==='エア');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='エア');
+      warrior.classList.toggle('speaker-active',line.speaker==='？？？'||line.speaker==='エア');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='？？？'&&line.speaker!=='エア');
       yuto.classList.toggle('speaker-active',line.speaker==='ユート先輩');yuto.classList.toggle('speaker-idle',line.yuto&&line.speaker!=='ユート先輩');
       dialogue.dataset.ended=String(index===lines.length-1);
     };
@@ -1043,15 +1046,39 @@ function installStoryWolfResultHandler(){
     const result=original.apply(this,args);
     if(window.storyWolfBattleActive&&typeof g!=='undefined'&&g?.phase==='end'){
       const resultScreen=document.querySelector('#resultScreen');
-      if(resultScreen){resultScreen.classList.remove('show');resultScreen.innerHTML='';}
-      const fanfare=document.querySelector('#winFanfare');if(fanfare){fanfare.pause();fanfare.currentTime=0;}
-      if(!window.storyWolfBattleResolved){window.storyWolfBattleResolved=true;showWolfBattleContinue();}
+      if(resultScreen){resultScreen.querySelector('.result-actions')?.remove();resultScreen.onclick=()=>{if(!window.storyWolfBattleResolved){window.storyWolfBattleResolved=true;beginWolfAftermath();}};}
     }
     return result;
   };
   wrapped.storyWolfResultHandlerInstalled=true;window.render=wrapped;
 }
 setTimeout(installStoryWolfResultHandler,0);
+function installStoryWolfBattleRules(){
+  const originalPick=window.pick;
+  if(typeof originalPick!=='function'||originalPick.storyWolfRulesInstalled)return;
+  const losingCard={rock:'scissors',scissors:'paper',paper:'rock'};
+  const forceEnhancedBlock=roundGame=>{
+    let tries=0;
+    const watch=()=>{
+      if(!window.storyWolfBattleActive||typeof g==='undefined'||g!==roundGame||tries++>90)return;
+      if(g.phase==='spell'&&g.round===2&&g.now?.r==='p'&&g.c.spell==='block'&&g.c.amp==='charged'){
+        window.use?.('c');window.render?.();return;
+      }
+      setTimeout(watch,80);
+    };
+    watch();
+  };
+  const wrapped=function(card){
+    if(window.storyWolfBattleActive&&typeof g!=='undefined'&&g.phase==='pick'){
+      const roundGame=g;
+      window.setSpellHeartsTutorialCpuChoice?.(g.round===1?'amplify':(losingCard[card]||'rock'));
+      if(g.round===2)forceEnhancedBlock(roundGame);
+    }
+    return originalPick.apply(this,arguments);
+  };
+  wrapped.storyWolfRulesInstalled=true;window.pick=wrapped;
+}
+setTimeout(installStoryWolfBattleRules,0);
 function tutorialFinalStrike(){
   tutorialDialogue('最後はチョキだ。俺はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
     if(typeof g!=='undefined'){g.c.hp=0;g.phase='spell';window.render?.();}
@@ -1302,6 +1329,6 @@ chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.retu
 chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transition:none!important}#tutorialBattleCurtain.lift{opacity:0!important;transition:opacity 1.1s ease!important}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
-chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
+chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.png")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
 function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0);if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.png" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),5000);}setTimeout(showStoryRewardNotice,350);
 chapterOneStyle.textContent+='.story-reward-notice{position:fixed;z-index:300;left:50%;top:50%;width:min(86vw,480px);padding:28px 30px;border:1px solid #d8ae4e;border-radius:7px;background:radial-gradient(ellipse at 50% 0,rgba(95,68,25,.98),rgba(11,9,11,.98) 72%);box-shadow:inset 0 0 30px rgba(255,217,129,.18),0 14px 48px #000;transform:translate(-50%,-50%);color:#fff0ae;text-align:center;animation:story-reward-in .45s ease-out both}.story-reward-notice b{display:block;margin-bottom:12px;font:26px Georgia,"Yu Mincho",serif;letter-spacing:.1em}.story-reward-notice span{display:flex;align-items:center;justify-content:center;gap:10px;font:18px "Yu Gothic",sans-serif}.story-reward-notice img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}@keyframes story-reward-in{from{opacity:0;transform:translate(-50%,-46%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
