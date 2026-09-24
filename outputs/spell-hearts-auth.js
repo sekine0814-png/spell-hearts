@@ -744,7 +744,9 @@ function tutorialFocusElement(target,onChoose){
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
   const button=document.createElement('button');
   button.type='button';button.className='tutorial-focus-button';button.setAttribute('aria-label','ここを選択');
-  const place=()=>{const visual=target.querySelector('img')||target,box=visual.getBoundingClientRect();Object.assign(button.style,{left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
+  // ロック層を基準に置く。スマホでは fixed 要素の座標系が画面の拡大縮小時にずれるため、
+  // 画面直下のロック層からの相対座標へ変換して、見えているカードとタップ範囲を一致させる。
+  const place=()=>{const visual=target.querySelector('img')||target,box=visual.getBoundingClientRect(),lockBox=lock.getBoundingClientRect();Object.assign(button.style,{left:`${box.left-lockBox.left}px`,top:`${box.top-lockBox.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
   const follow=()=>{if(!button.isConnected)return;place();requestAnimationFrame(follow);};
   place();lock.append(button);requestAnimationFrame(follow);
   button.onclick=()=>{tutorialUnlock();onChoose?.();};
@@ -1374,21 +1376,24 @@ mobileLandscapeStyle.textContent=`
   .actions{margin:2px}.actions .btn{min-height:25px;padding:4px 9px;font-size:10px}
   .log{display:none}
   .message{font-size:clamp(8px,1.75vw,13px)}
-  .picks{transform:scale(1.18);transform-origin:center}
+  /* カードの見た目だけを拡大すると、演出用の当たり判定とずれるため拡大しない。 */
+  .picks{transform:scale(1.04);transform-origin:center}
   .battle-settings{top:8px!important;right:8px!important;left:auto!important;transform:scale(.78);transform-origin:top right}
   .battle-settings-panel{top:42px!important;right:8px!important;left:auto!important;max-height:calc(100vh - 48px);overflow:auto;transform:scale(.82);transform-origin:top right}
   .story-active .battle-settings{top:8px!important;left:8px!important;right:auto!important;transform-origin:top left}
   .story-active .battle-settings-panel{top:42px!important;left:8px!important;right:auto!important;transform-origin:top left}
 
   #titleScreen{padding-bottom:10px}
-  .title-menu{gap:4px;min-width:min(68vw,390px);transform:scale(.72);transform-origin:bottom center}
+  .title-menu{gap:4px;min-width:min(68vw,390px);transform:none}
   .push-screen{margin-bottom:3px!important;padding:7px 15px!important;font-size:clamp(14px,2.8vw,23px)!important}
   .room-form{padding:6px;width:min(66vw,340px);gap:5px}.room-form label{font-size:10px}.room-code{padding:6px 8px;font-size:13px}.room-enter{padding:0 9px;font-size:12px}.room-note{font-size:9px}
   .title-login{top:10px!important;right:12px!important;padding:7px 12px!important;font-size:14px!important}.title-login::before{font-size:12px!important}
   .title-settings{top:8px!important;left:12px!important;width:32px!important;height:32px!important;font-size:19px!important}
   .settings-panel{top:46px!important;left:10px!important;width:218px!important;max-height:calc(100vh - 52px);overflow:auto;padding:10px;font-size:11px}
   .settings-panel label{margin:6px 0}.settings-heading{margin-bottom:7px;font-size:14px}
-  .summon-button,.dressup-button{transform:scale(.7);transform-origin:bottom center}
+  .summon-button{right:10px;bottom:calc(3vh + 64px);width:78px;height:88px;font-size:12px}
+  .summon-button>span{left:-16px;width:66px}.summon-portal{width:66px;height:77px;transform:translateX(-16px)}
+  .dressup-button{transform:none}
 
   .story-mode-panel,.item-exchange-panel,.dressup-panel,.summon-gate-panel{padding:6px}
   .story-mode-book,.item-exchange-book,.summon-gate-book{width:min(92vw,760px);max-height:94vh;overflow:auto;padding:23px 32px 20px}
@@ -1414,3 +1419,6 @@ mobileLandscapeStyle.textContent=`
 }
 `;
 document.head.append(mobileLandscapeStyle);
+const tutorialTargetStyle=document.createElement('style');
+tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}';
+document.head.append(tutorialTargetStyle);
