@@ -764,7 +764,9 @@ function tutorialBeginAmplifyLesson(){
 function tutorialExplainAmplify(){
   tutorialDialogue('アンプリファイアは、バトルカードの代わりに出す特殊カードだ。',()=>{
     tutorialDialogue('そのターンは相手の攻撃を無条件に受ける。\nだから出すタイミングが大切になる。',()=>{
-      tutorialDialogue('その代わり、次に使用するスペルの効果を強化できる。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
+      tutorialDialogue('その代わり、次に使用するスペルの効果を強化できる。',()=>{
+        tutorialDialogue('強化したスペルを使うと、アンプリファイアは墓地へ送られる。\n墓地に送られたカードは、そのゲーム中はもう使えない。',()=>tutorialFinishRound(2,tutorialAmplifiedPursuit));
+      });
     });
   });
 }
@@ -951,7 +953,7 @@ function openTutorial(){
     {chapter:'チュートリアル・第一頁',title:'バトルカードの基本',body:'<div class="tutorial-rule"><b>グー</b><span>勝利時：1ダメージ</span></div><div class="tutorial-rule"><b>チョキ</b><span>勝利時：2ダメージ</span></div><div class="tutorial-rule"><b>パー</b><span>勝利時：5ダメージ</span></div><div class="tutorial-rule"><b>あいこ</b><span>両者：1ダメージ</span></div>',hint:'先に相手のHPを0にした側の勝利。'},
     {chapter:'チュートリアル・第二頁',title:'一巡の流れ',body:'<div class="tutorial-flow"><b>① スペルを引く</b><span>伏せたままCHARGEに置かれる</span></div><div class="tutorial-flow"><b>② バトルカードを選ぶ</b><span>グー・チョキ・パー・アンプリファイア</span></div><div class="tutorial-flow"><b>③ 公開後にスペルを選ぶ</b><span>使わない場合もOKで進行する</span></div>',hint:'相手の伏せスペルは、使われるまで正体が見えない。'},
     {chapter:'チュートリアル・第三頁',title:'スペルカードの効果',body:'<div class="tutorial-rule"><b>追い打ち</b><span>勝利時：与ダメージ +1 ／ 強化：+3</span></div><div class="tutorial-rule"><b>ブロック</b><span>敗北時：受ダメージ -1 ／ 強化：0・HP+1</span></div><div class="tutorial-rule"><b>謀略</b><span>あいこ時：自分のダメージを0 ／ 強化：HP+2・相手に2ダメージ</span></div>',hint:'使える状況はカードごとに決まっている。'},
-    {chapter:'チュートリアル・最終頁',title:'アンプリファイア',body:'<div class="tutorial-rule tutorial-amp"><b>アンプリファイア</b><span>このバトルでは相手のダメージを受け、次に使うスペルを強化する。</span></div><div class="tutorial-rule tutorial-amp"><b>強化後</b><span>スペル使用後、アンプリファイアは墓地へ送られる。</span></div>',hint:'危険な一手が、決闘を覆す。準備は整った。',start:true}
+    {chapter:'チュートリアル・最終頁',title:'アンプリファイア',body:'<div class="tutorial-rule tutorial-amp"><b>アンプリファイア</b><span>このバトルでは相手のダメージを受け、次に使うスペルを強化する。</span></div><div class="tutorial-rule tutorial-amp"><b>強化後</b><span>スペル使用後、アンプリファイアは墓地へ送られ、そのゲーム中は再使用できない。</span></div>',hint:'危険な一手が、決闘を覆す。準備は整った。',start:true}
   ];
   let page=0;const pageNode=modal.querySelector('.tutorial-page'),progress=modal.querySelector('.tutorial-progress'),back=modal.querySelector('.tutorial-back'),next=modal.querySelector('.tutorial-next');
   const renderPage=()=>{const item=pages[page];pageNode.innerHTML=`<div class="tutorial-chapter">${item.chapter}</div><h2>${item.title}</h2><div class="tutorial-body">${item.body}</div><p>${item.hint}</p>`;progress.innerHTML=pages.map((_,index)=>`<i class="${index===page?'active':''}"></i>`).join('');back.disabled=page===0;next.textContent=item.start?'模擬戦を始める':'次の頁へ';};
