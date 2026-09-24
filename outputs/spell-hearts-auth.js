@@ -135,8 +135,15 @@ function startChapterOneBgm(){
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='none';music.volume=0;
+  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music.addEventListener('ended',()=>{if(music.dataset.keepPlaying==='1'){music.currentTime=0;music.play().catch(()=>{});}});
   document.body.append(music);return music;
+}
+function resumeTutorialBattleBgm(){
+  const music=document.querySelector('#tutorialBattleBgm');
+  if(!music||music.dataset.keepPlaying!=='1')return;
+  music.loop=true;
+  if(music.paused||music.ended){music.play().catch(()=>{});}
 }
 function stopTutorialBattleBgm(){
   cancelAnimationFrame(tutorialBattleBgmFadeFrame);tutorialBattleBgmFadeFrame=0;clearInterval(tutorialBattleBgmWatch);tutorialBattleBgmWatch=0;
@@ -152,7 +159,7 @@ function startTutorialBattleBgm(){
     tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
-  tutorialBattleBgmWatch=setInterval(()=>{if(music.dataset.keepPlaying==='1'&&music.paused)music.play().catch(()=>{});},1200);
+  tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
 }
 function ensureVillageAmbience(){
   let music=document.querySelector('#villageAmbience');
@@ -738,7 +745,7 @@ function tutorialDialogue(text,next){
   const intro=document.querySelector('#tutorialBattleIntro');if(!intro)return;
   const dialogue=intro.querySelector('.tutorial-battle-dialogue'),copy=dialogue.querySelector('p');
   intro.hidden=false;intro.classList.add('show');copy.textContent=text;
-  dialogue.onclick=()=>{if(typeof next==='function')next();};
+  dialogue.onclick=()=>{resumeTutorialBattleBgm();if(typeof next==='function')next();};
   tutorialLock();
 }
 function tutorialFocusElement(target,onChoose){
@@ -754,7 +761,7 @@ function tutorialFocusElement(target,onChoose){
   const place=()=>{const current=resolve();if(!current||!current.isConnected){button.style.visibility='hidden';return;}const visual=current.querySelector('img')||current,box=visual.getBoundingClientRect(),lockBox=lock.getBoundingClientRect();button.style.visibility='visible';Object.assign(button.style,{left:`${box.left-lockBox.left}px`,top:`${box.top-lockBox.top}px`,width:`${box.width}px`,height:`${box.height}px`});};
   const follow=()=>{if(!button.isConnected)return;place();requestAnimationFrame(follow);};
   place();lock.append(button);requestAnimationFrame(follow);
-  button.onclick=()=>{tutorialUnlock();onChoose?.();};
+  button.onclick=()=>{resumeTutorialBattleBgm();tutorialUnlock();onChoose?.();};
 }
 function tutorialFocus(selector,onChoose){tutorialFocusElement(()=>document.querySelector(selector),onChoose);}
 function tutorialFocusCard(card,onChoose){
@@ -1380,8 +1387,10 @@ mobileLandscapeStyle.textContent=`
   .actions{margin:2px}.actions .btn{min-height:25px;padding:4px 9px;font-size:10px}
   .log{display:none}
   .message{font-size:clamp(8px,1.75vw,13px)}
-  /* カードの見た目だけを拡大すると、演出用の当たり判定とずれるため拡大しない。 */
+  /* 展開した手札だけは十分なタップ領域を確保する。枠は実際の表示座標を追従する。 */
   .picks{transform:scale(1.04);transform-origin:center}
+  #pBattle .picks{transform:scale(1.75);transform-origin:left top}
+  #cBattle .picks{transform:scale(1.75);transform-origin:right top}
   .battle-settings{top:8px!important;right:8px!important;left:auto!important;transform:scale(.78);transform-origin:top right}
   .battle-settings-panel{top:42px!important;right:8px!important;left:auto!important;max-height:calc(100vh - 48px);overflow:auto;transform:scale(.82);transform-origin:top right}
   .story-active .battle-settings{top:8px!important;left:8px!important;right:auto!important;transform-origin:top left}
