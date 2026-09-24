@@ -99,7 +99,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -152,6 +152,41 @@ function startTutorialBattleBgm(){
     tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
 }
+function ensureVillageAmbience(){
+  let music=document.querySelector('#villageAmbience');
+  if(music)return music;
+  music=document.createElement('audio');music.id='villageAmbience';music.src='assets/story-village-ambience.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopVillageAmbience(){
+  cancelAnimationFrame(villageAmbienceFadeFrame);villageAmbienceFadeFrame=0;
+  const music=document.querySelector('#villageAmbience');
+  if(music){music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function startVillageAmbience(){
+  const music=ensureVillageAmbience();
+  cancelAnimationFrame(villageAmbienceFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='1';
+  music.play().then(()=>{
+    const began=performance.now(),duration=1250;
+    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*.42*progress;if(progress<1)villageAmbienceFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
+    villageAmbienceFadeFrame=requestAnimationFrame(fade);
+  }).catch(()=>{music.dataset.fading='';});
+}
+function ensureVillageDangerBgm(){
+  let music=document.querySelector('#villageDangerBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='villageDangerBgm';music.src='assets/story-village-danger-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopVillageDangerBgm(){
+  const music=document.querySelector('#villageDangerBgm');
+  if(music){music.pause();music.currentTime=0;music.volume=0;}
+}
+function startVillageDangerBgm(){
+  const music=ensureVillageDangerBgm();
+  if(!music.paused)return;
+  music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
+}
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
   if(titleBgmStarted||title?.classList.contains('dismiss'))return;
@@ -167,7 +202,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -527,6 +562,8 @@ function applySoundLevels(){
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100;
+  const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
+  const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
   document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo').forEach(sound=>sound.volume=sfx/100);
   return {bgm,sfx};
 }
@@ -862,6 +899,7 @@ function beginVillageEncounter(scene){
     const renderLine=()=>{
       const line=lines[index],wolfEntering=wolf.hidden&&line.wolf,warriorEntering=warrior.hidden&&line.warrior;
       speaker.textContent=line.speaker;copy.textContent=line.text;
+      if(index===4)startVillageDangerBgm();
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;
       if(wolfEntering){wolf.classList.remove('enter');void wolf.offsetWidth;wolf.classList.add('enter');}
       if(warriorEntering){warrior.classList.remove('enter');void warrior.offsetWidth;warrior.classList.add('enter');}
@@ -872,10 +910,12 @@ function beginVillageEncounter(scene){
     senior.hidden=true;scene.classList.add('village-scene');scene.classList.remove('leaving');scene.hidden=false;dialogue.hidden=false;
     dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else beginVillageBattle(scene);};
     renderLine();
+    startVillageAmbience();
     requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.add('lift')));
   },980);
 }
 function beginVillageBattle(scene){
+  stopVillageAmbience();stopVillageDangerBgm();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   curtain.classList.remove('lift');scene.classList.add('leaving');
@@ -1128,6 +1168,7 @@ chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-heigh
 chapterOneStyle.textContent+='.story-active .below{display:none}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutorial-focus-target{position:relative!important;z-index:auto!important;filter:none!important;outline:0!important;box-shadow:none!important;animation:none!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.returning{z-index:9999!important}';
+chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transition:none!important}#tutorialBattleCurtain.lift{opacity:0!important;transition:opacity 1.1s ease!important}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
 chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-wolf{position:fixed;z-index:4;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.village-battle-wolf{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
