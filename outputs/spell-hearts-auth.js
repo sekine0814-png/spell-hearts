@@ -811,10 +811,85 @@ function tutorialReturnToStory(){
     const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='先輩';speaker.textContent=line.speaker;copy.textContent=line.text;npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
     scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
     npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
-    dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else tutorialFinishChapterOne(scene);};renderEpilogue();
+    dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else beginVillageEncounter(scene);};renderEpilogue();
     startChapterOneBgm();requestAnimationFrame(()=>curtain.classList.add('lift'));
     setTimeout(()=>curtain.classList.remove('returning'),1050);
   },1120);
+}
+function beginVillageEncounter(scene){
+  stopChapterOneBgm();
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  curtain.classList.remove('lift');
+  scene.classList.add('leaving');
+  setTimeout(()=>{
+    const senior=scene.querySelector('.chapter-npc-card');
+    const dialogue=scene.querySelector('.chapter-dialogue');
+    const speaker=scene.querySelector('.chapter-speaker');
+    const copy=dialogue.querySelector('p');
+    let wolf=scene.querySelector('.story-wolf-card'),warrior=scene.querySelector('.story-warrior-card');
+    if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';wolf.src='assets/story-wolf-monster.png';wolf.alt='狼のような魔物';scene.append(wolf);}
+    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';warrior.src='assets/story-woman-warrior.png';warrior.alt='女性戦士';scene.append(warrior);}
+    const lines=[
+      {speaker:'主人公',text:'演習場からの帰り道、買い物をしていくことにした。'},
+      {speaker:'主人公',text:'「えーと、あとは塩コショウ、玉ねぎ、それから……」\n呟きながら商店街を歩いていた。'},
+      {speaker:'主人公',text:'――その時。'},
+      {speaker:'主人公',text:'「キャアアアアアァァッ！」\n驚いて音のした方を向く。一瞬遅れて、女性の悲鳴が聞こえたことに気づいた。'},
+      {speaker:'男の声',text:'「魔物だぁっ！」\n続けて近くにいた男性が叫ぶ。'},
+      {speaker:'主人公',text:'魔物……！？ まさか防壁を超えてきたのか？\nそんな高さじゃないはずだが……。'},
+      {speaker:'主人公',text:'「助けてぇ！！」\n声のした街の入口の方へ駆け出した。'},
+      {speaker:'主人公',text:'本当に魔物だ……！ 女性が今にも襲われそうになっている。\nくそっ……やるしかないか。',wolf:true},
+      {speaker:'主人公',text:'腰に下げた剣に手をかけるが、震えているのがわかる。\nしかし、このままでは取り返しのつかないことになる。',wolf:true},
+      {speaker:'主人公',text:'力を振り絞って、なんとか喉から叫びを出した。\n「こっちを見ろ、魔物っ！」',wolf:true},
+      {speaker:'主人公',text:'すると、狼のような魔物がこちらを向いた。',wolf:true},
+      {speaker:'魔物',text:'「グルルルルル……」',wolf:true},
+      {speaker:'主人公',text:'大きな体、虚ろな目。いかにも不気味だが、よく見るとかなり痩せ細っている。\n長い間、何も食べていないのだろう。',wolf:true},
+      {speaker:'主人公',text:'しかし油断はできない。訓練で習った通り、魔物には十分気をつけなければ。\nなにより戦闘が始まれば、俺にとっては初めての実戦経験になる。',wolf:true},
+      {speaker:'主人公',text:'目を見据え、お互い動かない時間が続く。\n――と、その時。',wolf:true},
+      {speaker:'街の人々',text:'「うわああああっ！」\n「また魔物が来たぞ！」',wolf:true},
+      {speaker:'主人公',text:'なんだって！？ コイツ一匹じゃなかったのか……！\n後方で叫び声が聞こえる。早く、眼の前の魔物を倒して向かわなければ……。',wolf:true},
+      {speaker:'主人公',text:'しかし、緊張した体は言うことを聞いてくれない。\n剣に手をかけているのが精一杯だ。',wolf:true},
+      {speaker:'主人公',text:'「ど……どうする！」\n万事休すか……！',wolf:true},
+      {speaker:'？？？',text:'「キミ！」',wolf:true,warrior:true},
+      {speaker:'主人公',text:'透き通るような声が響く。それは間違いなく俺へ向けられたものだった。',wolf:true,warrior:true},
+      {speaker:'女性戦士',text:'キミ、戦える？',wolf:true,warrior:true},
+      {speaker:'主人公',text:'僅かな時間を置いて質問の意図を理解した俺は、\n「っ……戦えます！」',wolf:true,warrior:true},
+      {speaker:'女性戦士',text:'よし、ここは任せるよ！ 私は向こうへ！',wolf:true,warrior:true},
+      {speaker:'主人公',text:'言うと、彼女はどよめく街中へ駆け出していった。\n向き直る。魔物は前足をギリギリと鳴らし、いつ襲いかかってきてもおかしくない。',wolf:true,warrior:false},
+      {speaker:'主人公',text:'「いくぞ……！」\n俺は剣を抜いた。瞬間、魔物がこちらへ勢いよく駆け出してきた。',wolf:true,warrior:false}
+    ];
+    let index=0;
+    const renderLine=()=>{
+      const line=lines[index];
+      speaker.textContent=line.speaker;copy.textContent=line.text;
+      wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;
+      wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
+      warrior.classList.toggle('speaker-active',line.speaker==='女性戦士');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='女性戦士');
+      dialogue.dataset.ended=String(index===lines.length-1);
+    };
+    senior.hidden=true;scene.classList.add('village-scene');scene.classList.remove('leaving');scene.hidden=false;dialogue.hidden=false;
+    dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else beginVillageBattle(scene);};
+    renderLine();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>curtain.classList.add('lift')));
+  },980);
+}
+function beginVillageBattle(scene){
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  curtain.classList.remove('lift');scene.classList.add('leaving');
+  setTimeout(()=>{
+    scene.hidden=true;scene.classList.remove('show','preparing','leaving');
+    window.start?.();window.setBattleBackdrop?.('story-village.jpg');
+    let intro=document.querySelector('#villageBattleIntro');
+    if(!intro){
+      intro=document.createElement('section');intro.id='villageBattleIntro';
+      intro.innerHTML='<img class="village-battle-wolf" src="assets/story-wolf-monster.png" alt="狼のような魔物"><button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      document.body.append(intro);
+    }
+    intro.hidden=false;requestAnimationFrame(()=>{intro.classList.add('show');curtain.classList.add('lift');});
+    intro.querySelector('.village-battle-dialogue').onclick=()=>{intro.classList.remove('show');setTimeout(()=>{intro.hidden=true;},350);};
+    setTimeout(()=>curtain.remove(),1150);
+  },1000);
 }
 function tutorialFinalStrike(){
   tutorialDialogue('最後はチョキだ。俺はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
@@ -1053,3 +1128,4 @@ chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutoria
 chapterOneStyle.textContent+='#tutorialBattleCurtain.returning{z-index:220}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
+chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.jpg")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-wolf{position:fixed;z-index:4;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.village-battle-wolf{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
