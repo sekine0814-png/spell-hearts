@@ -1465,7 +1465,7 @@ mobileLandscapeStyle.textContent=`
 `;
 document.head.append(mobileLandscapeStyle);
 const tutorialTargetStyle=document.createElement('style');
-tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}';
+tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}.slot.tutorial-focus-target{position:absolute!important}.picks .tutorial-focus-target{position:relative!important}';
 document.head.append(tutorialTargetStyle);
 const touchLandscapeStyle=document.createElement('style');
 touchLandscapeStyle.textContent=`
