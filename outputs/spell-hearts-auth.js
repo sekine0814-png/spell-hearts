@@ -1447,43 +1447,19 @@ function installTitlePressMenu(){
   choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
 }
 
-/*
- * 一部の横向きモバイルブラウザは、回転直後だけ fixed 要素の見た目と click の
- * 当たり判定を異なる縦座標で扱う。表示上の矩形から直接操作先を決めることで、
- * タイトル画面のボタンだけは必ず見えている位置で反応させる。
- */
-function installMobileTitleTouchBridge(){
+/* 横画面で fixed 要素のタップ座標がずれる端末では、タイトル表示中だけ通常配置にする。 */
+function installMobileTitleViewportLock(){
   const title=document.querySelector('#titleScreen');
-  if(!title||title.dataset.touchBridgeInstalled==='true')return;
-  title.dataset.touchBridgeInstalled='true';
-  let suppressNativeClickUntil=0;
-  const visibleControlAt=(x,y)=>{
-    const controls=[...title.querySelectorAll('button,input')].filter(control=>{
-      if(control.hidden||control.disabled)return false;
-      const style=getComputedStyle(control);
-      if(style.display==='none'||style.visibility==='hidden'||style.pointerEvents==='none')return false;
-      const rect=control.getBoundingClientRect();
-      return rect.width>0&&rect.height>0&&x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom;
-    });
-    return controls.at(-1)||null;
+  if(!title||title.dataset.viewportLockInstalled==='true')return;
+  title.dataset.viewportLockInstalled='true';
+  const sync=()=>{
+    const active=!title.classList.contains('dismiss');
+    document.body.classList.toggle('title-screen-active',active);
+    if(active&&document.body.classList.contains('touch-landscape'))window.scrollTo(0,0);
   };
-  document.addEventListener('pointerup',event=>{
-    if(event.pointerType!=='touch'||!document.body.classList.contains('touch-landscape')||title.classList.contains('dismiss'))return;
-    const control=visibleControlAt(event.clientX,event.clientY);
-    if(!control)return;
-    const nativeControl=event.target instanceof Element?event.target.closest('button,input'):null;
-    if(nativeControl===control)return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    suppressNativeClickUntil=performance.now()+700;
-    if(control.matches('input')){control.focus();return;}
-    control.click();
-  },{capture:true,passive:false});
-  document.addEventListener('click',event=>{
-    if(!event.isTrusted||performance.now()>suppressNativeClickUntil)return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  },true);
+  new MutationObserver(sync).observe(title,{attributes:true,attributeFilter:['class']});
+  window.addEventListener('orientationchange',()=>setTimeout(sync,120),{passive:true});
+  sync();
 }
 function makeBattleSettings(){
   const title=document.querySelector('#titleScreen');
@@ -1510,7 +1486,7 @@ makeDressupButton();
 makeRecordButton();
 makeTutorialButton();
 installTitlePressMenu();
-installMobileTitleTouchBridge();
+installMobileTitleViewportLock();
 makeBattleSettings();
 preloadStorySelectSfx();
 installOpeningSpellDeckGuide();
@@ -1722,7 +1698,18 @@ document.head.append(titlePressLayoutStyle);
  */
 const mobileTitleHitAreaStyle=document.createElement('style');
 mobileTitleHitAreaStyle.textContent=`
-body.touch-landscape #titleScreen{position:fixed!important;inset:0!important;transform:none!important}
+body.touch-landscape.title-screen-active{height:100dvh!important;overflow:hidden!important}
+body.touch-landscape.title-screen-active #titleScreen{
+  position:absolute!important;
+  top:0!important;
+  right:0!important;
+  bottom:auto!important;
+  left:0!important;
+  width:100%!important;
+  height:100vh!important;
+  height:100dvh!important;
+  transform:none!important;
+}
 body.touch-landscape #titleScreen .title-menu.press-menu{
     left:0!important;
     right:0!important;
