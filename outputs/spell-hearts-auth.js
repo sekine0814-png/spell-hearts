@@ -1204,7 +1204,8 @@ function installStoryWolfBattleRules(){
   const wrapped=function(card){
     if(window.storyWolfBattleActive&&typeof g!=='undefined'&&g.phase==='pick'){
       const roundGame=g;
-      window.setSpellHeartsTutorialCpuChoice?.(g.round===1?'amplify':(losingCard[card]||'rock'));
+      /* 3手目だけはあいこを体験させ、それ以外はプレイヤーが勝つ手を選ぶ。 */
+      window.setSpellHeartsTutorialCpuChoice?.(g.round===1?'amplify':(g.round===3?card:(losingCard[card]||'rock')));
       if(g.round===2)forceEnhancedBlock(roundGame);
     }
     return originalPick.apply(this,arguments);
@@ -1540,7 +1541,7 @@ mobileLandscapeStyle.textContent=`
 `;
 document.head.append(mobileLandscapeStyle);
 const tutorialTargetStyle=document.createElement('style');
-tutorialTargetStyle.textContent='#tutorialInputLock .tutorial-focus-button{position:absolute!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}.slot.tutorial-focus-target,.charge.tutorial-focus-target{position:absolute!important}.picks .tutorial-focus-target{position:relative!important}';
+tutorialTargetStyle.textContent='#tutorialInputLock.focus{background:rgba(0,0,0,.74)!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}.slot.tutorial-focus-target,.charge.tutorial-focus-target{position:absolute!important}.picks .tutorial-focus-target{position:relative!important}';
 document.head.append(tutorialTargetStyle);
 /* 擬似要素の画像待ちで背景だけ黒くなる端末向けに、場面本体にも同じ背景を持たせる。 */
 chapterOneStyle.textContent+='.chapter-one-scene{background:#020509 url("assets/story-training-ground.webp") center/cover no-repeat!important}.chapter-one-scene.village-scene{background-image:url("assets/story-village.webp")!important}.chapter-one-scene.village-scene.night-village{background-image:url("assets/story-village-night.webp")!important}';

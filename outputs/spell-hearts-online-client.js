@@ -28,7 +28,7 @@
     if(typeof original!=='function'||original.onlineAmplifyArtInstalled)return;
     const enhanced=function(fromSelector,toSelector,source){
       const w=toSelector==='#pCharge'||fromSelector==='#pCharge'?'p':toSelector==='#cCharge'||fromSelector==='#cCharge'?'c':null;
-      if(w&&/amplify\.jpg(?:$|[?#])/.test(source))source=amplifyFace(w);
+      if(w&&/amplify\.(?:jpg|webp)(?:$|[?#])/.test(source))source=amplifyFace(w);
       return original.call(this,fromSelector,toSelector,source);
     };
     enhanced.onlineAmplifyArtInstalled=true;
@@ -201,7 +201,7 @@
         catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
         if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
         if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
-        if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),A+cards.amplify.i);playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
+        if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),amplifyFace(side));playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
         newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
         if(damaged)runOnlineDamage(previous,incoming);
         if(gameEnded){
