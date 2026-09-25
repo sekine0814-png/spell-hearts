@@ -113,7 +113,7 @@ function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getIte
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-old-growth-forest.mp3';music.loop=true;music.preload='none';music.volume=0;
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopTitleBgm(){
