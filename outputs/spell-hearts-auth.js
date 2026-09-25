@@ -1233,7 +1233,7 @@ function beginWolfAftermath(){
       {speaker:'？？？',text:'あ……キミ！ 大丈夫だった？',warrior:true},
       {speaker:'主人公',text:'はい、なんとか……。',warrior:true,spoken:true},
       {speaker:'？？？',text:'よく頑張ったね、街を守ってくれてありがとう。',warrior:true},
-      {speaker:'主人公',text:'それはこっちのセリフだ。5体も魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true,spoken:true},
+      {speaker:'主人公',text:'それはこっちのセリフだ。あれだけの魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true,spoken:false},
       {speaker:'主人公',text:'いえ、こちらこそありがとうございました。お強いんですね。',warrior:true,spoken:true},
       {speaker:'？？？',text:'まあこのくらいならね。今ちょうど外から帰ってきたところだったんだ。間に合ってよかった。',warrior:true},
       {speaker:'ユート',text:'おーい、大丈夫か！',warrior:true,yuto:true},
@@ -1357,7 +1357,8 @@ function beginSpellDrawLesson(){
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     window.drawInitial?.();
     setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、\nチャージエリアに自分だけ見える形で伏せて置かれる。',()=>{
-      tutorialDialogue('次は、このバトルカードをドローするんだ。',()=>tutorialFocus('#pBattle',beginBattleCardLesson));
+      // 山札の実クリックと誘導クリックを重ねず、チュートリアル側で一度だけ手札を開く。
+      tutorialDialogue('次は、このバトルカードをドローするんだ。',beginBattleCardLesson);
     }),780);
   });
 }
