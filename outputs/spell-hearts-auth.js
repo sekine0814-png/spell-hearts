@@ -1665,3 +1665,34 @@ titlePressLayoutStyle.textContent=`
 body.touch-landscape #titleScreen .title-menu.press-menu{transform:translateX(-50%)!important}
 `;
 document.head.append(titlePressLayoutStyle);
+/*
+ * 横向きスマホでは、中央寄せ用の translate が Safari / Chrome の visual viewport と
+ * 別の座標系で扱われることがあり、見た目とタップ判定だけがずれる場合がある。
+ * タイトルの操作群だけは変形を使わず、画面幅いっぱいの実レイアウトで中央寄せする。
+ */
+const mobileTitleHitAreaStyle=document.createElement('style');
+mobileTitleHitAreaStyle.textContent=`
+@media (orientation:landscape) and (pointer:coarse){
+  #titleScreen{position:fixed!important;inset:0!important;transform:none!important}
+  #titleScreen .title-menu.press-menu{
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    min-width:0!important;
+    transform:none!important;
+    justify-items:center!important;
+  }
+  #titleScreen .title-menu.press-menu.menu-open{top:48%!important}
+  #titleScreen .title-login,
+  #titleScreen .title-settings,
+  #titleScreen .summon-button,
+  #titleScreen .dressup-button,
+  #titleScreen .token-balance,
+  #titleScreen .press-screen,
+  #titleScreen .title-choice,
+  #titleScreen .room-form,
+  #titleScreen .room-code,
+  #titleScreen .room-enter{touch-action:manipulation}
+}
+`;
+document.head.append(mobileTitleHitAreaStyle);
