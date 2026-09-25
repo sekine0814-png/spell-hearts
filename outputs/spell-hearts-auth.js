@@ -78,12 +78,26 @@ function readStardust(){return Math.max(0,Number.parseInt(localStorage.getItem(s
 function displayedStardust(){return isGameOwner()?'∞':readStardust();}
 const battleArt={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
 const astrologianArt={rock:'astrologian-rock.webp',scissors:'astrologian-scissors.webp',paper:'astrologian-paper.webp',amplify:'astrologian-amplify.webp'};
-function defaultCosmetics(){return {owned:{battle:{astrologian:{}}},equipped:{battle:{rock:'normal',scissors:'normal',paper:'normal',amplify:'normal'},battleShrink:'normal',spellShrink:'normal'}};}
+const battleSeriesArt={
+  battle:{rock:'battle-rock.webp',scissors:'battle-scissors.webp',paper:'battle-paper.webp',amplify:'battle-amplify.webp'},
+  magic:{rock:'magic-rock.webp',scissors:'magic-scissors.webp',paper:'magic-paper.webp',amplify:'magic-amplify.webp'},
+  samurai:{rock:'samurai-rock.webp',scissors:'samurai-scissors.webp',paper:'samurai-paper.webp',amplify:'samurai-amplify.webp'},
+  animal:{rock:'animal-rock.webp',scissors:'animal-scissors.webp',paper:'animal-paper.webp',amplify:'animal-amplify.webp'}
+};
+const battleSeriesNames={battle:'Battleシリーズ',magic:'Magicシリーズ',samurai:'Samuraiシリーズ',animal:'アニマルシリーズ',astrologian:'astrologian'};
+const includedBattleSeries=Object.keys(battleSeriesArt);
+function defaultCosmetics(){
+  const owned={astrologian:{}};
+  includedBattleSeries.forEach(series=>{owned[series]={rock:true,scissors:true,paper:true,amplify:true};});
+  return {owned:{battle:owned},equipped:{battle:{rock:'normal',scissors:'normal',paper:'normal',amplify:'normal'},battleShrink:'normal',spellShrink:'normal'}};
+}
 function normalizeCosmetics(value){
-  const base=defaultCosmetics(),source=value&&typeof value==='object'?value:{},owned=source.owned?.battle?.astrologian||{},equipped=source.equipped||{};
+  const base=defaultCosmetics(),source=value&&typeof value==='object'?value:{},owned=source.owned?.battle||{},equipped=source.equipped||{};
   for(const card of Object.keys(battleArt)){
-    if(owned[card]===true)base.owned.battle.astrologian[card]=true;
-    if(equipped.battle?.[card]==='astrologian'&&base.owned.battle.astrologian[card])base.equipped.battle[card]='astrologian';
+    if(owned.astrologian?.[card]===true)base.owned.battle.astrologian[card]=true;
+    const selected=equipped.battle?.[card];
+    if(selected==='astrologian'&&base.owned.battle.astrologian[card])base.equipped.battle[card]='astrologian';
+    if(includedBattleSeries.includes(selected)&&base.owned.battle[selected]?.[card])base.equipped.battle[card]=selected;
   }
   return base;
 }
@@ -92,7 +106,7 @@ function readLocalCosmetics(){try{return normalizeCosmetics(JSON.parse(localStor
 let cosmeticProfile=readLocalCosmetics();
 function writeLocalCosmetics(){localStorage.setItem(cosmeticsKey(),JSON.stringify(cosmeticProfile));}
 function publicCosmetics(){return {battle:{...cosmeticProfile.equipped.battle},battleShrink:cosmeticProfile.equipped.battleShrink,spellShrink:cosmeticProfile.equipped.spellShrink};}
-function battleArtFor(cosmetics,card){return cosmetics?.battle?.[card]==='astrologian'&&astrologianArt[card]?astrologianArt[card]:battleArt[card]||'';}
+function battleArtFor(cosmetics,card){const series=cosmetics?.battle?.[card];if(series==='astrologian'&&astrologianArt[card])return astrologianArt[card];return battleSeriesArt[series]?.[card]||battleArt[card]||'';}
 function announceCosmetics(){window.dispatchEvent(new CustomEvent('spellhearts-cosmeticschange',{detail:publicCosmetics()}));}
 async function loadAccountCosmetics(){
   cosmeticProfile=readLocalCosmetics();
@@ -372,10 +386,11 @@ const normalDressupItems={
 function dressupItems(category,series){
   if(series==='normal')return normalDressupItems[category]||[];
   if(category==='バトルカード'&&series==='astrologian')return astrologianItems.filter(item=>ownsAstrologian(item.key));
+  if(category==='バトルカード'&&battleSeriesArt[series])return Object.keys(battleArt).filter(card=>cosmeticProfile.owned.battle[series]?.[card]).map(card=>({key:card,name:({rock:'グー',scissors:'チョキ',paper:'パー',amplify:'アンプリファイア'})[card],image:`assets/${battleSeriesArt[series][card]}`}));
   return [];
 }
 function showDressupOwnedItems(hall,category,series){
-  const content=hall.querySelector('.item-exchange-detail-content'),items=dressupItems(category,series),seriesName=series==='normal'?'ノーマルシリーズ':'astrologian';
+  const content=hall.querySelector('.item-exchange-detail-content'),items=dressupItems(category,series),seriesName=series==='normal'?'ノーマルシリーズ':battleSeriesNames[series]||series;
   content.innerHTML=`<h3>${seriesName}</h3><p>所持しているアイテム</p><div class="dressup-owned-items">${items.map(item=>`<button type="button" data-dressup-item="${item.name}"><img src="${item.image}" alt="${category} ${item.name}"><span>${item.name}</span></button>`).join('')}</div>`;
   content.querySelectorAll('[data-dressup-item]').forEach(button=>button.onclick=()=>{
     const item=items.find(entry=>entry.name===button.dataset.dressupItem);
@@ -385,6 +400,7 @@ function showDressupOwnedItems(hall,category,series){
 function showDressupSeries(hall,category){
   const content=hall.querySelector('.item-exchange-detail-content'),normal=(normalDressupItems[category]||[])[0],series=[{key:'normal',name:'ノーマルシリーズ',image:normal.image}];
   if(category==='バトルカード'&&Object.keys(cosmeticProfile.owned.battle.astrologian).length)series.push({key:'astrologian',name:'astrologian',image:'assets/astrologian-rock.webp'});
+  if(category==='バトルカード')includedBattleSeries.forEach(key=>{if(Object.keys(cosmeticProfile.owned.battle[key]||{}).length)series.push({key,name:battleSeriesNames[key],image:`assets/${battleSeriesArt[key].rock}`});});
   content.innerHTML=`<p>シリーズを選んでください</p><div class="dressup-series-list">${series.map(entry=>`<button class="dressup-series" type="button" data-dressup-series="${entry.key}"><img src="${entry.image}" alt="${entry.name}"><span>${entry.name}</span><small>所持済み</small></button>`).join('')}</div>`;
   content.querySelectorAll('[data-dressup-series]').forEach(button=>button.onclick=()=>showDressupOwnedItems(hall,category,button.dataset.dressupSeries));
 }
@@ -1782,6 +1798,11 @@ mobileDressupStyle.textContent=`
   .dressup-panel .item-exchange-categories img{width:66px;height:84px;margin-bottom:5px}
   .dressup-panel .item-exchange-detail{min-height:150px;padding:22px 4px 4px}
   .dressup-panel .item-exchange-detail-content{min-height:120px;padding:8px}
+  .dressup-panel .dressup-series-list{gap:6px}
+  .dressup-panel .dressup-series{width:128px;margin:0;padding:5px;gap:3px}
+  .dressup-panel .dressup-series img{width:76px;height:91px}
+  .dressup-panel .dressup-series span{font-size:12px}
+  .dressup-panel .dressup-series small{font-size:9px}
   .dressup-panel .item-exchange-return{margin-top:8px;padding:6px 12px;font-size:12px}
   .dressup-panel .item-exchange-close{right:10px;top:7px;font-size:24px}
 }
