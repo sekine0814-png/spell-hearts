@@ -1813,6 +1813,17 @@ titlePressLayoutStyle.textContent=`
 body.touch-landscape #titleScreen .title-menu.press-menu{transform:translateX(-50%)!important}
 `;
 document.head.append(titlePressLayoutStyle);
+const onlineRoomLayoutStyle=document.createElement('style');
+onlineRoomLayoutStyle.textContent=`
+/* 合言葉欄を開いた時だけ上へ寄せ、低いブラウザ画面でも入力欄を画面内に固定する。 */
+#titleScreen .title-menu.press-menu.menu-open.online-open{top:42%!important}
+@media (max-height:760px){
+  #titleScreen .title-menu.press-menu.menu-open{top:46%!important}
+  #titleScreen .title-menu.press-menu.menu-open.online-open{top:27%!important}
+  #titleScreen .press-menu .room-form{margin-top:0!important}
+}
+`;
+document.head.append(onlineRoomLayoutStyle);
 /*
  * 横向きスマホでは、中央寄せ用の translate が Safari / Chrome の visual viewport と
  * 別の座標系で扱われることがあり、見た目とタップ判定だけがずれる場合がある。
