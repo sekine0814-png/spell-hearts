@@ -178,7 +178,7 @@ function startChapterOneBgm(){
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='metadata';music.volume=0;
   music.addEventListener('ended',()=>{if(music.dataset.keepPlaying==='1'){music.currentTime=0;music.play().catch(()=>{});}});
   document.body.append(music);return music;
 }
@@ -258,23 +258,30 @@ function stopAirSmileBgm(){
 function startWolfBattleBgm(){
   const music=document.querySelector('#battleBgm');
   if(!music)return;
-  music.pause();music.loop=true;music.src='assets/story-wolf-battle-bgm.mp3';music.load();music.volume=titleBgmLevel();music.dataset.storyKeepPlaying='1';music.play().catch(()=>{});
+  music.pause();music.loop=true;
+  if(!music.src.endsWith('/assets/story-wolf-battle-bgm.mp3')){music.src='assets/story-wolf-battle-bgm.mp3';music.load();}
+  music.volume=titleBgmLevel();music.dataset.storyKeepPlaying='1';music.play().catch(()=>{});
 }
 /*
  * スマホのブラウザでは、setTimeout 後の audio.play() が「ユーザー操作外」と見なされる。
- * 物語を選んだ最初のタップで必要な音源を一度だけ起動可能状態にし、復帰時も続きの曲を戻す。
+ * 先の章で必要になる曲だけを、直前のユーザー操作中に短く起動可能状態にする。
  */
-let storyMediaPrimed=false;
-function primeStoryMedia(){
-  if(storyMediaPrimed)return;
-  storyMediaPrimed=true;
-  const tracks=[ensureChapterOneBgm(),ensureTutorialBattleBgm(),ensureVillageAmbience(),ensureVillageDangerBgm(),ensureAirSmileBgm(),document.querySelector('#battleBgm')].filter(Boolean);
-  tracks.forEach(music=>{
-    const volume=music.volume;music.volume=0;
-    const started=music.play();
-    if(started&&typeof started.then==='function')started.then(()=>{music.pause();music.currentTime=0;music.volume=volume;}).catch(()=>{music.volume=volume;});
-    else{music.pause();music.currentTime=0;music.volume=volume;}
-  });
+function primeNextStoryTrack(music){
+  if(!music||music.dataset.mobilePrimed==='1')return;
+  music.dataset.mobilePrimed='1';
+  const volume=music.volume,muted=music.muted;
+  music.volume=0;music.muted=true;
+  const started=music.play();
+  const reset=()=>{music.pause();music.currentTime=0;music.volume=volume;music.muted=muted;};
+  if(started&&typeof started.then==='function')started.then(reset).catch(reset);else reset();
+}
+function primeTutorialBattleTrack(){primeNextStoryTrack(ensureTutorialBattleBgm());}
+function primeVillageAmbienceTrack(){primeNextStoryTrack(ensureVillageAmbience());}
+function primeWolfBattleTrack(){
+  const music=document.querySelector('#battleBgm');
+  if(!music)return;
+  if(!music.src.endsWith('/assets/story-wolf-battle-bgm.mp3')){music.src='assets/story-wolf-battle-bgm.mp3';music.load();}
+  primeNextStoryTrack(music);
 }
 function resumeStoryMedia(){
   if(document.visibilityState==='hidden')return;
@@ -282,16 +289,14 @@ function resumeStoryMedia(){
   const battle=document.querySelector('#battleBgm');
   if(window.storyWolfBattleActive&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
 }
-document.addEventListener('pointerdown',()=>{primeStoryMedia();resumeStoryMedia();},{capture:true,passive:true});
+document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
 const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
-let storyVisualPreload=null;
-function preloadStoryVisuals(){
-  if(storyVisualPreload)return storyVisualPreload;
-  storyVisualPreload=Promise.all(storyVisualAssets.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
-  return storyVisualPreload;
+function preloadStoryVisuals(sources=storyVisualAssets){
+  const selected=sources.filter(src=>storyVisualAssets.includes(src));
+  return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
@@ -1076,6 +1081,8 @@ function tutorialReturnToStory(){
 }
 function beginVillageEncounter(scene){
   stopChapterOneBgm();
+  preloadStoryVisuals(['assets/story-village.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-village-night.webp']);
+  primeVillageAmbienceTrack();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   coverStoryCurtain(curtain);
@@ -1137,6 +1144,7 @@ function beginVillageEncounter(scene){
 }
 function beginVillageBattle(scene){
   stopVillageAmbience();stopVillageDangerBgm();
+  primeWolfBattleTrack();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   coverStoryCurtain(curtain);scene.classList.add('leaving');
@@ -1358,7 +1366,7 @@ function startChapterOne(){
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
   /* 背景はクリック直後から先読みし、曲も同じユーザー操作の中で開始許可を得る。 */
-  preloadStoryVisuals();primeStoryMedia();
+  preloadStoryVisuals(['assets/story-training-ground.webp','assets/story-senior-warrior.webp']);
   stopTitleBgm();stopChapterOneBgm();startChapterOneBgm();
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
@@ -1395,7 +1403,7 @@ function startChapterOne(){
     npc.classList.toggle('speaker-idle',!npcSpeaking&&!wasHidden);
     dialogue.dataset.ended=String(currentLine===lines.length-1);
   };
-  dialogue.onclick=()=>{if(currentLine<lines.length-1){currentLine+=1;renderLine();}else beginChapterOneTutorial(scene);};
+  dialogue.onclick=()=>{if(currentLine<lines.length-1){currentLine+=1;renderLine();}else{primeTutorialBattleTrack();beginChapterOneTutorial(scene);}};
   dialogue.hidden=true;npc.hidden=true;
   scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('preparing','show','leaving');
   title?.classList.add('dismiss');
@@ -1410,7 +1418,7 @@ function openStoryMode(){
     const status=document.querySelector('.auth-status');if(status)status.textContent='ストーリーモードをプレイするには、ログインして下さい。';
     return;
   }
-  preloadStoryVisuals();playStoryModeSelectSfx();
+  playStoryModeSelectSfx();
   let panel=document.querySelector('#storyModePanel');
   if(!panel){
     panel=document.createElement('section');panel.id='storyModePanel';panel.className='story-mode-panel';
