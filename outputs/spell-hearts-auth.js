@@ -719,6 +719,12 @@ function playStoryModeSelectSfx(){
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
 }
+function playTitlePressSfx(){
+  let sound=document.querySelector('#titlePressSfx');
+  if(!sound){sound=document.createElement('audio');sound.id='titlePressSfx';sound.src='assets/title-press-sfx.mp3';sound.preload='auto';document.body.append(sound);}
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.currentTime=0;sound.play().catch(()=>{});
+}
 function playChapterOneSelectSfx(){
   let sound=document.querySelector('#chapterOneSelectSfx');
   if(!sound){sound=document.createElement('audio');sound.id='chapterOneSelectSfx';sound.src='assets/chapter-one-select.mp3';sound.preload='none';document.body.append(sound);}
@@ -1407,7 +1413,7 @@ function installTitlePressMenu(){
     trigger.hidden=true;trigger.style.display='none';
     menu.classList.add('menu-open');
   };
-  trigger.onclick=openMenu;
+  trigger.onclick=()=>{playTitlePressSfx();openMenu();};
   menu.addEventListener('click',event=>event.stopPropagation());
   title.addEventListener('click',event=>{
     if(!menu.classList.contains('menu-open'))return;
