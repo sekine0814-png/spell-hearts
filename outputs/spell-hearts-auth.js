@@ -359,7 +359,7 @@ function showBattleExchangeCollection(hall){
       const item=series.items.find(entry=>entry.key===cardButton.dataset.exchangeItem);
       if(item)openBattleSeriesConfirm(series,item);
     });
-  };
+  });
 }
 function playExchangeAnimation(dialog,item,onComplete){
   const sparks=Array.from({length:12},(_,index)=>`<img class="exchange-spark exchange-spark-${index}" src="assets/spell-hearts-star-fragment.webp" alt="">`).join('');
