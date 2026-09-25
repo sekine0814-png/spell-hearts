@@ -88,13 +88,14 @@ const battleSeriesNames={battle:'Battleシリーズ',magic:'Magicシリーズ',s
 const includedBattleSeries=Object.keys(battleSeriesArt);
 function defaultCosmetics(){
   const owned={astrologian:{}};
-  includedBattleSeries.forEach(series=>{owned[series]={rock:true,scissors:true,paper:true,amplify:true};});
+  includedBattleSeries.forEach(series=>{owned[series]={};});
   return {owned:{battle:owned},equipped:{battle:{rock:'normal',scissors:'normal',paper:'normal',amplify:'normal'},battleShrink:'normal',spellShrink:'normal'}};
 }
 function normalizeCosmetics(value){
   const base=defaultCosmetics(),source=value&&typeof value==='object'?value:{},owned=source.owned?.battle||{},equipped=source.equipped||{};
   for(const card of Object.keys(battleArt)){
     if(owned.astrologian?.[card]===true)base.owned.battle.astrologian[card]=true;
+    includedBattleSeries.forEach(series=>{if(owned[series]?.[card]===true)base.owned.battle[series][card]=true;});
     const selected=equipped.battle?.[card];
     if(selected==='astrologian'&&base.owned.battle.astrologian[card])base.equipped.battle[card]='astrologian';
     if(includedBattleSeries.includes(selected)&&base.owned.battle[selected]?.[card])base.equipped.battle[card]=selected;
@@ -126,6 +127,13 @@ async function saveCosmetics(){
 }
 function ownsAstrologian(card){return cosmeticProfile.owned.battle.astrologian[card]===true;}
 function grantAstrologian(card){if(!astrologianArt[card])return;cosmeticProfile.owned.battle.astrologian[card]=true;void saveCosmetics();}
+function ownsBattleSeriesCard(series,card){return cosmeticProfile.owned.battle[series]?.[card]===true;}
+function grantBattleSeriesCard(series,card){
+  if(series==='astrologian')return grantAstrologian(card);
+  if(!battleSeriesArt[series]?.[card])return;
+  cosmeticProfile.owned.battle[series][card]=true;
+  void saveCosmetics();
+}
 function equipCosmetic(category,series,item){
   if(category==='バトルカード')cosmeticProfile.equipped.battle[item.key]=series;
   else if(category==='バトルカードシュリンク')cosmeticProfile.equipped.battleShrink=series;
@@ -335,14 +343,21 @@ const astrologianItems=[
   {key:'paper',name:'パー',image:'assets/astrologian-paper.webp'},
   {key:'amplify',name:'アンプリファイア',image:'assets/astrologian-amplify.webp'}
 ];
-function showAstrologianCollection(hall){
+const exchangeSeries=[
+  {key:'astrologian',name:'astrologian',image:'assets/astrologian-rock.webp',items:astrologianItems},
+  ...includedBattleSeries.map(key=>({key,name:battleSeriesNames[key],image:`assets/${battleSeriesArt[key].rock}`,items:Object.keys(battleArt).map(card=>({key:card,name:({rock:'グー',scissors:'チョキ',paper:'パー',amplify:'アンプリファイア'})[card],image:`assets/${battleSeriesArt[key][card]}`}))}))
+];
+function ownsExchangeItem(series,card){return series==='astrologian'?ownsAstrologian(card):ownsBattleSeriesCard(series,card);}
+function showBattleExchangeCollection(hall){
   const content=hall.querySelector('.item-exchange-detail-content');
-  content.innerHTML='<button class="astrologian-feature" type="button"><img src="assets/astrologian-rock.webp" alt="astrologian グー"><span>astrologian</span></button>';
-  content.querySelector('.astrologian-feature').onclick=()=>{
-    content.innerHTML='<h3>astrologian</h3><p>交換したいバトルカードを選んでください</p><div class="astrologian-items">'+astrologianItems.map(item=>`<button type="button" data-astrologian-item="${item.name}"><img src="${item.image}" alt="astrologian ${item.name}"><span>${item.name}</span></button>`).join('')+'</div>';
-    content.querySelectorAll('[data-astrologian-item]').forEach(button=>button.onclick=()=>{
-      const item=astrologianItems.find(entry=>entry.name===button.dataset.astrologianItem);
-      if(item)openAstrologianConfirm(item);
+  content.innerHTML='<p>シリーズを選んでください</p><div class="dressup-series-list">'+exchangeSeries.map(series=>`<button class="dressup-series" type="button" data-exchange-series="${series.key}"><img src="${series.image}" alt="${series.name}"><span>${series.name}</span><small>星のカケラで交換</small></button>`).join('')+'</div>';
+  content.querySelectorAll('[data-exchange-series]').forEach(button=>button.onclick=()=>{
+    const series=exchangeSeries.find(entry=>entry.key===button.dataset.exchangeSeries);
+    if(!series)return;
+    content.innerHTML=`<h3>${series.name}</h3><p>交換したいバトルカードを選んでください<br><small>各カード：星のカケラ10個</small></p><div class="astrologian-items">${series.items.map(item=>{const owned=ownsExchangeItem(series.key,item.key);return `<button type="button" data-exchange-item="${item.key}" ${owned?'disabled':''}><img src="${item.image}" alt="${series.name} ${item.name}"><span>${item.name}</span><small>${owned?'所持済み':'星のカケラ 10個'}</small></button>`;}).join('')}</div>`;
+    content.querySelectorAll('[data-exchange-item]').forEach(cardButton=>cardButton.onclick=()=>{
+      const item=series.items.find(entry=>entry.key===cardButton.dataset.exchangeItem);
+      if(item)openBattleSeriesConfirm(series,item);
     });
   };
 }
@@ -355,20 +370,24 @@ function playExchangeAnimation(dialog,item,onComplete){
     onComplete();
   },2200);
 }
-function openAstrologianConfirm(item){
+function openBattleSeriesConfirm(series,item){
   let dialog=document.querySelector('#itemExchangeConfirm');
   if(!dialog){dialog=document.createElement('section');dialog.id='itemExchangeConfirm';dialog.className='item-exchange-confirm';document.body.append(dialog);}
   const close=()=>dialog.hidden=true;
-  dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="astrologian ${item.name}"><p>星のカケラ10個で<br>astrologian ${item.name}を交換しますか？</p><div><button type="button" class="exchange-confirm-yes">はい</button><button type="button" class="exchange-confirm-no">いいえ</button></div></div>`;
+  if(ownsExchangeItem(series.key,item.key)){
+    dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="${series.name} ${item.name}"><p>${series.name} ${item.name}は所持済みです。</p><button type="button" class="exchange-confirm-no">閉じる</button></div>`;
+    dialog.hidden=false;dialog.onclick=event=>{if(event.target===dialog)close();};dialog.querySelector('.exchange-confirm-no').onclick=close;return;
+  }
+  dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="${series.name} ${item.name}"><p>星のカケラ10個で<br>${series.name} ${item.name}を交換しますか？</p><div><button type="button" class="exchange-confirm-yes">はい</button><button type="button" class="exchange-confirm-no">いいえ</button></div></div>`;
   dialog.hidden=false;
   dialog.onclick=event=>{if(event.target===dialog)close();};
   dialog.querySelector('.exchange-confirm-no').onclick=close;
   dialog.querySelector('.exchange-confirm-yes').onclick=()=>{
     if(!isGameOwner()&&readStardust()<10){dialog.querySelector('.item-exchange-confirm-box').innerHTML='<p>星のカケラが足りません。</p><button type="button" class="exchange-confirm-no">戻る</button>';dialog.querySelector('.exchange-confirm-no').onclick=close;return;}
     if(!isGameOwner())localStorage.setItem(shardKey(),String(readStardust()-10));renderSummonStock();
-    grantAstrologian(item.key);
+    grantBattleSeriesCard(series.key,item.key);
     playExchangeAnimation(dialog,item,()=>{
-      dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="astrologian ${item.name}"><p>astrologian ${item.name}を交換しました！</p><button type="button" class="exchange-confirm-no">閉じる</button></div>`;
+      dialog.innerHTML=`<div class="item-exchange-confirm-box"><img src="${item.image}" alt="${series.name} ${item.name}"><p>${series.name} ${item.name}を交換しました！</p><button type="button" class="exchange-confirm-no">閉じる</button></div>`;
       dialog.querySelector('.exchange-confirm-no').onclick=close;
     });
   };
@@ -468,7 +487,7 @@ function openItemExchange(){
       const name=button.dataset.exchangeCategory;
       hall.querySelector('.item-exchange-categories').hidden=true;
       hall.querySelector('.item-exchange-copy').hidden=true;
-      if(name==='バトルカード')showAstrologianCollection(hall);
+      if(name==='バトルカード')showBattleExchangeCollection(hall);
       else hall.querySelector('.item-exchange-detail-content').innerHTML=`<h3>${name}</h3><p>このカードの着せ替えアイテムを表示します。</p><div class="item-exchange-empty">交換できるアイテムを準備中です</div>`;
       hall.querySelector('.item-exchange-detail').hidden=false;
     });
