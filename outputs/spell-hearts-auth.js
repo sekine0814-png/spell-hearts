@@ -1379,7 +1379,7 @@ function startCpuBattleFromTitle(){
   if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)begin();});else begin();
 }
 function installTitlePressMenu(){
-  const menu=document.querySelector('#titleScreen .title-menu');
+  const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
   if(!menu||menu.dataset.pressMenuInstalled==='true')return;
   menu.dataset.pressMenuInstalled='true';
   menu.classList.add('press-menu');
@@ -1399,7 +1399,24 @@ function installTitlePressMenu(){
   };
   setOnlineVisible(false);
   const closeOnline=()=>{setOnlineVisible(false);menu.classList.remove('online-open');};
-  trigger.onclick=()=>{const open=choices.hidden;choices.hidden=!open;menu.classList.toggle('menu-open',open);if(!open)closeOnline();};
+  const closeMenu=()=>{
+    choices.hidden=true;choices.style.display='none';
+    trigger.hidden=false;trigger.style.display='';
+    menu.classList.remove('menu-open');
+    closeOnline();
+  };
+  const openMenu=()=>{
+    choices.hidden=false;choices.style.display='grid';
+    trigger.hidden=true;trigger.style.display='none';
+    menu.classList.add('menu-open');
+  };
+  trigger.onclick=openMenu;
+  menu.addEventListener('click',event=>event.stopPropagation());
+  title.addEventListener('click',event=>{
+    if(!menu.classList.contains('menu-open'))return;
+    if(event.target.closest('.title-login,#titleSettings,.title-settings,#dressupButton,.dressup-button,#summonButton,.summon-button,#recordButton,.record-button,.settings-panel'))return;
+    closeMenu();
+  });
   choices.querySelector('[data-title-choice="story"]').onclick=()=>window.openStoryMode?.();
   choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
   choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
@@ -1612,6 +1629,7 @@ document.head.append(titlePressStyle);
 const titlePressLayoutStyle=document.createElement('style');
 titlePressLayoutStyle.textContent=`
 #titleScreen .title-menu.press-menu{position:absolute;left:50%;top:72%;bottom:auto;padding:0;transform:translateX(-50%);justify-items:center}
+#titleScreen .title-menu.press-menu.menu-open{top:60%}
 #titleScreen .title-choice-list[hidden],#titleScreen .press-menu .room-form[hidden],#titleScreen .press-menu .room-note[hidden]{display:none!important}
 #titleScreen .press-screen{min-width:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#fff4b0;font:clamp(18px,3vw,39px) Georgia,"Yu Mincho",serif!important;letter-spacing:.18em;text-shadow:0 0 6px #573300,0 0 20px #e5a82e!important;animation:push-screen-glow 1.5s ease-in-out infinite}
 #titleScreen .press-screen:hover{filter:brightness(1.35)}
@@ -1622,6 +1640,7 @@ titlePressLayoutStyle.textContent=`
 #titleScreen .press-menu .room-form{width:min(76vw,390px);padding:8px;border-color:rgba(223,182,78,.82);background:rgba(3,5,8,.84)}
 @media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
   #titleScreen .title-menu.press-menu{top:62%}
+  #titleScreen .title-menu.press-menu.menu-open{top:48%}
   #titleScreen .press-screen{font-size:clamp(13px,2.5vw,21px)!important}
   #titleScreen .title-choice-list{padding:4px}
   #titleScreen .title-choice{padding:5px 11px;font-size:clamp(12px,2.2vw,18px)}
