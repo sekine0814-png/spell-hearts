@@ -1387,7 +1387,7 @@ function openStoryMode(){
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
   chapters.innerHTML=[1,2].map(chapter=>{
     const available=chapter<=unlocked;
-    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'旅立ち':'挑戦できる章'):'🔒 LOCKED'}</small></button>`;
+    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'始まりの日':'邂逅'):'🔒 LOCKED'}</small></button>`;
   }).join('');
   note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
   chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{if(button.dataset.storyChapter==='1'){playChapterOneSelectSfx();startChapterOne();}else note.textContent=`Chapter ${button.dataset.storyChapter} は準備中です。`;});
