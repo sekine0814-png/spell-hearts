@@ -692,6 +692,12 @@ window.getSpellHeartsNickname=()=>{
   return guest;
 };
 function storySpeakerName(name){return name==='主人公'?(window.getSpellHeartsNickname?.()||'主人公'):name;}
+function storyLineText(line){
+  const text=line.text;
+  // 地の文・心中は spoken を付けない限りそのまま。名前付きの発話だけをかぎ括弧で統一する。
+  const spoken=line.spoken===true||(line.spoken!==false&&line.speaker!=='主人公');
+  return spoken&&!/[「」]/.test(text)?`「${text}」`:text;
+}
 
 function applySoundLevels(){
   const bgm=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)));
@@ -897,7 +903,7 @@ function tutorialUnlock(){const lock=document.querySelector('#tutorialInputLock'
 function tutorialDialogue(text,next){
   const intro=document.querySelector('#tutorialBattleIntro');if(!intro)return;
   const dialogue=intro.querySelector('.tutorial-battle-dialogue'),copy=dialogue.querySelector('p');
-  intro.hidden=false;intro.classList.add('show');copy.textContent=text;
+  intro.hidden=false;intro.classList.add('show');copy.textContent=/[「」]/.test(text)?text:`「${text}」`;
   dialogue.onclick=()=>{resumeTutorialBattleBgm();if(typeof next==='function')next();};
   tutorialLock();
 }
@@ -1035,9 +1041,12 @@ function tutorialAmplifiedPursuit(){
 function coverStoryCurtain(curtain){
   curtain.classList.remove('lift');
   curtain.style.setProperty('z-index','2147483647','important');
-  curtain.style.setProperty('opacity','1','important');
+  // 暗転も必ずフェードさせる。inline の !important 指定で瞬時に黒くなるのを防ぐ。
   curtain.style.setProperty('transition','none','important');
+  curtain.style.setProperty('opacity','0','important');
   void curtain.offsetWidth;
+  curtain.style.setProperty('transition','opacity 1.1s ease','important');
+  curtain.style.setProperty('opacity','1','important');
 }
 function revealStoryCurtain(curtain){
   curtain.style.removeProperty('opacity');
@@ -1077,7 +1086,7 @@ function tutorialReturnToStory(){
       {speaker:'主人公',text:'・・・はい、ユート先輩！'}
     ];
     let lineIndex=0;
-    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='ユート';speaker.textContent=storySpeakerName(line.speaker);copy.textContent=line.text;npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
+    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='ユート';speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
     scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
     npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
     dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else beginVillageEncounter(scene);};renderEpilogue();
@@ -1088,6 +1097,9 @@ function tutorialReturnToStory(){
 function beginVillageEncounter(scene){
   stopChapterOneBgm();
   preloadStoryVisuals(['assets/story-village.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-village-night.webp']);
+  // 黒幕の裏で先に背景を差し替える。フェードインの最初のフレームに演習場が残らないようにする。
+  const sceneBackdrop=scene.querySelector('.chapter-scene-backdrop');
+  if(sceneBackdrop)sceneBackdrop.src='assets/story-village.webp';
   primeVillageAmbienceTrack();
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
@@ -1132,7 +1144,7 @@ function beginVillageEncounter(scene){
     let index=0;
     const renderLine=()=>{
       const line=lines[index],wolfEntering=wolf.hidden&&line.wolf,warriorEntering=warrior.hidden&&line.warrior;
-      speaker.textContent=storySpeakerName(line.speaker);copy.textContent=line.text;
+      speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
       if(index===4)startVillageDangerBgm();
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;
       if(wolfEntering){wolf.classList.remove('enter');void wolf.offsetWidth;wolf.classList.add('enter');}
@@ -1146,7 +1158,7 @@ function beginVillageEncounter(scene){
     renderLine();
     startVillageAmbience();
     requestAnimationFrame(()=>requestAnimationFrame(()=>revealStoryCurtain(curtain)));
-  },980);
+  },1150);
 }
 function beginVillageBattle(scene){
   stopVillageAmbience();stopVillageDangerBgm();
@@ -1173,7 +1185,7 @@ function beginVillageBattle(scene){
     intro.hidden=false;requestAnimationFrame(()=>{intro.classList.add('show');revealStoryCurtain(curtain);});
     intro.querySelector('.village-battle-dialogue').onclick=()=>{intro.classList.remove('show');setTimeout(()=>{intro.hidden=true;},350);};
     setTimeout(()=>curtain.remove(),1150);
-  },1000);
+  },1150);
 }
 function showWolfBattleContinue(){
   let overlay=document.querySelector('#wolfBattleContinue');
@@ -1214,10 +1226,10 @@ function beginWolfAftermath(){
       {speaker:'主人公',text:'走ってきた俺は緊張と戦闘でクタクタだったが、女性は汗一つかいていなかった。何者なんだ、あの人……。',warrior:true},
       {speaker:'主人公',text:'女性は剣をしまい、こちらに気づくと険しい表情を緩め、笑顔を向けた。',warrior:true,smile:true},
       {speaker:'？？？',text:'あ……キミ！ 大丈夫だった？',warrior:true},
-      {speaker:'主人公',text:'はい、なんとか……。',warrior:true},
+      {speaker:'主人公',text:'はい、なんとか……。',warrior:true,spoken:true},
       {speaker:'？？？',text:'よく頑張ったね、街を守ってくれてありがとう。',warrior:true},
-      {speaker:'主人公',text:'それはこっちのセリフだ。5体も魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true},
-      {speaker:'主人公',text:'いえ、こちらこそありがとうございました。お強いんですね。',warrior:true},
+      {speaker:'主人公',text:'それはこっちのセリフだ。5体も魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true,spoken:true},
+      {speaker:'主人公',text:'いえ、こちらこそありがとうございました。お強いんですね。',warrior:true,spoken:true},
       {speaker:'？？？',text:'まあこのくらいならね。今ちょうど外から帰ってきたところだったんだ。間に合ってよかった。',warrior:true},
       {speaker:'ユート',text:'おーい、大丈夫か！',warrior:true,yuto:true},
       {speaker:'？？？',text:'ユート！ 久しぶりじゃないか。',warrior:true,yuto:true},
@@ -1230,14 +1242,14 @@ function beginWolfAftermath(){
       {speaker:'主人公',text:'俺達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true,night:true},
       {speaker:'ユート',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true,night:true},
       {speaker:'エア',text:'ほんと？ やったー！',warrior:true,yuto:true,night:true},
-      {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true,night:true},
+      {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true,night:true,spoken:true},
       {speaker:'主人公',text:'俺達は夜の街へと歩き出した。',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'このときは気づく由もない。',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'この戦いが、全ての始まりであったことを……。',warrior:true,yuto:true,night:true}
     ];
     let index=0;
     const renderLine=()=>{
-      const line=lines[index];speaker.textContent=storySpeakerName(line.speaker);copy.textContent=line.text;
+      const line=lines[index];speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
       wolf.hidden=!line.wolf;warrior.hidden=!line.warrior;yuto.hidden=!line.yuto;scene.classList.toggle('night-village',!!line.night);
       if(line.smile){warrior.src='assets/story-woman-warrior-smile.webp';stopVillageDangerBgm();startAirSmileBgm();}
       warrior.classList.toggle('smile-card',warrior.src.includes('story-woman-warrior-smile.webp'));
@@ -1249,7 +1261,7 @@ function beginWolfAftermath(){
     scene.hidden=false;scene.classList.remove('leaving');scene.classList.add('preparing','show','village-scene');dialogue.hidden=false;renderLine();
     dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else showChapterOneEnd(scene);};
     startVillageDangerBgm();requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
-  },1000);
+  },1150);
 }
 function showChapterOneEnd(scene){
   stopVillageDangerBgm();stopAirSmileBgm();let end=document.querySelector('#chapterOneEndScreen');
@@ -1365,7 +1377,7 @@ function beginChapterOneTutorial(scene){
     setTimeout(()=>tutorialDialogue('よし、始めるぞ。まずは実際に手を動かして、\n戦い方を覚えていこう。',()=>{
       tutorialDialogue('戦闘は、まずお互いにこのスペルカードをドローするところから始まる。',beginSpellDrawLesson);
     }),980);
-  },720);
+  },1150);
 }
 function startChapterOne(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
@@ -1379,10 +1391,10 @@ function startChapterOne(){
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
     {speaker:'ユート',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
-    {speaker:'主人公',text:'ユート先輩。うん、昨日の型がどうにも決まらなくて。'},
+    {speaker:'主人公',text:'ユート先輩。うん、昨日の型がどうにも決まらなくて。',spoken:true},
     {speaker:'ユート',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
     {speaker:'ユート',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
-    {speaker:'主人公',text:'なるほど……先に当てにいこうとしてた。'},
+    {speaker:'主人公',text:'なるほど……先に当てにいこうとしてた。',spoken:true},
     {speaker:'ユート',text:'その通り。今日は俺が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
   ];
   let scene=document.querySelector('#chapterOneScene');
@@ -1404,7 +1416,7 @@ function startChapterOne(){
   let currentLine=0;
   const renderLine=()=>{
     const line=lines[currentLine],npcSpeaking=line.speaker==='ユート',wasHidden=npc.hidden;
-    speaker.textContent=storySpeakerName(line.speaker);copy.textContent=line.text;
+    speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
     npc.hidden=currentLine===0;
     if(!npc.hidden&&wasHidden){npc.classList.remove('enter');void npc.offsetWidth;npc.classList.add('enter');}
     npc.classList.toggle('speaker-active',npcSpeaking||(!npc.hidden&&wasHidden));
