@@ -205,7 +205,7 @@ function playTutorialBattleBgm(music){
 }
 function startTutorialBattleBgm(){
   const music=ensureTutorialBattleBgm();
-  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=titleBgmLevel();music.dataset.keepPlaying='1';music.dataset.fading='';
+  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=titleBgmLevel()*.82;music.dataset.keepPlaying='1';music.dataset.fading='';
   playTutorialBattleBgm(music);
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
   tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
@@ -705,7 +705,7 @@ function applySoundLevels(){
   const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
-  const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100;
+  const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.82;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
   document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
