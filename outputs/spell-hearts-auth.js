@@ -1382,6 +1382,7 @@ function installTitlePressMenu(){
   const menu=document.querySelector('#titleScreen .title-menu');
   if(!menu||menu.dataset.pressMenuInstalled==='true')return;
   menu.dataset.pressMenuInstalled='true';
+  menu.classList.add('press-menu');
   document.querySelector('#tutorialButton')?.remove();
   const trigger=menu.querySelector('.push-screen'),form=menu.querySelector('.room-form'),note=menu.querySelector('#roomNote');
   if(!trigger||!form||!note)return;
@@ -1610,7 +1611,7 @@ titlePressStyle.textContent=`
 document.head.append(titlePressStyle);
 const titlePressLayoutStyle=document.createElement('style');
 titlePressLayoutStyle.textContent=`
-#titleScreen .title-menu.press-menu{position:absolute;left:50%;top:67%;bottom:auto;padding:0;transform:translate(-50%,-2em);justify-items:center}
+#titleScreen .title-menu.press-menu{position:absolute;left:50%;top:72%;bottom:auto;padding:0;transform:translateX(-50%);justify-items:center}
 #titleScreen .title-choice-list[hidden],#titleScreen .press-menu .room-form[hidden],#titleScreen .press-menu .room-note[hidden]{display:none!important}
 #titleScreen .press-screen{min-width:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#fff4b0;font:clamp(18px,3vw,39px) Georgia,"Yu Mincho",serif!important;letter-spacing:.18em;text-shadow:0 0 6px #573300,0 0 20px #e5a82e!important;animation:push-screen-glow 1.5s ease-in-out infinite}
 #titleScreen .press-screen:hover{filter:brightness(1.35)}
@@ -1625,6 +1626,6 @@ titlePressLayoutStyle.textContent=`
   #titleScreen .title-choice-list{padding:4px}
   #titleScreen .title-choice{padding:5px 11px;font-size:clamp(12px,2.2vw,18px)}
 }
-body.touch-landscape #titleScreen .title-menu.press-menu{transform:translate(-50%,-2em)!important}
+body.touch-landscape #titleScreen .title-menu.press-menu{transform:translateX(-50%)!important}
 `;
 document.head.append(titlePressLayoutStyle);
