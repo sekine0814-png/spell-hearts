@@ -205,7 +205,7 @@ function playTutorialBattleBgm(music){
 }
 function startTutorialBattleBgm(){
   const music=ensureTutorialBattleBgm();
-  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
+  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=titleBgmLevel();music.dataset.keepPlaying='1';music.dataset.fading='';
   playTutorialBattleBgm(music);
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
   tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
@@ -1432,12 +1432,12 @@ function startChapterOne(){
   dialogue.hidden=true;npc.hidden=true;
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);}
-  scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('preparing','show','leaving');
+  // タイトルが黒へ沈む間は次の背景をまだ出さず、切替をクロスフェードにしない。
+  scene.hidden=true;scene.dataset.transitioning='false';scene.classList.remove('preparing','show','leaving');
   title?.classList.add('dismiss');
-  scene.classList.add('preparing');
   // タイトル → 黒 → 演習場の順に見せ、背景の切替が急に見えないようにする。
   requestAnimationFrame(()=>coverStoryCurtain(curtain));
-  setTimeout(()=>{scene.classList.add('show');revealStoryCurtain(curtain);},1150);
+  setTimeout(()=>{scene.hidden=false;scene.classList.add('preparing','show');requestAnimationFrame(()=>revealStoryCurtain(curtain));},1150);
   setTimeout(()=>curtain.remove(),2300);
   setTimeout(()=>{if(scene.classList.contains('show')){dialogue.hidden=false;renderLine();}},2570);
 }
