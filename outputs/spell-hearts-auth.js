@@ -913,6 +913,8 @@ function tutorialFocusElement(target,onChoose){
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
   let active=null,activeHand=null,finished=false;
   const clear=()=>{
+    // 再描画で参照を失った以前の誘導光も、画面全体から確実に消す。
+    document.querySelectorAll('.tutorial-focus-target').forEach(node=>node.classList.remove('tutorial-focus-target'));
     if(active){active.classList.remove('tutorial-focus-target');active.style.removeProperty('pointer-events');active.style.removeProperty('z-index');active.style.removeProperty('position');}
     if(activeHand){activeHand.style.removeProperty('position');activeHand.style.removeProperty('z-index');activeHand.querySelectorAll('.pick').forEach(card=>card.style.removeProperty('pointer-events'));}
     active=null;activeHand=null;
@@ -951,7 +953,10 @@ function tutorialFocusCard(card,onChoose){
   tutorialFocusElement(()=>[...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`)),onChoose);
 }
 function tutorialGlowCard(card){
-  document.querySelectorAll('#pBattle .pick').forEach(button=>button.classList.toggle('tutorial-card-glow',button.getAttribute('onclick')?.includes(`pick('${card}')`)));
+  // 古い手札が再描画の途中で残っても、発光は必ず一枚だけにする。
+  document.querySelectorAll('.tutorial-card-glow').forEach(button=>button.classList.remove('tutorial-card-glow'));
+  if(!card)return;
+  [...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`))?.classList.add('tutorial-card-glow');
 }
 function tutorialGlowHp(on){
   for(const id of ['pHp','cHp'])document.querySelector('#'+id)?.classList.toggle('tutorial-hp-glow',on);
@@ -1656,6 +1661,8 @@ chapterOneStyle.textContent+='body.story-active:not(.story-cinematic) .top .btn{
 chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
 chapterOneStyle.textContent+='.story-active .below{display:none}';
 chapterOneStyle.textContent+='body.story-cinematic main{visibility:hidden!important}';
+// タイトル暗転中に body に残っているランダム戦場背景を絶対に見せない。
+chapterOneStyle.textContent+='body.story-cinematic{background:#000!important;background-image:none!important}';
 chapterOneStyle.textContent+='#tutorialInputLock{background:transparent}.tutorial-focus-target{position:relative!important;z-index:auto!important;filter:none!important;outline:0!important;box-shadow:none!important;animation:none!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.returning{z-index:9999!important}';
 chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transition:none!important}#tutorialBattleCurtain.lift{opacity:0!important;transition:opacity 1.1s ease!important}';
