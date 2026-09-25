@@ -142,7 +142,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -173,6 +173,26 @@ function startChapterOneBgm(){
     const began=performance.now(),duration=1300;
     const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)chapterOneBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
     chapterOneBgmFadeFrame=requestAnimationFrame(fade);
+  }).catch(()=>{music.dataset.fading='';});
+}
+function ensureTavernBgm(){
+  let music=document.querySelector('#tavernBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='tavernBgm';music.src='assets/story-tavern-bgm.mp3';music.loop=true;music.preload='none';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopTavernBgm(){
+  cancelAnimationFrame(tavernBgmFadeFrame);tavernBgmFadeFrame=0;
+  const music=document.querySelector('#tavernBgm');
+  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function startTavernBgm(){
+  const music=ensureTavernBgm();
+  cancelAnimationFrame(tavernBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
+  music.play().then(()=>{
+    const began=performance.now(),duration=1100;
+    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)tavernBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
+    tavernBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
 }
 function ensureTutorialBattleBgm(){
@@ -299,7 +319,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-yuto-tavern.png','assets/story-air-tavern.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 function preloadStoryVisuals(sources=storyVisualAssets){
   const selected=sources.filter(src=>storyVisualAssets.includes(src));
   return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
@@ -316,7 +336,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -705,6 +725,7 @@ function applySoundLevels(){
   const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
+  const tavernMusic=document.querySelector('#tavernBgm'); if(tavernMusic&&!tavernMusic.dataset.fading)tavernMusic.volume=bgm/100;
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
@@ -1457,8 +1478,8 @@ function startChapterTwo(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp']);
-  stopTitleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startChapterOneBgm();
+  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern.png','assets/story-air-tavern.png']);
+  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
     {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
@@ -1483,7 +1504,7 @@ function startChapterTwo(){
   let scene=document.querySelector('#chapterTwoScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-woman-warrior-smile.webp" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
     scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
