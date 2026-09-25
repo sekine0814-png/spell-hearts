@@ -1603,6 +1603,7 @@ document.head.append(titlePressStyle);
 const titlePressLayoutStyle=document.createElement('style');
 titlePressLayoutStyle.textContent=`
 #titleScreen .title-menu.press-menu{position:absolute;left:50%;top:67%;bottom:auto;padding:0;transform:translateX(-50%);justify-items:center}
+#titleScreen .title-choice-list[hidden],#titleScreen .press-menu .room-form[hidden],#titleScreen .press-menu .room-note[hidden]{display:none!important}
 #titleScreen .press-screen{min-width:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#fff4b0;font:clamp(18px,3vw,39px) Georgia,"Yu Mincho",serif!important;letter-spacing:.18em;text-shadow:0 0 6px #573300,0 0 20px #e5a82e!important;animation:push-screen-glow 1.5s ease-in-out infinite}
 #titleScreen .press-screen:hover{filter:brightness(1.35)}
 #titleScreen .title-choice-list{gap:0;padding:6px;border:1px solid rgba(223,182,78,.95);border-radius:5px;background:rgba(3,5,8,.8);box-shadow:inset 0 0 18px rgba(255,223,128,.15),0 4px 18px #000b}
