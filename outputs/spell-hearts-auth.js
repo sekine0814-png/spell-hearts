@@ -84,7 +84,7 @@ const battleSeriesArt={
   samurai:{rock:'samurai-rock.webp',scissors:'samurai-scissors.webp',paper:'samurai-paper.webp',amplify:'samurai-amplify.webp'},
   animal:{rock:'animal-rock.webp',scissors:'animal-scissors.webp',paper:'animal-paper.webp',amplify:'animal-amplify.webp'}
 };
-const battleSeriesNames={battle:'Battleシリーズ',magic:'Magicシリーズ',samurai:'Samuraiシリーズ',animal:'アニマルシリーズ',astrologian:'astrologian'};
+const battleSeriesNames={battle:'Battleシリーズ',magic:'Magicシリーズ',samurai:'Samuraiシリーズ',animal:'Animalシリーズ',astrologian:'Astrologian'};
 const includedBattleSeries=Object.keys(battleSeriesArt);
 function defaultCosmetics(){
   const owned={astrologian:{}};
@@ -344,7 +344,7 @@ const astrologianItems=[
   {key:'amplify',name:'アンプリファイア',image:'assets/astrologian-amplify.webp'}
 ];
 const exchangeSeries=[
-  {key:'astrologian',name:'astrologian',image:'assets/astrologian-rock.webp',items:astrologianItems},
+  {key:'astrologian',name:'Astrologian',image:'assets/astrologian-rock.webp',items:astrologianItems},
   ...includedBattleSeries.map(key=>({key,name:battleSeriesNames[key],image:`assets/${battleSeriesArt[key].rock}`,items:Object.keys(battleArt).map(card=>({key:card,name:({rock:'グー',scissors:'チョキ',paper:'パー',amplify:'アンプリファイア'})[card],image:`assets/${battleSeriesArt[key][card]}`}))}))
 ];
 function ownsExchangeItem(series,card){return series==='astrologian'?ownsAstrologian(card):ownsBattleSeriesCard(series,card);}
@@ -418,7 +418,7 @@ function showDressupOwnedItems(hall,category,series){
 }
 function showDressupSeries(hall,category){
   const content=hall.querySelector('.item-exchange-detail-content'),normal=(normalDressupItems[category]||[])[0],series=[{key:'normal',name:'ノーマルシリーズ',image:normal.image}];
-  if(category==='バトルカード'&&Object.keys(cosmeticProfile.owned.battle.astrologian).length)series.push({key:'astrologian',name:'astrologian',image:'assets/astrologian-rock.webp'});
+  if(category==='バトルカード'&&Object.keys(cosmeticProfile.owned.battle.astrologian).length)series.push({key:'astrologian',name:'Astrologian',image:'assets/astrologian-rock.webp'});
   if(category==='バトルカード')includedBattleSeries.forEach(key=>{if(Object.keys(cosmeticProfile.owned.battle[key]||{}).length)series.push({key,name:battleSeriesNames[key],image:`assets/${battleSeriesArt[key].rock}`});});
   content.innerHTML=`<p>シリーズを選んでください</p><div class="dressup-series-list">${series.map(entry=>`<button class="dressup-series" type="button" data-dressup-series="${entry.key}"><img src="${entry.image}" alt="${entry.name}"><span>${entry.name}</span><small>所持済み</small></button>`).join('')}</div>`;
   content.querySelectorAll('[data-dressup-series]').forEach(button=>button.onclick=()=>showDressupOwnedItems(hall,category,button.dataset.dressupSeries));
