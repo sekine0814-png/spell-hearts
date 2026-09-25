@@ -178,7 +178,9 @@ function startChapterOneBgm(){
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='metadata';music.volume=0;
+  // チュートリアル中に初めて必要になる一曲だけは、章の会話中に読み込んでおく。
+  // metadata だけでは回線状況によって開始時に無音のままになる端末があった。
+  music=document.createElement('audio');music.id='tutorialBattleBgm';music.src='assets/tutorial-battle-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
   music.addEventListener('ended',()=>{if(music.dataset.keepPlaying==='1'){music.currentTime=0;music.play().catch(()=>{});}});
   document.body.append(music);return music;
 }
@@ -186,21 +188,25 @@ function resumeTutorialBattleBgm(){
   const music=document.querySelector('#tutorialBattleBgm');
   if(!music||music.dataset.keepPlaying!=='1')return;
   music.loop=true;
-  if(music.paused||music.ended){music.play().catch(()=>{});}
+  if(music.paused||music.ended)playTutorialBattleBgm(music);
 }
 function stopTutorialBattleBgm(){
   cancelAnimationFrame(tutorialBattleBgmFadeFrame);tutorialBattleBgmFadeFrame=0;clearInterval(tutorialBattleBgmWatch);tutorialBattleBgmWatch=0;
   const music=document.querySelector('#tutorialBattleBgm');
   if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
 }
-function startTutorialBattleBgm(){
-  const music=ensureTutorialBattleBgm();
-  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
+function playTutorialBattleBgm(music){
   music.play().then(()=>{
+    if(music.dataset.fading!=='1')return;
     const began=performance.now(),duration=1150;
     const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
     tutorialBattleBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
+}
+function startTutorialBattleBgm(){
+  const music=ensureTutorialBattleBgm();
+  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
+  playTutorialBattleBgm(music);
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
   tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
 }
@@ -1367,6 +1373,8 @@ function startChapterOne(){
   document.body.classList.add('story-active','story-cinematic');
   /* 背景はクリック直後から先読みし、曲も同じユーザー操作の中で開始許可を得る。 */
   preloadStoryVisuals(['assets/story-training-ground.webp','assets/story-senior-warrior.webp']);
+  // チュートリアル戦までに曲のデータを準備して、戦闘開始時の無音を防ぐ。
+  ensureTutorialBattleBgm().load();
   stopTitleBgm();stopChapterOneBgm();startChapterOneBgm();
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
