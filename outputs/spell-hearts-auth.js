@@ -205,7 +205,7 @@ function playTutorialBattleBgm(music){
 }
 function startTutorialBattleBgm(){
   const music=ensureTutorialBattleBgm();
-  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=titleBgmLevel()*.82;music.dataset.keepPlaying='1';music.dataset.fading='';
+  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=titleBgmLevel()*.65;music.dataset.keepPlaying='1';music.dataset.fading='';
   playTutorialBattleBgm(music);
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
   tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
@@ -705,7 +705,7 @@ function applySoundLevels(){
   const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
-  const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.82;
+  const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
   document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
@@ -934,6 +934,9 @@ function tutorialFocusElement(target,onChoose){
     const current=resolve();
     if(!current||!current.contains(event.target))return;
     event.preventDefault();event.stopImmediatePropagation();
+    // インライン onclick はこのクリックの後にも走ることがある。先に無効化し、
+    // チュートリアルのコールバックだけが一度だけ処理を進めるようにする。
+    current.removeAttribute('onclick');current.onclick=null;
     finished=true;document.removeEventListener('click',choose,true);clear();resumeTutorialBattleBgm();tutorialUnlock();onChoose?.();
   };
   document.addEventListener('click',choose,true);requestAnimationFrame(sync);
@@ -1357,8 +1360,10 @@ function beginSpellDrawLesson(){
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     window.drawInitial?.();
     setTimeout(()=>tutorialDialogue('よし、いい感じだ。最初に引いたスペルカードは、\nチャージエリアに自分だけ見える形で伏せて置かれる。',()=>{
-      // 山札の実クリックと誘導クリックを重ねず、チュートリアル側で一度だけ手札を開く。
-      tutorialDialogue('次は、このバトルカードをドローするんだ。',beginBattleCardLesson);
+      // 山札を直接光らせ、プレイヤーが押した時だけ一度だけ手札を開く。
+      tutorialDialogue('次は、このバトルカードをドローするんだ。',()=>tutorialFocusElement(
+        ()=>document.querySelector('#pBattle .deck-button'),beginBattleCardLesson
+      ));
     }),780);
   });
 }

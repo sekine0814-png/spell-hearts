@@ -226,14 +226,22 @@
     window.endRound=()=>send('ok');
     window.requestRematch=()=>{if(net?.phase==='end'&&!net.rematchReady)send('rematch')};
   }
-  window.beginOnlineMatch=code=>{
+  window.beginOnlineMatch=async code=>{
     if(location.protocol==='file:'){
       location.href='http://localhost:8787/?room='+encodeURIComponent(code);
       return;
     }
+    // 入室パケットを送る前に、ログイン済みの着せ替え情報を読み切る。
+    // これで接続後に通常カード→選択カードへ差し替わることを防ぐ。
+    await Promise.resolve(window.waitForSpellHeartsCosmetics?.());
     activateOnlineControls();
     connect(code);
   };
-  if(query.get('room')){activateOnlineControls();connect(query.get('room'));}
-  window.addEventListener('spellhearts-cosmeticschange',event=>send('cosmetics',event.detail));
+  if(query.get('room')){
+    const code=query.get('room');
+    // 直接リンクで再入室した場合も、認証側の初期化が終わってから接続する。
+    setTimeout(()=>window.beginOnlineMatch?.(code),0);
+  }
+  // 対戦中の見た目は入室時に確定する。アカウント同期の遅延で途中から
+  // 通常カードへ差し替わったり、相手側の見た目が揺れたりしないようにする。
 })();
