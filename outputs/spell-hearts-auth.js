@@ -1471,7 +1471,8 @@ function startCpuBattleFromTitle(){
 }
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
-  if(!menu||menu.dataset.pressMenuInstalled==='true')return;
+  if(!menu)return;
+  if(menu.dataset.pressMenuInstalled==='true'){title.classList.remove('title-shell-loading');return;}
   menu.dataset.pressMenuInstalled='true';
   menu.classList.add('press-menu');
   document.querySelector('#tutorialButton')?.remove();
@@ -1511,6 +1512,8 @@ function installTitlePressMenu(){
   choices.querySelector('[data-title-choice="story"]').onclick=()=>window.openStoryMode?.();
   choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
   choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
+  // 旧HTMLのメニューを描画せず、PRESS SCREEN の組み立てが終わってから表示する。
+  title.classList.remove('title-shell-loading');
 }
 
 /* 横画面で fixed 要素のタップ座標がずれる端末では、タイトル表示中だけ通常配置にする。 */
