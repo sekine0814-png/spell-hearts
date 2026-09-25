@@ -262,12 +262,9 @@ function preloadStoryVisuals(){
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
   if(titleBgmStarted||title?.classList.contains('dismiss'))return;
-  titleBgmStarted=true;music.volume=0;music.dataset.fading='1';
-  music.play().then(()=>{
-    const began=performance.now(),duration=1400;
-    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1&&titleBgmStarted)titleBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
-    titleBgmFadeFrame=requestAnimationFrame(fade);
-  }).catch(()=>{titleBgmStarted=false;music.dataset.fading='';});
+  cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;
+  titleBgmStarted=true;music.volume=titleBgmLevel();music.dataset.fading='';
+  music.play().catch(()=>{titleBgmStarted=false;});
 }
 function installTitleBgm(){
   ensureTitleBgm();
