@@ -1388,12 +1388,20 @@ function installTitlePressMenu(){
   trigger.removeAttribute('onclick');trigger.type='button';trigger.textContent='PRESS SCREEN';trigger.classList.add('press-screen');
   const choices=document.createElement('div');choices.className='title-choice-list';choices.hidden=true;
   choices.innerHTML='<button type="button" class="title-choice" data-title-choice="story">STORY MODE</button><button type="button" class="title-choice" data-title-choice="cpu">CPU戦</button><button type="button" class="title-choice" data-title-choice="online">オンライン対戦</button>';
-  trigger.after(choices);form.hidden=true;note.hidden=true;
-  const closeOnline=()=>{form.hidden=true;note.hidden=true;menu.classList.remove('online-open');};
+  trigger.after(choices);
+  const setOnlineVisible=(visible)=>{
+    form.hidden=!visible;note.hidden=!visible;
+    // Some mobile browsers retain a stale layout for hidden form controls.
+    // Set display directly as well, so the room form never leaks into the initial title.
+    form.style.display=visible?'grid':'none';
+    note.style.display=visible?'block':'none';
+  };
+  setOnlineVisible(false);
+  const closeOnline=()=>{setOnlineVisible(false);menu.classList.remove('online-open');};
   trigger.onclick=()=>{const open=choices.hidden;choices.hidden=!open;menu.classList.toggle('menu-open',open);if(!open)closeOnline();};
   choices.querySelector('[data-title-choice="story"]').onclick=()=>window.openStoryMode?.();
   choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
-  choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;form.hidden=!show;note.hidden=!show;menu.classList.toggle('online-open',show);};
+  choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
 }
 function makeBattleSettings(){
   const title=document.querySelector('#titleScreen');
@@ -1602,7 +1610,7 @@ titlePressStyle.textContent=`
 document.head.append(titlePressStyle);
 const titlePressLayoutStyle=document.createElement('style');
 titlePressLayoutStyle.textContent=`
-#titleScreen .title-menu.press-menu{position:absolute;left:50%;top:67%;bottom:auto;padding:0;transform:translateX(-50%);justify-items:center}
+#titleScreen .title-menu.press-menu{position:absolute;left:50%;top:67%;bottom:auto;padding:0;transform:translate(-50%,-2em);justify-items:center}
 #titleScreen .title-choice-list[hidden],#titleScreen .press-menu .room-form[hidden],#titleScreen .press-menu .room-note[hidden]{display:none!important}
 #titleScreen .press-screen{min-width:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#fff4b0;font:clamp(18px,3vw,39px) Georgia,"Yu Mincho",serif!important;letter-spacing:.18em;text-shadow:0 0 6px #573300,0 0 20px #e5a82e!important;animation:push-screen-glow 1.5s ease-in-out infinite}
 #titleScreen .press-screen:hover{filter:brightness(1.35)}
@@ -1617,5 +1625,6 @@ titlePressLayoutStyle.textContent=`
   #titleScreen .title-choice-list{padding:4px}
   #titleScreen .title-choice{padding:5px 11px;font-size:clamp(12px,2.2vw,18px)}
 }
+body.touch-landscape #titleScreen .title-menu.press-menu{transform:translate(-50%,-2em)!important}
 `;
 document.head.append(titlePressLayoutStyle);
