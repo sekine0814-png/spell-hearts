@@ -1751,6 +1751,8 @@ chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
+// 純粋な会話シーンでは、立ち絵を画面の端ではなく会話に寄せて配置する。
+chapterOneStyle.textContent+='.chapter-two-air{left:13vw}.chapter-two-yuto{right:13vw}@media(max-width:600px){.chapter-two-air{left:6vw}.chapter-two-yuto{right:6vw}}';
 function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0),willUnlock=Boolean(sessionStorage.getItem('spellHeartsChapterUnlockNotice'));if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),willUnlock?2350:5000);}
 function showStoryChapterUnlockNotice(){
   const chapter=Number(sessionStorage.getItem('spellHeartsChapterUnlockNotice')||0);
@@ -1903,6 +1905,15 @@ onlineRoomLayoutStyle.textContent=`
 }
 `;
 document.head.append(onlineRoomLayoutStyle);
+// 展開メニューは各項目を同じセルに固定し、文字数によって枠の比率が変わらないようにする。
+titlePressLayoutStyle.textContent+=`
+#titleScreen .title-choice-list{grid-template-rows:repeat(3,64px);box-sizing:border-box}
+#titleScreen .title-choice{height:64px;padding:0!important;display:grid;place-items:center;box-sizing:border-box;line-height:1}
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  #titleScreen .title-choice-list{grid-template-rows:repeat(3,39px)}
+  #titleScreen .title-choice{height:39px;padding:0!important}
+}
+`;
 /*
  * 横向きスマホでは、中央寄せ用の translate が Safari / Chrome の visual viewport と
  * 別の座標系で扱われることがあり、見た目とタップ判定だけがずれる場合がある。
