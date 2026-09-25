@@ -101,6 +101,8 @@ async function loadAccountCosmetics(){
     catch(error){console.warn('Cosmetics sync failed',error);}
   }
   announceCosmetics();
+  /* 端末間同期が終わった後にも、既に開いている CPU / ストーリー盤面を描き直す。 */
+  window.render?.();
 }
 async function saveCosmetics(){
   writeLocalCosmetics();announceCosmetics();
@@ -527,7 +529,9 @@ function claimStoryChapterReward(chapter,amount){
   return true;
 }
 
-onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();void loadAccountCosmetics();});
+let accountCosmeticsLoad=Promise.resolve();
+window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
+onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
 function closeLogin(){modal?.remove();modal=null;}
 
@@ -1409,7 +1413,8 @@ function makeTutorialButton(){
 function startCpuBattleFromTitle(){
   const begin=()=>window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
-  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)begin();});else begin();
+  const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
+  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();});else beginWithCosmetics();
 }
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
@@ -1743,3 +1748,22 @@ body.touch-landscape #titleScreen .room-code,
 body.touch-landscape #titleScreen .room-enter{touch-action:manipulation}
 `;
 document.head.append(mobileTitleHitAreaStyle);
+const mobileDressupStyle=document.createElement('style');
+mobileDressupStyle.textContent=`
+@media (orientation:landscape) and (pointer:coarse){
+  .dressup-panel.item-exchange-panel{display:grid!important;align-items:start!important;padding:8px!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+  .dressup-panel .item-exchange-book{width:min(94vw,680px)!important;min-height:0!important;max-height:calc(100dvh - 16px)!important;margin:auto!important;padding:16px 25px 13px!important;overflow-y:auto!important}
+  .dressup-panel .item-exchange-book:before{inset:6px}
+  .dressup-panel .item-exchange-kicker{font-size:9px}
+  .dressup-panel .item-exchange-book h2{margin:4px 0 5px;font-size:22px}
+  .dressup-panel .item-exchange-copy{margin:0 0 8px;font-size:11px}
+  .dressup-panel .item-exchange-categories{gap:7px}
+  .dressup-panel .item-exchange-categories button{min-height:118px;padding:6px 3px;font-size:11px}
+  .dressup-panel .item-exchange-categories img{width:66px;height:84px;margin-bottom:5px}
+  .dressup-panel .item-exchange-detail{min-height:150px;padding:22px 4px 4px}
+  .dressup-panel .item-exchange-detail-content{min-height:120px;padding:8px}
+  .dressup-panel .item-exchange-return{margin-top:8px;padding:6px 12px;font-size:12px}
+  .dressup-panel .item-exchange-close{right:10px;top:7px;font-size:24px}
+}
+`;
+document.head.append(mobileDressupStyle);
