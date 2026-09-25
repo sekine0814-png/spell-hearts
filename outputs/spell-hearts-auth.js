@@ -805,7 +805,9 @@ function installLocalCosmeticSync(){
   const original=window.slideCard;
   if(typeof original==='function'&&!original.localCosmeticSyncInstalled){
     const enhanced=function(fromSelector,toSelector,source){
-      if((fromSelector==='#pCharge'||toSelector==='#pCharge')&&/amplify\.jpg(?:$|[?#])/.test(source))source=localBattleAsset('amplify')||source;
+      /* プレイヤー側のチャージへ出入りするカードは必ずアンプリファイア。
+         チュートリアルを含め、滑走中も装備中の絵柄を使う。 */
+      if(fromSelector==='#pCharge'||toSelector==='#pCharge')source=localBattleAsset('amplify')||source;
       return original.call(this,fromSelector,toSelector,source);
     };
     enhanced.localCosmeticSyncInstalled=true;window.slideCard=enhanced;
@@ -1371,6 +1373,28 @@ function makeTutorialButton(){
   const button=document.createElement('button');button.id='tutorialButton';button.className='tutorial-button';button.type='button';button.textContent='チュートリアル';button.onclick=openTutorial;
   menu.insertBefore(button,menu.querySelector('.push-screen'));
 }
+function startCpuBattleFromTitle(){
+  const begin=()=>window.restartCpuMatch?.();
+  const guest=window.ensureSpellHeartsGuest?.();
+  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)begin();});else begin();
+}
+function installTitlePressMenu(){
+  const menu=document.querySelector('#titleScreen .title-menu');
+  if(!menu||menu.dataset.pressMenuInstalled==='true')return;
+  menu.dataset.pressMenuInstalled='true';
+  document.querySelector('#tutorialButton')?.remove();
+  const trigger=menu.querySelector('.push-screen'),form=menu.querySelector('.room-form'),note=menu.querySelector('#roomNote');
+  if(!trigger||!form||!note)return;
+  trigger.removeAttribute('onclick');trigger.type='button';trigger.textContent='PRESS SCREEN';trigger.classList.add('press-screen');
+  const choices=document.createElement('div');choices.className='title-choice-list';choices.hidden=true;
+  choices.innerHTML='<button type="button" class="title-choice" data-title-choice="story">STORY MODE</button><button type="button" class="title-choice" data-title-choice="cpu">CPU戦</button><button type="button" class="title-choice" data-title-choice="online">オンライン対戦</button>';
+  trigger.after(choices);form.hidden=true;note.hidden=true;
+  const closeOnline=()=>{form.hidden=true;note.hidden=true;menu.classList.remove('online-open');};
+  trigger.onclick=()=>{const open=choices.hidden;choices.hidden=!open;menu.classList.toggle('menu-open',open);if(!open)closeOnline();};
+  choices.querySelector('[data-title-choice="story"]').onclick=()=>window.openStoryMode?.();
+  choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
+  choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;form.hidden=!show;note.hidden=!show;menu.classList.toggle('online-open',show);};
+}
 function makeBattleSettings(){
   const title=document.querySelector('#titleScreen');
   if(!title||document.querySelector('#battleSettings'))return;
@@ -1395,6 +1419,7 @@ makeSummonButton();
 makeDressupButton();
 makeRecordButton();
 makeTutorialButton();
+installTitlePressMenu();
 makeBattleSettings();
 preloadStorySelectSfx();
 installLocalCosmeticSync();
@@ -1556,3 +1581,22 @@ body.touch-landscape .push-screen:before{content:"";position:absolute;z-index:-1
 body.touch-landscape .title-menu,.touch-landscape .push-screen,.touch-landscape .room-form,.touch-landscape .title-login{transform:none!important}
 `;
 document.head.append(touchLandscapeStyle);
+const titlePressStyle=document.createElement('style');
+titlePressStyle.textContent=`
+#titleScreen .title-menu.press-menu{gap:10px;min-width:min(88vw,430px)}
+#titleScreen .press-screen{margin:0!important;min-width:min(76vw,390px);padding:14px 25px!important}
+#titleScreen .title-choice-list{display:grid;gap:8px;width:min(76vw,390px);animation:title-choice-open .28s ease-out both}
+#titleScreen .title-choice{width:100%;padding:12px 18px;border:1px solid #dfb64e;border-radius:5px;background:rgba(3,5,8,.8);box-shadow:inset 0 0 14px rgba(255,223,128,.13),0 2px 13px #0009;color:#fff4b0;font:clamp(16px,2.4vw,28px) Georgia,"Yu Mincho",serif;letter-spacing:.15em;text-shadow:0 0 6px #573300,0 0 15px #e5a82e;cursor:pointer;transition:filter .18s ease,transform .18s ease}
+#titleScreen .title-choice:hover{filter:brightness(1.3);transform:translateY(-2px)}
+#titleScreen .press-menu .room-form{margin-top:2px}
+#titleScreen .press-menu .room-note{max-width:min(76vw,390px);text-align:center}
+@keyframes title-choice-open{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  #titleScreen .title-menu.press-menu{gap:4px;min-width:min(64vw,390px)}
+  #titleScreen .press-screen,#titleScreen .title-choice-list{width:min(58vw,340px);min-width:0}
+  #titleScreen .press-screen{padding:6px 12px!important;font-size:clamp(13px,2.5vw,21px)!important}
+  #titleScreen .title-choice{padding:6px 11px;font-size:clamp(12px,2.2vw,18px)}
+  #titleScreen .press-menu .room-form{width:min(58vw,340px)}
+}
+`;
+document.head.append(titlePressStyle);
