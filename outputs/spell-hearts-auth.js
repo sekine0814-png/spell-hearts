@@ -1446,6 +1446,45 @@ function installTitlePressMenu(){
   choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
   choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
 }
+
+/*
+ * 一部の横向きモバイルブラウザは、回転直後だけ fixed 要素の見た目と click の
+ * 当たり判定を異なる縦座標で扱う。表示上の矩形から直接操作先を決めることで、
+ * タイトル画面のボタンだけは必ず見えている位置で反応させる。
+ */
+function installMobileTitleTouchBridge(){
+  const title=document.querySelector('#titleScreen');
+  if(!title||title.dataset.touchBridgeInstalled==='true')return;
+  title.dataset.touchBridgeInstalled='true';
+  let suppressNativeClickUntil=0;
+  const visibleControlAt=(x,y)=>{
+    const controls=[...title.querySelectorAll('button,input')].filter(control=>{
+      if(control.hidden||control.disabled)return false;
+      const style=getComputedStyle(control);
+      if(style.display==='none'||style.visibility==='hidden'||style.pointerEvents==='none')return false;
+      const rect=control.getBoundingClientRect();
+      return rect.width>0&&rect.height>0&&x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom;
+    });
+    return controls.at(-1)||null;
+  };
+  document.addEventListener('pointerup',event=>{
+    if(event.pointerType!=='touch'||!document.body.classList.contains('touch-landscape')||title.classList.contains('dismiss'))return;
+    const control=visibleControlAt(event.clientX,event.clientY);
+    if(!control)return;
+    const nativeControl=event.target instanceof Element?event.target.closest('button,input'):null;
+    if(nativeControl===control)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    suppressNativeClickUntil=performance.now()+700;
+    if(control.matches('input')){control.focus();return;}
+    control.click();
+  },{capture:true,passive:false});
+  document.addEventListener('click',event=>{
+    if(!event.isTrusted||performance.now()>suppressNativeClickUntil)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },true);
+}
 function makeBattleSettings(){
   const title=document.querySelector('#titleScreen');
   if(!title||document.querySelector('#battleSettings'))return;
@@ -1471,6 +1510,7 @@ makeDressupButton();
 makeRecordButton();
 makeTutorialButton();
 installTitlePressMenu();
+installMobileTitleTouchBridge();
 makeBattleSettings();
 preloadStorySelectSfx();
 installOpeningSpellDeckGuide();
