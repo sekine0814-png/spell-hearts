@@ -1327,8 +1327,12 @@ function tutorialFinalStrike(){
     });
   }));
 }
+let tutorialBattleCardLessonStarted=false;
 function beginBattleCardLesson(){
-  window.openBattle?.();
+  // 誘導クリックと直前の会話クリックが重なっても、手札展開は一度だけにする。
+  if(tutorialBattleCardLessonStarted)return;
+  tutorialBattleCardLessonStarted=true;
+  if(typeof g!=='undefined'&&g?.phase==='pick'&&!g.chooser)window.openBattle?.();
   setTimeout(()=>tutorialDialogue('バトルカードは4種類あるぞ。\n基本はグー、チョキ、パーのジャンケンだ。',()=>{
     tutorialDialogue('それと、アンプリファイアと呼ばれる特殊カードが1枚。',()=>{
       tutorialDialogue('バトルの基本はジャンケンだ。ただし普通のジャンケンではない。',()=>{
@@ -1354,6 +1358,7 @@ function beginSpellDrawLesson(){
 }
 function beginChapterOneTutorial(scene){
   if(scene.dataset.transitioning==='true')return;
+  tutorialBattleCardLessonStarted=false;
   scene.dataset.transitioning='true';
   stopChapterOneBgm();
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1425,10 +1430,15 @@ function startChapterOne(){
   };
   dialogue.onclick=()=>{if(currentLine<lines.length-1){currentLine+=1;renderLine();}else{primeTutorialBattleTrack();beginChapterOneTutorial(scene);}};
   dialogue.hidden=true;npc.hidden=true;
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';curtain.classList.add('lift');document.body.append(curtain);}
   scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('preparing','show','leaving');
   title?.classList.add('dismiss');
   scene.classList.add('preparing');
-  setTimeout(()=>{scene.classList.add('show');},1120);
+  // タイトル → 黒 → 演習場の順に見せ、背景の切替が急に見えないようにする。
+  requestAnimationFrame(()=>coverStoryCurtain(curtain));
+  setTimeout(()=>{scene.classList.add('show');revealStoryCurtain(curtain);},1150);
+  setTimeout(()=>curtain.remove(),2300);
   setTimeout(()=>{if(scene.classList.contains('show')){dialogue.hidden=false;renderLine();}},2570);
 }
 window.startChapterOne=startChapterOne;
