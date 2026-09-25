@@ -27,10 +27,20 @@ const gameOwnerEmail='sekine0814@gmail.com';
 // 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
 function syncTouchLandscapeLayout(){
   const touch=navigator.maxTouchPoints>0||'ontouchstart' in window;
-  document.body?.classList.toggle('touch-landscape',touch&&window.innerWidth>window.innerHeight);
+  const viewport=window.visualViewport;
+  const width=viewport?.width||window.innerWidth;
+  const height=viewport?.height||window.innerHeight;
+  document.body?.classList.toggle('touch-landscape',touch&&width>height);
 }
-window.addEventListener('resize',syncTouchLandscapeLayout,{passive:true});
-window.addEventListener('orientationchange',syncTouchLandscapeLayout,{passive:true});
+let touchLayoutFrame=0;
+function scheduleTouchLandscapeLayout(){
+  cancelAnimationFrame(touchLayoutFrame);
+  touchLayoutFrame=requestAnimationFrame(()=>requestAnimationFrame(syncTouchLandscapeLayout));
+}
+window.addEventListener('resize',scheduleTouchLandscapeLayout,{passive:true});
+window.addEventListener('orientationchange',scheduleTouchLandscapeLayout,{passive:true});
+window.visualViewport?.addEventListener('resize',scheduleTouchLandscapeLayout,{passive:true});
+window.screen?.orientation?.addEventListener?.('change',scheduleTouchLandscapeLayout);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTouchLandscapeLayout,{once:true});else syncTouchLandscapeLayout();
 
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
@@ -1672,27 +1682,28 @@ document.head.append(titlePressLayoutStyle);
  */
 const mobileTitleHitAreaStyle=document.createElement('style');
 mobileTitleHitAreaStyle.textContent=`
-@media (orientation:landscape) and (pointer:coarse){
-  #titleScreen{position:fixed!important;inset:0!important;transform:none!important}
-  #titleScreen .title-menu.press-menu{
+body.touch-landscape #titleScreen{position:fixed!important;inset:0!important;transform:none!important}
+body.touch-landscape #titleScreen .title-menu.press-menu{
     left:0!important;
     right:0!important;
-    width:100%!important;
+    width:100vw!important;
+    max-width:100vw!important;
     min-width:0!important;
     transform:none!important;
-    justify-items:center!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
   }
-  #titleScreen .title-menu.press-menu.menu-open{top:48%!important}
-  #titleScreen .title-login,
-  #titleScreen .title-settings,
-  #titleScreen .summon-button,
-  #titleScreen .dressup-button,
-  #titleScreen .token-balance,
-  #titleScreen .press-screen,
-  #titleScreen .title-choice,
-  #titleScreen .room-form,
-  #titleScreen .room-code,
-  #titleScreen .room-enter{touch-action:manipulation}
-}
+body.touch-landscape #titleScreen .title-menu.press-menu.menu-open{top:48%!important}
+body.touch-landscape #titleScreen .title-login,
+body.touch-landscape #titleScreen .title-settings,
+body.touch-landscape #titleScreen .summon-button,
+body.touch-landscape #titleScreen .dressup-button,
+body.touch-landscape #titleScreen .token-balance,
+body.touch-landscape #titleScreen .press-screen,
+body.touch-landscape #titleScreen .title-choice,
+body.touch-landscape #titleScreen .room-form,
+body.touch-landscape #titleScreen .room-code,
+body.touch-landscape #titleScreen .room-enter{touch-action:manipulation}
 `;
 document.head.append(mobileTitleHitAreaStyle);
