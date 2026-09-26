@@ -336,7 +336,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -921,14 +921,32 @@ function tutorialLock(){
   return lock;
 }
 function tutorialUnlock(){const lock=document.querySelector('#tutorialInputLock');if(lock){lock.hidden=true;lock.replaceChildren();}}
+let tutorialSession=0,tutorialActive=false,tutorialFocusCleanup=null;
+function cancelTutorialInteractions(){
+  tutorialActive=false;tutorialSession+=1;
+  tutorialFocusCleanup?.();tutorialFocusCleanup=null;
+  tutorialUnlock();tutorialGlowCard('');tutorialGlowHp(false);
+  const intro=document.querySelector('#tutorialBattleIntro');
+  if(intro){intro.classList.remove('show');intro.hidden=true;const dialogue=intro.querySelector('.tutorial-battle-dialogue');if(dialogue)dialogue.onclick=null;}
+}
 function tutorialDialogue(text,next){
+  if(!tutorialActive)return;
+  const session=tutorialSession;
   const intro=document.querySelector('#tutorialBattleIntro');if(!intro)return;
   const dialogue=intro.querySelector('.tutorial-battle-dialogue'),copy=dialogue.querySelector('p');
   intro.hidden=false;intro.classList.add('show');copy.textContent=/[「」]/.test(text)?text:`「${text}」`;
-  dialogue.onclick=()=>{resumeTutorialBattleBgm();if(typeof next==='function')next();};
+  let advanced=false;
+  dialogue.onclick=event=>{
+    event.preventDefault();event.stopPropagation();
+    if(advanced||!tutorialActive||session!==tutorialSession)return;
+    advanced=true;dialogue.onclick=null;resumeTutorialBattleBgm();if(typeof next==='function')next();
+  };
   tutorialLock();
 }
 function tutorialFocusElement(target,onChoose){
+  if(!tutorialActive)return;
+  tutorialFocusCleanup?.();tutorialFocusCleanup=null;
+  const session=tutorialSession;
   const intro=document.querySelector('#tutorialBattleIntro'),lock=tutorialLock();
   const resolve=typeof target==='function'?target:()=>target;
   intro.hidden=true;intro.classList.remove('show');lock.classList.add('focus');
@@ -943,7 +961,7 @@ function tutorialFocusElement(target,onChoose){
   // 座標を別の要素へ写さず、見えている実カードを直接発光・最前面化する。
   // これで再描画や高解像度端末でも誘導枠がずれない。
   const sync=()=>{
-    if(finished)return;
+    if(finished||!tutorialActive||session!==tutorialSession)return;
     const current=resolve();
     if(!current||!current.isConnected||current===active){requestAnimationFrame(sync);return;}
     clear();active=current;active.classList.add('tutorial-focus-target');active.style.zIndex='170';
@@ -952,14 +970,17 @@ function tutorialFocusElement(target,onChoose){
     requestAnimationFrame(sync);
   };
   const choose=event=>{
+    if(!tutorialActive||session!==tutorialSession){cleanup();return;}
     const current=resolve();
     if(!current||!current.contains(event.target))return;
     event.preventDefault();event.stopImmediatePropagation();
     // インライン onclick はこのクリックの後にも走ることがある。先に無効化し、
     // チュートリアルのコールバックだけが一度だけ処理を進めるようにする。
     current.removeAttribute('onclick');current.onclick=null;
-    finished=true;document.removeEventListener('click',choose,true);clear();resumeTutorialBattleBgm();tutorialUnlock();onChoose?.();
+    finished=true;document.removeEventListener('click',choose,true);clear();tutorialFocusCleanup=null;resumeTutorialBattleBgm();tutorialUnlock();onChoose?.();
   };
+  const cleanup=()=>{if(finished)return;finished=true;document.removeEventListener('click',choose,true);clear();};
+  tutorialFocusCleanup=cleanup;
   document.addEventListener('click',choose,true);requestAnimationFrame(sync);
 }
 function tutorialFocus(selector,onChoose){tutorialFocusElement(()=>document.querySelector(selector),onChoose);}
@@ -974,34 +995,35 @@ function installOpeningSpellDeckGuide(){
   enhanced.openingSpellDeckGuideInstalled=true;window.render=enhanced;
 }
 function tutorialFocusCard(card,onChoose){
-  tutorialFocusElement(()=>[...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`)),onChoose);
+  tutorialFocusElement(()=>document.querySelector(`#pBattle .pick[data-battle-card="${card}"]`),onChoose);
 }
 function tutorialGlowCard(card){
   // 古い手札が再描画の途中で残っても、発光は必ず一枚だけにする。
   document.querySelectorAll('.tutorial-card-glow').forEach(button=>button.classList.remove('tutorial-card-glow'));
   if(!card)return;
-  [...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`))?.classList.add('tutorial-card-glow');
+  document.querySelector(`#pBattle .pick[data-battle-card="${card}"]`)?.classList.add('tutorial-card-glow');
 }
 function tutorialGlowHp(on){
   for(const id of ['pHp','cHp'])document.querySelector('#'+id)?.classList.toggle('tutorial-hp-glow',on);
 }
-function tutorialWaitFor(ready,done,tries=0){
+function tutorialWaitFor(ready,done,tries=0,session=tutorialSession){
+  if(!tutorialActive||session!==tutorialSession)return;
   if(ready()){done?.();return;}
-  if(tries<150)setTimeout(()=>tutorialWaitFor(ready,done,tries+1),100);
+  if(tries<150)setTimeout(()=>tutorialWaitFor(ready,done,tries+1,session),100);
 }
 function tutorialPick(card,cpu,onResolved){
-  const focusCard=()=>tutorialFocusCard(card,()=>{
-    window.setSpellHeartsTutorialCpuChoice?.(cpu);
-    window.pick?.(card);
-    tutorialWaitFor(()=>typeof g!=='undefined'&&g.phase==='spell',onResolved);
+  if(!tutorialActive||typeof g==='undefined'||g.phase!=='pick')return;
+  // ラウンド開始時は必ず閉じた山札から始める。通常戦の自動展開を持ち込まない。
+  g.chooser=false;g.openingBattle=false;window.render?.();
+  tutorialFocusElement(()=>document.querySelector('#pBattle .deck-button'),()=>{
+    if(!tutorialActive)return;
+    window.openBattle?.();
+    tutorialWaitFor(()=>!!document.querySelector(`#pBattle .pick[data-battle-card="${card}"]`),()=>tutorialFocusCard(card,()=>{
+      window.setSpellHeartsTutorialCpuChoice?.(cpu);
+      window.pick?.(card);
+      tutorialWaitFor(()=>typeof g!=='undefined'&&g.phase==='spell',onResolved);
+    }));
   });
-  // 2巡目以降は、手札を自動展開しない。山札を押してから目的の一枚を選ばせる。
-  if(typeof g!=='undefined'&&g.phase==='pick'&&!g.chooser){
-    tutorialFocusElement(()=>document.querySelector('#pBattle .deck-button'),()=>{
-      window.openBattle?.();
-      tutorialWaitFor(()=>!![...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`)),focusCard);
-    });
-  }else focusCard();
 }
 function tutorialUseSpell(onDone){
   tutorialFocus('#pChargeSpell',()=>{
@@ -1026,6 +1048,8 @@ function tutorialFinishRound(nextRound,next){
   },6000);
 }
 function tutorialRoundOne(){
+  // CPU 側の謀略があいこ説明へ割り込まないよう、各ラウンドの伏せ札を固定する。
+  if(typeof g!=='undefined'){g.p.spell='pursuit';g.c.spell='block';window.render?.();}
   tutorialDialogue('では実戦だ。グーを選んでみろ。俺はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
     tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>{
       tutorialDialogue('スペルカードは、使っても使わなくてもいい。\n使わない場合は、バトルカード山札の「OK！」を押すんだ。',()=>{
@@ -1037,6 +1061,7 @@ function tutorialRoundOne(){
   }));
 }
 function tutorialRoundTwo(){
+  if(typeof g!=='undefined'){g.p.spell='block';g.c.spell='pursuit';window.render?.();}
   tutorialDialogue('次はチョキだ。俺のグーには負けるが、\nブロックを使えば被害を抑えられる。',()=>tutorialPick('scissors','rock',()=>{
     tutorialDialogue('惜しい。チョキはグーに負ける。だが、ここでブロックの出番だ。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('ブロックは負けたときに使える。\n受けるダメージを1減らせる。',()=>tutorialFinishRound(3,tutorialRoundThree));
@@ -1044,7 +1069,7 @@ function tutorialRoundTwo(){
   }));
 }
 function tutorialRoundThree(){
-  if(typeof g!=='undefined'){g.c.spell='block';window.render?.();}
+  if(typeof g!=='undefined'){g.p.spell='scheme';g.c.spell='pursuit';window.render?.();}
   tutorialDialogue('最後はパーだ。俺もパーを出すから、あいこになる。',()=>tutorialPick('paper','paper',()=>{
     tutorialDialogue('あいこでは互いに1ダメージを受ける。\nここでは謀略を使ってみよう。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('謀略はあいこのときに使える。\n自分だけダメージを受けずに済む。',tutorialBeginAmplifyLesson);
@@ -1111,7 +1136,7 @@ function tutorialFinishChapterOne(scene){
   },1120);
 }
 function tutorialReturnToStory(){
-  tutorialUnlock();stopTutorialBattleBgm();
+  cancelTutorialInteractions();stopTutorialBattleBgm();
   document.body.classList.add('story-cinematic');
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
@@ -1202,6 +1227,8 @@ function beginVillageEncounter(scene){
   },1150);
 }
 function beginVillageBattle(scene){
+  // チュートリアルのクリック監視・遅延処理を狼戦へ持ち込まない。
+  cancelTutorialInteractions();window.storyWolfAftermathStarted=false;
   stopVillageAmbience();stopVillageDangerBgm();
   primeWolfBattleTrack();
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1238,6 +1265,8 @@ function showWolfBattleContinue(){
   overlay.hidden=false;overlay.onclick=()=>beginWolfAftermath();
 }
 function beginWolfAftermath(){
+  if(window.storyWolfAftermathStarted)return;
+  window.storyWolfAftermathStarted=true;
   const overlay=document.querySelector('#wolfBattleContinue');if(overlay)overlay.hidden=true;
   const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyBattleOpponentCard');if(opponent)opponent.hidden=true;
@@ -1412,6 +1441,7 @@ function beginSpellDrawLesson(){
 }
 function beginChapterOneTutorial(scene){
   if(scene.dataset.transitioning==='true')return;
+  cancelTutorialInteractions();tutorialActive=true;tutorialSession+=1;
   tutorialBattleCardLessonStarted=false;
   scene.dataset.transitioning='true';
   stopChapterOneBgm();
