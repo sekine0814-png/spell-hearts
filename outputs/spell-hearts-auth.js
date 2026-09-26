@@ -1587,7 +1587,7 @@ function startChapterTwoLegacy(){
   setTimeout(()=>curtain.remove(),1950);
 }
 window.startChapterTwo=startChapterTwoLegacy;
-/* Chapter 2 後半：場面ごとの黒幕フェードを共通化し、会話とエア戦を一続きに扱う。 */
+/*
 function fadeChapterTwo(scene,source,after){
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
@@ -1720,6 +1720,9 @@ function startChapterTwoExpanded(){
   scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
   setTimeout(()=>{scene.querySelector('.chapter-scene-backdrop').src='assets/story-tavern.jpg';scene.hidden=false;scene.classList.add('preparing','show');show(tavern,home);requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);},1100);
 }
+*/
+// Chapter 2 の拡張演出は、タイトルの起動を妨げないよう安全な導入版に一旦戻す。
+function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
