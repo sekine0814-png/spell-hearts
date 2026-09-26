@@ -1794,13 +1794,109 @@ function chapterTwoHomePrelude(scene){
       chapterTwoFade(scene,'assets/story-home-morning.jpg',()=>{
         chapterTwoPlayLines(scene,morning,()=>{
           chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
-            chapterTwoPlayLines(scene,training,()=>window.returnToTitle?.());
+            chapterTwoPlayLines(scene,training,()=>beginChapterTwoAirBattle(scene));
           });
         });
       });
     });
   });
 }
+function beginChapterTwoAirBattle(scene){
+  chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
+    scene.hidden=true;
+    document.body.classList.remove('story-cinematic');
+    window.storyAirBattleActive=true;
+    window.storyAirBattleResolved=false;
+    window.start?.();
+    window.setBattleBackdrop?.('story-training-ground.webp');
+    window.startBgm?.();
+    let opponent=document.querySelector('#storyAirOpponentCard');
+    if(!opponent){opponent=document.createElement('img');opponent.id='storyAirOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
+    opponent.src='assets/story-woman-warrior.webp';
+    opponent.alt='エア・ノエル';
+    opponent.hidden=false;
+  });
+}
+function chapterTwoAfterAirBattle(){
+  if(window.storyAirBattleResolved)return;
+  window.storyAirBattleResolved=true;
+  window.storyAirBattleActive=false;
+  const result=document.querySelector('#resultScreen');
+  if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
+  const opponent=document.querySelector('#storyAirOpponentCard');
+  if(opponent)opponent.hidden=true;
+  window.stopBgm?.();
+  const scene=document.querySelector('#chapterTwoScene');
+  if(!scene)return;
+  const aftermath=[
+    {speaker:'エア',text:'やるね……キミ！',air:true},
+    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true},
+    {speaker:'エア',text:'それなら……！',air:true},
+    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
+    {speaker:'ユート',text:'そこまで！',yuto:true,air:true},
+    {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
+    {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
+    {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
+    {speaker:'エア',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
+    {speaker:'主人公',text:'王都に、行ってみたいです……！',yuto:true,air:true,spoken:true},
+    {speaker:'ユート',text:'なら、実戦経験を積むがてら、王都へ帰るエアと旅してみたらどうだ？',yuto:true,air:true},
+    {speaker:'エア',text:'私はいいよ。一緒に行こうか。',air:true}
+  ];
+  document.body.classList.add('story-cinematic');
+  chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
+    scene.hidden=false;
+    scene.classList.add('preparing','show');
+    chapterTwoPlayLines(scene,aftermath,()=>chapterTwoPacking(scene));
+  });
+}
+function chapterTwoPacking(scene){
+  const yuto=scene.querySelector('.chapter-two-yuto');
+  const air=scene.querySelector('.chapter-two-air');
+  const packing=[
+    {speaker:'主人公',text:'家に戻り、旅に必要な荷物をまとめた。'},
+    {speaker:'主人公',text:'（しばらく帰って来られないな……）'},
+    {speaker:'主人公',text:'それでも迷いはなかった。新しい一歩を踏み出すと決めた。'}
+  ];
+  const departure=[
+    {speaker:'ユート',text:'忘れ物はないか？',yuto:true,air:true},
+    {speaker:'エア',text:'大丈夫だよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'はい。大丈夫です。',yuto:true,air:true,spoken:true},
+    {speaker:'エア',text:'じゃあ行こうか。',yuto:true,air:true},
+    {speaker:'ユート',text:'お前ならできる。気をつけて行けよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'ユート先輩に背中を押され、俺はエアさんと共に街の外へ歩き出した。'}
+  ];
+  chapterTwoFade(scene,'assets/story-home-morning.jpg',()=>{
+    yuto.hidden=true;air.hidden=true;
+    chapterTwoPlayLines(scene,packing,()=>{
+      chapterTwoFade(scene,'assets/story-town-gate.jpg',()=>{
+        chapterTwoPlayLines(scene,departure,showChapterTwoEnd);
+      });
+    });
+  });
+}
+function showChapterTwoEnd(){
+  let end=document.querySelector('#chapterTwoEndScreen');
+  if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
+  end.hidden=false;
+  requestAnimationFrame(()=>end.classList.add('show'));
+  end.onclick=()=>window.returnToTitle?.();
+}
+function installChapterTwoAirResultHandler(){
+  const original=window.render;
+  if(typeof original!=='function'||original.chapterTwoAirHandlerInstalled)return;
+  const wrapped=function(...args){
+    const rendered=original.apply(this,args);
+    if(window.storyAirBattleActive&&typeof g!=='undefined'&&g?.phase==='end'){
+      const result=document.querySelector('#resultScreen');
+      if(result){result.querySelector('.result-actions')?.remove();result.onclick=()=>chapterTwoAfterAirBattle();}
+    }
+    return rendered;
+  };
+  wrapped.chapterTwoAirHandlerInstalled=true;
+  window.render=wrapped;
+}
+setTimeout(installChapterTwoAirResultHandler,0);
 // Chapter 2 の拡張演出は、タイトルの起動を妨げないよう安全な導入版に一旦戻す。
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
