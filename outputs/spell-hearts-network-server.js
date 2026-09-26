@@ -9,7 +9,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 function side(){return {hp:10,deck:shuffle(['pursuit','block','scheme']),spell:null,grave:[],amp:'ready',ampGrave:false}}
 function normalCosmetics(){return {battle:{rock:'normal',scissors:'normal',paper:'normal',amplify:'normal'},battleShrink:'normal',spellShrink:'normal'}}
-function sanitizeCosmetics(value){let safe=normalCosmetics(),battle=value?.battle||{};for(const card of ['rock','scissors','paper','amplify'])if(battle[card]==='astrologian'||battle[card]==='normal')safe.battle[card]=battle[card];return safe}
+function sanitizeCosmetics(value){let safe=normalCosmetics(),battle=value?.battle||{},allowed=new Set(['normal','astrologian','battle','magic','samurai','animal']);for(const card of ['rock','scissors','paper','amplify'])if(allowed.has(battle[card]))safe.battle[card]=battle[card];return safe}
 function makeRoom(code){return {code,matchId:crypto.randomUUID(),p:side(),c:side(),names:{p:'RED',c:'BLUE'},cosmetics:{p:normalCosmetics(),c:normalCosmetics()},clients:{p:null,c:null},phase:'opening',round:1,picks:{},ok:{p:false,c:false},rematch:{p:false,c:false},now:null,message:'両者、始まりのスペルカードをドローしてください。'}}
 function judge(a,b){return a===b?'draw':a==='amplify'||b==='amplify'?(a==='amplify'?'c':'p'):beat[a]===b?'p':'c'}
 function legal(g,w){let s=g[w],n=g.now;if(!n||!s.spell)return false;let own=w==='p'?n.a:n.b;if(own==='amplify')return false;if(s.spell==='pursuit')return n.r===w;if(s.spell==='block')return n.r!=='draw'&&n.r!==w;return n.r==='draw'}
