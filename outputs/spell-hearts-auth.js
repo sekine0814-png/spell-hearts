@@ -320,7 +320,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 function preloadStoryVisuals(sources=storyVisualAssets){
   const selected=sources.filter(src=>storyVisualAssets.includes(src));
   return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
@@ -1728,10 +1728,19 @@ function chapterTwoFade(scene,source,done){
   coverStoryCurtain(curtain);
   setTimeout(()=>{
     const backdrop=scene.querySelector('.chapter-scene-backdrop');
-    if(backdrop)backdrop.src=source;
-    if(done)done();
-    requestAnimationFrame(()=>revealStoryCurtain(curtain));
-    setTimeout(()=>curtain.remove(),1250);
+    const reveal=()=>{
+      scene.dataset.chapterTwoBackdrop=source;
+      if(done)done();
+      requestAnimationFrame(()=>revealStoryCurtain(curtain));
+      setTimeout(()=>curtain.remove(),1250);
+    };
+    if(!backdrop||backdrop.src.endsWith(source)){reveal();return;}
+    let revealed=false;
+    const ready=()=>{if(revealed)return;revealed=true;reveal();};
+    backdrop.onload=ready;
+    backdrop.onerror=ready;
+    backdrop.src=source;
+    if(backdrop.complete)requestAnimationFrame(ready);
   },1050);
 }
 function chapterTwoPlayLines(scene,lines,done){
@@ -1743,6 +1752,9 @@ function chapterTwoPlayLines(scene,lines,done){
   let index=0;
   const showLine=()=>{
     const line=lines[index];
+    const trainingScene=scene.dataset.chapterTwoBackdrop==='assets/story-training-ground.webp';
+    yuto.src=trainingScene?'assets/story-yuto-battle.png':'assets/story-yuto-tavern-v2.png';
+    air.src=trainingScene?'assets/story-woman-warrior.webp':'assets/story-air-tavern-v2.png';
     speaker.textContent=storySpeakerName(line.speaker);
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
@@ -1807,14 +1819,16 @@ function beginChapterTwoAirBattle(scene){
     document.body.classList.remove('story-cinematic');
     window.storyAirBattleActive=true;
     window.storyAirBattleResolved=false;
+    const sfxLevel=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.72));
+    for(const id of ['damageSfxOne','damageSfxTwo']){
+      const sound=document.querySelector('#'+id);
+      if(sound){sound.preload='auto';sound.volume=sfxLevel;sound.load();}
+    }
     window.start?.();
     window.setBattleBackdrop?.('story-training-ground.webp');
     window.startBgm?.();
-    let opponent=document.querySelector('#storyAirOpponentCard');
-    if(!opponent){opponent=document.createElement('img');opponent.id='storyAirOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
-    opponent.src='assets/story-woman-warrior.webp';
-    opponent.alt='エア・ノエル';
-    opponent.hidden=false;
+    // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
+    document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
   });
 }
 function chapterTwoAfterAirBattle(){
