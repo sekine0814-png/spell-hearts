@@ -923,7 +923,7 @@ function tutorialLock(){
 function tutorialUnlock(){const lock=document.querySelector('#tutorialInputLock');if(lock){lock.hidden=true;lock.replaceChildren();}}
 let tutorialSession=0,tutorialActive=false,tutorialFocusCleanup=null;
 function cancelTutorialInteractions(){
-  tutorialActive=false;tutorialSession+=1;
+  tutorialActive=false;tutorialSession+=1;document.body.classList.remove('tutorial-battle-active');
   tutorialFocusCleanup?.();tutorialFocusCleanup=null;
   tutorialUnlock();tutorialGlowCard('');tutorialGlowHp(false);
   const intro=document.querySelector('#tutorialBattleIntro');
@@ -1441,7 +1441,7 @@ function beginSpellDrawLesson(){
 }
 function beginChapterOneTutorial(scene){
   if(scene.dataset.transitioning==='true')return;
-  cancelTutorialInteractions();tutorialActive=true;tutorialSession+=1;
+  cancelTutorialInteractions();tutorialActive=true;tutorialSession+=1;document.body.classList.add('tutorial-battle-active');
   tutorialBattleCardLessonStarted=false;
   scene.dataset.transitioning='true';
   stopChapterOneBgm();
