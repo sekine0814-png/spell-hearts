@@ -1742,7 +1742,7 @@ function openStoryMode(){
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'始まりの日':'邂逅'):'🔒 LOCKED'}</small></button>`;
   }).join('');
   note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else startChapterTwo();});
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else startChapterTwoExpanded();});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
@@ -1857,20 +1857,12 @@ function makeBattleSettings(){
 }
 
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
-makeSettings();
-makeTokenBalance();
-makeSummonButton();
-makeDressupButton();
-makeRecordButton();
-makeTutorialButton();
-installTitlePressMenu();
-installMobileTitleViewportLock();
-makeBattleSettings();
-preloadStorySelectSfx();
-installOpeningSpellDeckGuide();
-installLocalCosmeticSync();
-installAmplifyChargeSfx();
-installTitleBgm();
+// タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
+for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
+  try{initialize();}catch(error){console.error('Spell Hearts initialization warning:',error);}
+}
+// 装飾の生成が想定外に失敗しても、タイトルの選択肢を隠したままにしない。
+setTimeout(()=>document.querySelector('#titleScreen')?.classList.remove('title-shell-loading'),300);
 document.addEventListener('DOMContentLoaded',()=>{
   const pursuit=document.querySelector('#pursuitSfx');
   if(pursuit)pursuit.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.57));
