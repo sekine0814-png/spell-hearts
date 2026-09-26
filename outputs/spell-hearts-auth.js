@@ -319,7 +319,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-yuto-tavern.png','assets/story-air-tavern.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 function preloadStoryVisuals(sources=storyVisualAssets){
   const selected=sources.filter(src=>storyVisualAssets.includes(src));
   return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
@@ -1245,8 +1245,18 @@ function beginWolfAftermath(){
   let scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  document.body.classList.add('story-cinematic');coverStoryCurtain(curtain);
+  // 盤面を先に隠すと黒へ一瞬で切り替わるため、盤面を残したまま幕をフェードさせる。
+  curtain.classList.remove('lift');
+  curtain.style.setProperty('z-index','2147483647','important');
+  curtain.style.setProperty('transition','none','important');
+  curtain.style.setProperty('opacity','0','important');
+  void curtain.offsetWidth;
+  requestAnimationFrame(()=>{
+    curtain.style.setProperty('transition','opacity 1.05s ease','important');
+    curtain.style.setProperty('opacity','1','important');
+  });
   setTimeout(()=>{
+    document.body.classList.add('story-cinematic');
     let wolf=scene.querySelector('.story-wolf-card'),warrior=scene.querySelector('.story-warrior-card'),yuto=scene.querySelector('.chapter-npc-card');
     const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
     if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';scene.append(wolf);}wolf.src='assets/story-wolf-monster.webp';wolf.alt='狼のような魔物';
@@ -1305,7 +1315,7 @@ function beginWolfAftermath(){
   },1150);
 }
 function showChapterOneEnd(scene){
-  stopVillageDangerBgm();stopAirSmileBgm();let end=document.querySelector('#chapterOneEndScreen');
+  let end=document.querySelector('#chapterOneEndScreen');
   if(!end){end=document.createElement('button');end.id='chapterOneEndScreen';end.type='button';end.innerHTML='<span>Chapter 1 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
@@ -1490,7 +1500,7 @@ function startChapterTwo(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern.png','assets/story-air-tavern.png']);
+  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
   stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
@@ -1516,7 +1526,7 @@ function startChapterTwo(){
   let scene=document.querySelector('#chapterTwoScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
     scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
