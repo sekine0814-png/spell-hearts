@@ -325,6 +325,10 @@ function preloadStoryVisuals(sources=storyVisualAssets){
   const selected=sources.filter(src=>storyVisualAssets.includes(src));
   return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
 }
+function preloadChapterTwoBattleAssets(){
+  ['rock.webp','scissors.webp','paper.webp','amplify.webp','red-battle-back.webp','blue-battle-back.webp'].forEach(source=>{const image=new Image();image.src='assets/'+source;});
+  ['damageSfxOne','damageSfxTwo','cardFlipSfx'].forEach(id=>{const sound=document.querySelector('#'+id);if(sound){sound.preload='auto';sound.load();}});
+}
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
   if(titleBgmStarted||title?.classList.contains('dismiss'))return;
@@ -1540,6 +1544,7 @@ function startChapterTwoLegacy(){
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
   preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
+  preloadChapterTwoBattleAssets();
   stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
@@ -1817,6 +1822,7 @@ function beginChapterTwoAirBattle(scene){
   chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
     scene.hidden=true;
     document.body.classList.remove('story-cinematic');
+    document.body.classList.add('story-air-battle');
     window.storyAirBattleActive=true;
     window.storyAirBattleResolved=false;
     const sfxLevel=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.72));
@@ -1835,6 +1841,7 @@ function chapterTwoAfterAirBattle(){
   if(window.storyAirBattleResolved)return;
   window.storyAirBattleResolved=true;
   window.storyAirBattleActive=false;
+  document.body.classList.remove('story-air-battle');
   const result=document.querySelector('#resultScreen');
   if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyAirOpponentCard');
