@@ -990,11 +990,18 @@ function tutorialWaitFor(ready,done,tries=0){
   if(tries<150)setTimeout(()=>tutorialWaitFor(ready,done,tries+1),100);
 }
 function tutorialPick(card,cpu,onResolved){
-  tutorialFocusCard(card,()=>{
+  const focusCard=()=>tutorialFocusCard(card,()=>{
     window.setSpellHeartsTutorialCpuChoice?.(cpu);
     window.pick?.(card);
     tutorialWaitFor(()=>typeof g!=='undefined'&&g.phase==='spell',onResolved);
   });
+  // 2巡目以降は、手札を自動展開しない。山札を押してから目的の一枚を選ばせる。
+  if(typeof g!=='undefined'&&g.phase==='pick'&&!g.chooser){
+    tutorialFocusElement(()=>document.querySelector('#pBattle .deck-button'),()=>{
+      window.openBattle?.();
+      tutorialWaitFor(()=>!![...document.querySelectorAll('#pBattle .pick')].find(button=>button.getAttribute('onclick')?.includes(`pick('${card}')`)),focusCard);
+    });
+  }else focusCard();
 }
 function tutorialUseSpell(onDone){
   tutorialFocus('#pChargeSpell',()=>{
@@ -1004,7 +1011,12 @@ function tutorialUseSpell(onDone){
 }
 function tutorialFinishRound(nextRound,next){
   if(typeof g==='undefined')return;
-  let completed=false,move=()=>{if(completed)return;completed=true;next?.();};
+  let completed=false,move=()=>{
+    if(completed)return;completed=true;
+    // 通常対戦は次ラウンドで手札を開くが、チュートリアルでは必ず閉じて山札を光らせる。
+    if(typeof g!=='undefined'&&g.phase==='pick'){g.chooser=false;g.openingBattle=false;window.render?.();}
+    next?.();
+  };
   g.pOk=true;g.cOk=true;g.cpuSpellReady=true;
   window.endRound?.();
   tutorialWaitFor(()=>typeof g!=='undefined'&&g.round>=nextRound&&g.phase==='pick',move);
@@ -1753,7 +1765,7 @@ chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;vis
 chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
 // 純粋な会話シーンでは、立ち絵を画面の端ではなく会話に寄せて配置する。
 // 会話パートの人物カードは、会話欄と重ならない高さで左右対称に中央へ寄せる。
-chapterOneStyle.textContent+='@media(min-width:601px){.chapter-one-scene .chapter-npc-card{right:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .chapter-two-yuto{right:19vw}.chapter-one-scene .story-wolf-card{bottom:31vh}}@media(max-width:600px){.chapter-one-scene .chapter-npc-card{right:7vw;bottom:27vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:7vw;bottom:27vh}.chapter-one-scene .chapter-two-yuto{right:7vw}}';
+chapterOneStyle.textContent+='@media(min-width:601px){.chapter-one-scene .chapter-npc-card{right:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .chapter-two-yuto{right:19vw}.chapter-one-scene .story-wolf-card{right:19vw;bottom:31vh}}@media(max-width:600px){.chapter-one-scene .chapter-npc-card{right:7vw;bottom:27vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:7vw;bottom:27vh}.chapter-one-scene .chapter-two-yuto{right:7vw}.chapter-one-scene .story-wolf-card{right:7vw;bottom:27vh}}';
 function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0),willUnlock=Boolean(sessionStorage.getItem('spellHeartsChapterUnlockNotice'));if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),willUnlock?2350:5000);}
 function showStoryChapterUnlockNotice(){
   const chapter=Number(sessionStorage.getItem('spellHeartsChapterUnlockNotice')||0);
