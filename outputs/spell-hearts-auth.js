@@ -1579,7 +1579,7 @@ function startChapterTwoLegacy(){
     air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
   };
-  dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else window.returnToTitle?.();};
+  dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else chapterTwoHomePrelude(scene);};
   let curtain=document.querySelector('#tutorialBattleCurtain');
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
@@ -1721,6 +1721,86 @@ function startChapterTwoExpanded(){
   setTimeout(()=>{scene.querySelector('.chapter-scene-backdrop').src='assets/story-tavern.jpg';scene.hidden=false;scene.classList.add('preparing','show');show(tavern,home);requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);},1100);
 }
 */
+// Chapter 2 前半。場面ごとの処理を小さく分け、各背景を必ず黒幕を挟んで切り替える。
+function chapterTwoFade(scene,source,done){
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  coverStoryCurtain(curtain);
+  setTimeout(()=>{
+    const backdrop=scene.querySelector('.chapter-scene-backdrop');
+    if(backdrop)backdrop.src=source;
+    if(done)done();
+    requestAnimationFrame(()=>revealStoryCurtain(curtain));
+    setTimeout(()=>curtain.remove(),1250);
+  },1050);
+}
+function chapterTwoPlayLines(scene,lines,done){
+  const dialogue=scene.querySelector('.chapter-dialogue');
+  const speaker=scene.querySelector('.chapter-speaker');
+  const copy=dialogue.querySelector('p');
+  const yuto=scene.querySelector('.chapter-two-yuto');
+  const air=scene.querySelector('.chapter-two-air');
+  let index=0;
+  const showLine=()=>{
+    const line=lines[index];
+    speaker.textContent=storySpeakerName(line.speaker);
+    copy.textContent=storyLineText(line);
+    yuto.hidden=!line.yuto;
+    air.hidden=!line.air;
+    yuto.classList.toggle('speaker-active',line.speaker==='ユート');
+    yuto.classList.toggle('speaker-idle',!!line.yuto&&line.speaker!=='ユート');
+    air.classList.toggle('speaker-active',line.speaker==='エア');
+    air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
+    dialogue.dataset.ended=String(index===lines.length-1);
+  };
+  dialogue.hidden=false;
+  dialogue.onclick=()=>{
+    if(index<lines.length-1){index+=1;showLine();return;}
+    dialogue.onclick=null;
+    if(done)done();
+  };
+  showLine();
+}
+function chapterTwoHomePrelude(scene){
+  stopTavernBgm();
+  const yuto=scene.querySelector('.chapter-two-yuto');
+  const air=scene.querySelector('.chapter-two-air');
+  yuto.hidden=true;air.hidden=true;
+  const night=[
+    {speaker:'主人公',text:'（王都かぁ……）'},
+    {speaker:'主人公',text:'行ってみたいと思う。でも、果たして今の自分の実力で、王都の仕事ができるのだろうか。'},
+    {speaker:'主人公',text:'考えれば考えるほど答えは出ない。いつの間にか、まぶたが重くなっていた。'}
+  ];
+  const morning=[
+    {speaker:'主人公',text:'朝日で目が覚めた。今日も訓練だ。'},
+    {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
+  ];
+  const training=[
+    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true},
+    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true},
+    {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
+    {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
+    {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
+    {speaker:'エア',text:'まだ平和ではあるけど、不安を口にする人もいる。仕事は増えているし、今はチャンスかもしれないね。',yuto:true,air:true},
+    {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
+    {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
+    {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
+    {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
+    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
+  ];
+  chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
+    chapterTwoPlayLines(scene,night,()=>{
+      chapterTwoFade(scene,'assets/story-home-morning.jpg',()=>{
+        chapterTwoPlayLines(scene,morning,()=>{
+          chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
+            chapterTwoPlayLines(scene,training,()=>window.returnToTitle?.());
+          });
+        });
+      });
+    });
+  });
+}
 // Chapter 2 の拡張演出は、タイトルの起動を妨げないよう安全な導入版に一旦戻す。
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
