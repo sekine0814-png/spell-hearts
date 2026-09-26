@@ -320,7 +320,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 function preloadStoryVisuals(sources=storyVisualAssets){
   const selected=sources.filter(src=>storyVisualAssets.includes(src));
   return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
@@ -1535,7 +1535,7 @@ function startChapterOne(){
   setTimeout(()=>{if(scene.classList.contains('show')){dialogue.hidden=false;renderLine();}},2570);
 }
 window.startChapterOne=startChapterOne;
-function startChapterTwo(){
+function startChapterTwoLegacy(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
@@ -1586,7 +1586,141 @@ function startChapterTwo(){
   setTimeout(()=>{scene.hidden=false;scene.classList.add('preparing','show');dialogue.hidden=false;renderLine();requestAnimationFrame(()=>revealStoryCurtain(curtain));},850);
   setTimeout(()=>curtain.remove(),1950);
 }
-window.startChapterTwo=startChapterTwo;
+window.startChapterTwo=startChapterTwoLegacy;
+/* Chapter 2 後半：場面ごとの黒幕フェードを共通化し、会話とエア戦を一続きに扱う。 */
+function fadeChapterTwo(scene,source,after){
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  coverStoryCurtain(curtain);
+  setTimeout(()=>{
+    const backdrop=scene.querySelector('.chapter-scene-backdrop');if(backdrop)backdrop.src=source;
+    after?.();requestAnimationFrame(()=>revealStoryCurtain(curtain));
+    setTimeout(()=>curtain.remove(),1150);
+  },1100);
+}
+function chapterTwoDialogue(scene,lines,done){
+  const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
+  let index=0;
+  const render=()=>{
+    const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
+    speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
+    yuto.hidden=!showYuto;air.hidden=!showAir;
+    yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='ユート');
+    air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
+    dialogue.dataset.ended=String(index===lines.length-1);
+  };
+  dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;render();}else{dialogue.onclick=null;done?.();}};render();
+}
+function installStoryAirResultHandler(){
+  const original=window.render;
+  if(typeof original!=='function'||original.storyAirResultHandlerInstalled)return;
+  const wrapped=function(...args){
+    const result=original.apply(this,args);
+    if(window.storyAirBattleActive&&typeof g!=='undefined'&&g?.phase==='end'){
+      const resultScreen=document.querySelector('#resultScreen');
+      if(resultScreen){resultScreen.querySelector('.result-actions')?.remove();resultScreen.onclick=()=>{if(window.storyAirBattleResolved)return;window.storyAirBattleResolved=true;window.storyAirBattleActive=false;stopBgm?.();document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');window.chapterTwoAfterBattle?.();};}
+    }
+    return result;
+  };
+  wrapped.storyAirResultHandlerInstalled=true;window.render=wrapped;
+}
+setTimeout(installStoryAirResultHandler,0);
+function beginChapterTwoAirBattle(scene,after){
+  window.chapterTwoAfterBattle=after;window.storyAirBattleActive=true;window.storyAirBattleResolved=false;
+  stopTavernBgm();fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>{
+    scene.hidden=true;document.body.classList.remove('story-cinematic');
+    window.start?.();window.setBattleBackdrop?.('story-training-ground.webp');window.startBgm?.();
+    let opponent=document.querySelector('#storyAirOpponentCard');
+    if(!opponent){opponent=document.createElement('img');opponent.id='storyAirOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
+    opponent.src='assets/story-woman-warrior.webp';opponent.alt='エア・ノエル';opponent.hidden=false;
+  });
+}
+function showChapterTwoEnd(){
+  let end=document.querySelector('#chapterTwoEndScreen');
+  if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
+  end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
+  end.onclick=()=>window.returnToTitle?.();
+}
+function startChapterTwoExpanded(){
+  const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');if(panel)panel.hidden=true;
+  document.body.classList.add('story-active','story-cinematic');
+  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
+  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
+  let scene=document.querySelector('#chapterTwoScene');
+  if(!scene){scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();}
+  const resetCards=()=>{scene.querySelector('.chapter-two-yuto').hidden=true;scene.querySelector('.chapter-two-air').hidden=true;};
+  const tavern=[
+    {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
+    {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
+    {speaker:'エア',text:'はじめまして。これからよろしくね。',yuto:true,air:true},
+    {speaker:'ユート',text:'昔からエアは目立ってたんだ。訓練校でも剣の腕は飛び抜けてたし、困ってる奴を放っておけない。',yuto:true,air:true},
+    {speaker:'エア',text:'訓練校を出てからは王都へ行ったの。剣を磨きながら、冒険者として色んな仕事を受けていたんだ。',air:true},
+    {speaker:'主人公',text:'王都の兵士や冒険者……。昔から、いつか自分もそうなれたらと思っていた。'},
+    {speaker:'ユート',text:'そういえば、そうだったな。お前、王都の話になると目を輝かせるもんな。',yuto:true},
+    {speaker:'エア',text:'王都の仕事は厳しいよ。でも、それでも行ってみたいなら……一度、見に来る？',air:true},
+    {speaker:'主人公',text:'急にそんなことを言われて、言葉に詰まった。憧れはある。でも、この町を離れる決心が今すぐつくわけでもない。'},
+    {speaker:'ユート',text:'まあ、答えを急ぐことはない。よく考えて、自分で決めろよ。',yuto:true}
+  ];
+  const homeNight=[
+    {speaker:'主人公',text:'（王都かぁ……）'},
+    {speaker:'主人公',text:'行ってみたいと思う。でも、果たして今の自分の実力で、王都の仕事ができるのだろうか。'},
+    {speaker:'主人公',text:'考えれば考えるほど答えは出ない。いつの間にか、まぶたが重くなっていた。'}
+  ];
+  const homeMorning=[
+    {speaker:'主人公',text:'朝日で目が覚めた。今日も訓練だ。'},
+    {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
+  ];
+  const sparring=[
+    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true},
+    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true}
+  ];
+  const proposal=[
+    {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
+    {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
+    {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
+    {speaker:'エア',text:'まだ平和ではあるけど、不安を口にする人もいる。仕事は増えているし、今はチャンスかもしれないね。',yuto:true,air:true},
+    {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
+    {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
+    {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
+    {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
+    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
+  ];
+  const aftermath=[
+    {speaker:'エア',text:'やるね……キミ！',air:true},
+    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true},
+    {speaker:'エア',text:'それなら……！',air:true},
+    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
+    {speaker:'ユート',text:'そこまで！',yuto:true,air:true},
+    {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
+    {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
+    {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
+    {speaker:'エア',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
+    {speaker:'主人公',text:'王都に、行ってみたいです……！',yuto:true,air:true,spoken:true},
+    {speaker:'ユート',text:'なら、実戦経験を積むがてら、王都へ帰るエアと旅してみたらどうだ？',yuto:true,air:true},
+    {speaker:'エア',text:'私はいいよ。一緒に行こうか。',air:true}
+  ];
+  const packing=[
+    {speaker:'主人公',text:'家に戻り、旅に必要な荷物をまとめた。'},
+    {speaker:'主人公',text:'（しばらく帰って来られないな……）'},
+    {speaker:'主人公',text:'それでも迷いはなかった。新しい一歩を踏み出すと決めた。'}
+  ];
+  const departure=[
+    {speaker:'ユート',text:'忘れ物はないか？',yuto:true,air:true},
+    {speaker:'エア',text:'大丈夫だよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'はい。大丈夫です。',yuto:true,air:true,spoken:true},
+    {speaker:'エア',text:'じゃあ行こうか。',yuto:true,air:true},
+    {speaker:'ユート',text:'お前ならできる。気をつけて行けよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'ユート先輩に背中を押され、俺はエアさんと共に街の外へ歩き出した。'}
+  ];
+  const show=(lines,done)=>chapterTwoDialogue(scene,lines,done);
+  const home=()=>{stopTavernBgm();fadeChapterTwo(scene,'assets/story-home-night.jpg',()=>{resetCards();show(homeNight,()=>fadeChapterTwo(scene,'assets/story-home-morning.jpg',()=>show(homeMorning,()=>fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>show(sparring,()=>fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>show(proposal,()=>beginChapterTwoAirBattle(scene,()=>{document.body.classList.add('story-cinematic');fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>{scene.hidden=false;scene.classList.add('preparing','show');show(aftermath,()=>fadeChapterTwo(scene,'assets/story-home-morning.jpg',()=>{resetCards();show(packing,()=>fadeChapterTwo(scene,'assets/story-town-gate.jpg',()=>show(departure,showChapterTwoEnd)));}));});})))))));});};
+  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
+  setTimeout(()=>{scene.querySelector('.chapter-scene-backdrop').src='assets/story-tavern.jpg';scene.hidden=false;scene.classList.add('preparing','show');show(tavern,home);requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);},1100);
+}
+window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
     window.openSpellHeartsLogin?.();
@@ -1810,6 +1944,7 @@ chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transit
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
 chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
+chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
