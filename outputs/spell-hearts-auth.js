@@ -1747,6 +1747,9 @@ function chapterTwoFade(scene,source,done){
     backdrop.onload=ready;
     backdrop.onerror=ready;
     backdrop.src=source;
+    // 端末によってはキャッシュ済み画像で load イベントが発火しないことがある。
+    // その場合も暗転したまま止まらないよう、必ず次の進行へ戻す。
+    setTimeout(ready,900);
     if(backdrop.complete)requestAnimationFrame(ready);
   },1050);
 }
