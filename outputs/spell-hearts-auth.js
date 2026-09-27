@@ -1776,6 +1776,9 @@ function chapterTwoPlayLines(scene,lines,done){
   dialogue.onclick=()=>{
     if(index<lines.length-1){index+=1;showLine();return;}
     dialogue.onclick=null;
+    // 次の場面が対戦でも、直前のクリック中に音声再生を許可しておく。
+    // フェード完了後の play() だけでは、一部ブラウザに自動再生を拒否されるため。
+    primeNextStoryTrack(document.querySelector('#battleBgm'));
     if(done)done();
   };
   showLine();
@@ -1834,6 +1837,7 @@ function beginChapterTwoAirBattle(scene){
     window.start?.();
     window.setBattleBackdrop?.('story-training-ground.webp');
     window.startBgm?.();
+    applySoundLevels();
     // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
     document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
   });
