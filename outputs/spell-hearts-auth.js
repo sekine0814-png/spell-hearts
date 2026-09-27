@@ -321,15 +321,39 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
 const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
+const visualPreloads=new Set();
+function preloadVisuals(sources=[]){
+  const selected=[...new Set(sources.filter(Boolean))].filter(src=>!visualPreloads.has(src));
+  return Promise.all(selected.map(src=>new Promise(resolve=>{
+    visualPreloads.add(src);
+    const image=new Image();
+    image.decoding='async';
+    image.fetchPriority='low';
+    image.onload=image.onerror=()=>resolve();
+    image.src=src;
+  })));
+}
 function preloadStoryVisuals(sources=storyVisualAssets){
-  const selected=sources.filter(src=>storyVisualAssets.includes(src));
-  return Promise.all(selected.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=()=>resolve();image.src=src;})));
+  return preloadVisuals(sources.filter(src=>storyVisualAssets.includes(src)));
+}
+function preloadVisualsWhenIdle(sources,delay=0){
+  setTimeout(()=>{
+    const load=()=>preloadVisuals(sources);
+    if('requestIdleCallback' in window)window.requestIdleCallback(load,{timeout:2500});
+    else load();
+  },delay);
 }
 function preloadChapterTwoBattleAssets(){
   const core=['rock.webp','scissors.webp','paper.webp','amplify.webp','red-battle-back.webp','blue-battle-back.webp'];
   const equipped=Object.keys(battleArt).map(card=>battleArtFor(publicCosmetics(),card));
-  [...new Set([...core,...equipped])].filter(Boolean).forEach(source=>{const image=new Image();image.src='assets/'+source;});
-  ['damageSfxOne','damageSfxTwo','cardFlipSfx'].forEach(id=>{const sound=document.querySelector('#'+id);if(sound){sound.preload='auto';sound.load();}});
+  // 酒場を開く瞬間にカード画像・SEを同時取得しない。会話中のアイドル時間で温める。
+  const sources=[...new Set([...core,...equipped])].filter(Boolean).map(source=>'assets/'+source);
+  preloadVisualsWhenIdle(sources,900);
+  const warmAudio=()=>['damageSfxOne','damageSfxTwo','cardFlipSfx'].forEach(id=>{
+    const sound=document.querySelector('#'+id);
+    if(sound){sound.preload='auto';sound.load();}
+  });
+  setTimeout(()=>{'requestIdleCallback' in window?window.requestIdleCallback(warmAudio,{timeout:4000}):warmAudio();},1800);
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
@@ -1788,6 +1812,9 @@ function chapterTwoPlayLines(scene,lines,done){
 }
 function chapterTwoHomePrelude(scene){
   stopTavernBgm();
+  // 直後に必要な背景だけを、酒場の表示後に静かに先読みする。
+  // これで開始直後の回線・デコード競合を避けつつ、場面転換は止めない。
+  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp'],120);
   const yuto=scene.querySelector('.chapter-two-yuto');
   const air=scene.querySelector('.chapter-two-air');
   yuto.hidden=true;air.hidden=true;
