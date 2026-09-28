@@ -1964,6 +1964,9 @@ function installChapterTwoAirResultHandler(){
   window.render=wrapped;
 }
 setTimeout(installChapterTwoAirResultHandler,0);
+/* Chapter 2 の拡張シーンは段階的に実装している。未定義の拡張関数を直接
+   呼んでタイトル初期化を止めないよう、現在動作する導入シーンを入口にする。 */
+function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
