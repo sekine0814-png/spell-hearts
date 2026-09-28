@@ -324,7 +324,7 @@ function resumeStoryMedia(){
   if(document.visibilityState==='hidden')return;
   document.querySelectorAll('audio[data-keep-playing="1"]').forEach(music=>{if(music.paused||music.ended)music.play().catch(()=>{});});
   const battle=document.querySelector('#battleBgm');
-  if(window.storyWolfBattleActive&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
+  if((window.storyWolfBattleActive||window.storyAirBattleActive)&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
 }
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
@@ -1818,11 +1818,12 @@ function chapterTwoPlayLines(scene,lines,done){
     const line=lines[index];
     const backdrop=scene.dataset.chapterTwoBackdrop||'';
     const sparring=backdrop==='assets/story-training-ground.webp'&&line.sparring===true;
+    const airBattle=sparring||line.airBattle===true;
     // 酒場以外で会話する二人に、着席中の酒場差分が混ざらないよう場面ごとに固定する。
     // 手合わせ中のみ戦闘ポーズ、以降の演習場・町の門では通常の立ち絵を使う。
     const standing=backdrop==='assets/story-training-ground.webp'||backdrop==='assets/story-town-gate.jpg';
     yuto.src=sparring?'assets/story-yuto-battle.png':standing?'assets/story-senior-warrior.webp':'assets/story-yuto-tavern-v2.png';
-    air.src=sparring?'assets/story-woman-warrior.webp':standing?'assets/story-woman-warrior-smile.webp':'assets/story-air-tavern-v2.png';
+    air.src=airBattle?'assets/story-woman-warrior.webp':standing?'assets/story-woman-warrior-smile.webp':'assets/story-air-tavern-v2.png';
     speaker.textContent=storySpeakerName(line.speaker);
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
@@ -1874,7 +1875,7 @@ function chapterTwoHomePrelude(scene){
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
     {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
+    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
   ];
   chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
     chapterTwoPlayLines(scene,night,()=>{
@@ -1892,7 +1893,7 @@ function beginChapterTwoAirBattle(scene){
   // 最後の会話クリック内で再生を開始する。フェード後に play() すると、
   // 一部ブラウザでは自動再生扱いになって無音になるため。
   const battleMusic=document.querySelector('#battleBgm');
-  window.startBgm?.();
+  startWolfBattleBgm();
   window.storyAirBattleBgmStarted=!!battleMusic&&!battleMusic.paused;
   chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
     scene.hidden=true;
@@ -1912,7 +1913,7 @@ function beginChapterTwoAirBattle(scene){
     document.body.style.setProperty('background-size','cover','important');
     document.body.style.setProperty('background-attachment','fixed','important');
     document.body.style.setProperty('background-repeat','no-repeat','important');
-    if(!window.storyAirBattleBgmStarted)window.startBgm?.();
+    if(!window.storyAirBattleBgmStarted)startWolfBattleBgm();
     applySoundLevels();
     // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
     document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
@@ -1927,14 +1928,15 @@ function chapterTwoAfterAirBattle(){
   const opponent=document.querySelector('#storyAirOpponentCard');
   if(opponent)opponent.hidden=true;
   window.stopBgm?.();
+  document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');
   const scene=document.querySelector('#chapterTwoScene');
   if(!scene)return;
   const aftermath=[
-    {speaker:'エア',text:'やるね……キミ！',air:true},
-    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true},
-    {speaker:'エア',text:'それなら……！',air:true},
-    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
-    {speaker:'ユート',text:'そこまで！',yuto:true,air:true},
+    {speaker:'エア',text:'やるね……キミ！',air:true,airBattle:true},
+    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true,airBattle:true},
+    {speaker:'エア',text:'それなら……！',air:true,airBattle:true},
+    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true,airBattle:true},
+    {speaker:'ユート',text:'そこまで！',yuto:true,air:true,airBattle:true},
     {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
     {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
     {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
