@@ -226,8 +226,8 @@ function playTutorialBattleBgm(music){
 }
 function startTutorialBattleBgm(){
   const music=ensureTutorialBattleBgm();
-  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.pause();music.currentTime=0;music.volume=titleBgmLevel()*.65;music.dataset.keepPlaying='1';music.dataset.fading='';
-  playTutorialBattleBgm(music);
+  clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.loop=true;music.dataset.keepPlaying='1';music.dataset.fading='';
+  if(!takePrimedStoryTrack(music,titleBgmLevel()*.65)){music.pause();music.currentTime=0;music.volume=titleBgmLevel()*.65;playTutorialBattleBgm(music);}
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
   tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
 }
@@ -244,12 +244,11 @@ function stopVillageAmbience(){
 }
 function startVillageAmbience(){
   const music=ensureVillageAmbience();
-  cancelAnimationFrame(villageAmbienceFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
-  music.play().then(()=>{
-    const began=performance.now(),duration=1250;
-    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*.42*progress;if(progress<1)villageAmbienceFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
-    villageAmbienceFadeFrame=requestAnimationFrame(fade);
-  }).catch(()=>{music.dataset.fading='';});
+  cancelAnimationFrame(villageAmbienceFadeFrame);music.loop=true;music.dataset.keepPlaying='1';music.dataset.fading='1';
+  const fadeIn=()=>{const began=performance.now(),duration=1250;const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*.42*progress;if(progress<1)villageAmbienceFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};villageAmbienceFadeFrame=requestAnimationFrame(fade);};
+  if(takePrimedStoryTrack(music,0)){fadeIn();return;}
+  music.pause();music.currentTime=0;music.volume=0;
+  music.play().then(fadeIn).catch(()=>{music.dataset.fading='';});
 }
 function ensureVillageDangerBgm(){
   let music=document.querySelector('#villageDangerBgm');
@@ -285,9 +284,11 @@ function stopAirSmileBgm(){
 function startWolfBattleBgm(){
   const music=document.querySelector('#battleBgm');
   if(!music)return;
-  music.pause();music.loop=true;
+  music.loop=true;
   if(!music.src.endsWith('/assets/story-wolf-battle-bgm.mp3')){music.src='assets/story-wolf-battle-bgm.mp3';music.load();}
-  music.volume=titleBgmLevel();music.dataset.storyKeepPlaying='1';music.play().catch(()=>{});
+  music.dataset.storyKeepPlaying='1';
+  if(takePrimedStoryTrack(music,titleBgmLevel()))return;
+  music.pause();music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
 }
 /*
  * スマホのブラウザでは、setTimeout 後の audio.play() が「ユーザー操作外」と見なされる。
@@ -295,12 +296,17 @@ function startWolfBattleBgm(){
  */
 function primeNextStoryTrack(music){
   if(!music||music.dataset.mobilePrimed==='1')return;
-  music.dataset.mobilePrimed='1';
   const volume=music.volume,muted=music.muted;
-  music.volume=0;music.muted=true;
+  music.dataset.mobilePrimed='pending';music.volume=0;music.muted=true;
   const started=music.play();
-  const reset=()=>{music.pause();music.currentTime=0;music.volume=volume;music.muted=muted;};
-  if(started&&typeof started.then==='function')started.then(reset).catch(reset);else reset();
+  const failed=()=>{delete music.dataset.mobilePrimed;music.volume=volume;music.muted=muted;};
+  if(started&&typeof started.then==='function')started.then(()=>{music.dataset.mobilePrimed='1';}).catch(failed);else music.dataset.mobilePrimed=music.paused?'':'1';
+}
+function takePrimedStoryTrack(music,volume){
+  if(!music||music.dataset.mobilePrimed!=='1'||music.paused)return false;
+  delete music.dataset.mobilePrimed;
+  music.currentTime=0;music.muted=false;music.volume=volume;
+  return true;
 }
 function primeTutorialBattleTrack(){primeNextStoryTrack(ensureTutorialBattleBgm());}
 function primeVillageAmbienceTrack(){primeNextStoryTrack(ensureVillageAmbience());}
@@ -346,14 +352,9 @@ function preloadVisualsWhenIdle(sources,delay=0){
 function preloadChapterTwoBattleAssets(){
   const core=['rock.webp','scissors.webp','paper.webp','amplify.webp','red-battle-back.webp','blue-battle-back.webp'];
   const equipped=Object.keys(battleArt).map(card=>battleArtFor(publicCosmetics(),card));
-  // 酒場を開く瞬間にカード画像・SEを同時取得しない。会話中のアイドル時間で温める。
+  // 酒場を開く瞬間にカード画像を同時取得しない。会話中のアイドル時間で温める。
   const sources=[...new Set([...core,...equipped])].filter(Boolean).map(source=>'assets/'+source);
   preloadVisualsWhenIdle(sources,900);
-  const warmAudio=()=>['damageSfxOne','damageSfxTwo','cardFlipSfx'].forEach(id=>{
-    const sound=document.querySelector('#'+id);
-    if(sound){sound.preload='auto';sound.load();}
-  });
-  setTimeout(()=>{'requestIdleCallback' in window?window.requestIdleCallback(warmAudio,{timeout:4000}):warmAudio();},1800);
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
@@ -948,7 +949,10 @@ function installLocalCosmeticSync(){
     enhanced.localCosmeticSyncInstalled=true;window.slideCard=enhanced;
   }
   const sync=()=>{
-    const amplifier=document.querySelector('#pCharge img');if(amplifier)amplifier.src=localBattleAsset('amplify')||amplifier.src;
+    const amplifier=document.querySelector('#pCharge img'),asset=localBattleAsset('amplify');
+    // MutationObserver は戦闘中に何度も走る。毎回 src を代入すると画像の再評価が起き、
+    // 装備絵と標準絵が交互に見えるため、実際に変わる時だけ差し替える。
+    if(amplifier&&asset&&amplifier.src!==new URL(asset,document.baseURI).href)amplifier.src=asset;
     const spell=document.querySelector('#pChargeSpell img');if(spell&&spell.dataset.shrinkBack==='true')spell.src=localSpellShrinkAsset();
   };
   const stage=document.querySelector('.stage');if(stage){new MutationObserver(sync).observe(stage,{childList:true,subtree:true});sync();}
