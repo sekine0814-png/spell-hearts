@@ -1807,12 +1807,39 @@ function chapterTwoFade(scene,source,done){
     if(backdrop.complete)requestAnimationFrame(ready);
   },1050);
 }
+const chapterTwoFrameStyle=document.createElement('style');
+chapterTwoFrameStyle.textContent=`
+  /* 差分の絵柄とは別に、人物ごとのカード枠を重ねる。 */
+  .chapter-two-scene .chapter-two-yuto:not(.chapter-card-frame),.chapter-two-scene .chapter-two-air:not(.chapter-card-frame){clip-path:inset(3.6% 4.4%)}
+  .chapter-card-frame{position:absolute;z-index:5;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:fill;pointer-events:none;opacity:.76;filter:brightness(.55) saturate(.65);transition:transform .35s ease,filter .35s ease,opacity .35s ease}
+  .chapter-card-frame[hidden]{display:none}.chapter-card-frame.chapter-two-air{left:4vw}.chapter-card-frame.chapter-two-yuto{right:4vw}
+  .chapter-card-frame.speaker-active{z-index:6;opacity:1;filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45))}
+  .chapter-card-frame.speaker-idle{z-index:3;opacity:.72;filter:brightness(.53) saturate(.67)}
+  @media(max-width:600px){.chapter-card-frame{bottom:20vh;width:31vw;max-height:48vh}.chapter-card-frame.chapter-two-air{left:0}.chapter-card-frame.chapter-two-yuto{right:0}}
+`;
+document.head.append(chapterTwoFrameStyle);
+function ensureChapterTwoCharacterFrames(scene){
+  const create=(target,role,source)=>{
+    let frame=scene.querySelector(`[data-character-frame="${role}"]`);
+    if(frame)return frame;
+    frame=document.createElement('img');
+    frame.dataset.characterFrame=role;
+    frame.className=`chapter-card-frame ${target.className}`;
+    frame.src=source;frame.alt='';frame.setAttribute('aria-hidden','true');frame.hidden=true;
+    target.insertAdjacentElement('afterend',frame);
+    return frame;
+  };
+  const yuto=scene.querySelector('.chapter-two-yuto');
+  const air=scene.querySelector('.chapter-two-air');
+  return {yuto:create(yuto,'yuto','assets/frame-yuto-bronze.png'),air:create(air,'air','assets/frame-air-gold.png')};
+}
 function chapterTwoPlayLines(scene,lines,done){
   const dialogue=scene.querySelector('.chapter-dialogue');
   const speaker=scene.querySelector('.chapter-speaker');
   const copy=dialogue.querySelector('p');
   const yuto=scene.querySelector('.chapter-two-yuto');
   const air=scene.querySelector('.chapter-two-air');
+  const frames=ensureChapterTwoCharacterFrames(scene);
   let index=0;
   const showLine=()=>{
     const line=lines[index];
@@ -1828,10 +1855,16 @@ function chapterTwoPlayLines(scene,lines,done){
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
     air.hidden=!line.air;
+    frames.yuto.hidden=!line.yuto;
+    frames.air.hidden=!line.air;
     yuto.classList.toggle('speaker-active',line.speaker==='ユート');
     yuto.classList.toggle('speaker-idle',!!line.yuto&&line.speaker!=='ユート');
     air.classList.toggle('speaker-active',line.speaker==='エア');
     air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
+    frames.yuto.classList.toggle('speaker-active',line.speaker==='ユート');
+    frames.yuto.classList.toggle('speaker-idle',!!line.yuto&&line.speaker!=='ユート');
+    frames.air.classList.toggle('speaker-active',line.speaker==='エア');
+    frames.air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
   };
   dialogue.hidden=false;
