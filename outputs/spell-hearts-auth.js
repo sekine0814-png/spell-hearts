@@ -1816,9 +1816,13 @@ function chapterTwoPlayLines(scene,lines,done){
   let index=0;
   const showLine=()=>{
     const line=lines[index];
-    const sparring=scene.dataset.chapterTwoBackdrop==='assets/story-training-ground.webp'&&line.sparring===true;
-    yuto.src=sparring?'assets/story-yuto-battle.png':'assets/story-yuto-tavern-v2.png';
-    air.src=sparring?'assets/story-woman-warrior.webp':'assets/story-air-tavern-v2.png';
+    const backdrop=scene.dataset.chapterTwoBackdrop||'';
+    const sparring=backdrop==='assets/story-training-ground.webp'&&line.sparring===true;
+    // 酒場以外で会話する二人に、着席中の酒場差分が混ざらないよう場面ごとに固定する。
+    // 手合わせ中のみ戦闘ポーズ、以降の演習場・町の門では通常の立ち絵を使う。
+    const standing=backdrop==='assets/story-training-ground.webp'||backdrop==='assets/story-town-gate.jpg';
+    yuto.src=sparring?'assets/story-yuto-battle.png':standing?'assets/story-senior-warrior.webp':'assets/story-yuto-tavern-v2.png';
+    air.src=sparring?'assets/story-woman-warrior.webp':standing?'assets/story-woman-warrior-smile.webp':'assets/story-air-tavern-v2.png';
     speaker.textContent=storySpeakerName(line.speaker);
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
@@ -1841,7 +1845,7 @@ function chapterTwoHomePrelude(scene){
   stopTavernBgm();
   // 直後に必要な背景だけを、酒場の表示後に静かに先読みする。
   // これで開始直後の回線・デコード競合を避けつつ、場面転換は止めない。
-  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp'],120);
+  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],120);
   const yuto=scene.querySelector('.chapter-two-yuto');
   const air=scene.querySelector('.chapter-two-air');
   yuto.hidden=true;air.hidden=true;
