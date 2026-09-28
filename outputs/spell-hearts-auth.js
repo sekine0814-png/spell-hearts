@@ -961,6 +961,32 @@ function installLocalCosmeticSync(){
   };
   const stage=document.querySelector('.stage');if(stage){new MutationObserver(sync).observe(stage,{childList:true,subtree:true});sync();}
 }
+/*
+ * 盤面側の旧レンダラーは一度ノーマル画像を置き、次フレームで着せ替え画像へ
+ * 差し替えていた。そのため render が続く戦闘中は両方が交互に見えてしまう。
+ * 描画完了前に装備画像へ確定させ、通常画像を画面へ出さない。
+ */
+function installStableBattleArtRender(tries=0){
+  const original=window.render;
+  if(typeof original!=='function'){
+    if(tries<30)setTimeout(()=>installStableBattleArtRender(tries+1),80);
+    return;
+  }
+  if(original.stableBattleArtInstalled)return;
+  const stable=function(...args){
+    const result=original.apply(this,args);
+    document.querySelectorAll('img[data-battle-art]').forEach(image=>{
+      const file=String(image.dataset.battleArt||'').replace(/^assets\//,'');
+      if(!file)return;
+      const source=`assets/${file}`;
+      if(image.src!==new URL(source,document.baseURI).href)image.src=source;
+    });
+    return result;
+  };
+  stable.stableBattleArtInstalled=true;
+  window.render=stable;
+}
+setTimeout(installStableBattleArtRender,0);
 function tutorialLock(){
   let lock=document.querySelector('#tutorialInputLock');
   if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
@@ -1790,9 +1816,9 @@ function chapterTwoPlayLines(scene,lines,done){
   let index=0;
   const showLine=()=>{
     const line=lines[index];
-    const trainingScene=scene.dataset.chapterTwoBackdrop==='assets/story-training-ground.webp';
-    yuto.src=trainingScene?'assets/story-yuto-battle.png':'assets/story-yuto-tavern-v2.png';
-    air.src=trainingScene?'assets/story-woman-warrior.webp':'assets/story-air-tavern-v2.png';
+    const sparring=scene.dataset.chapterTwoBackdrop==='assets/story-training-ground.webp'&&line.sparring===true;
+    yuto.src=sparring?'assets/story-yuto-battle.png':'assets/story-yuto-tavern-v2.png';
+    air.src=sparring?'assets/story-woman-warrior.webp':'assets/story-air-tavern-v2.png';
     speaker.textContent=storySpeakerName(line.speaker);
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
@@ -1829,9 +1855,13 @@ function chapterTwoHomePrelude(scene){
     {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
   ];
   const training=[
-    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true},
-    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true},
-    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true},
+    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true,sparring:true},
+    {speaker:'エア',text:'はっ！',yuto:true,air:true,sparring:true},
+    {speaker:'ユート',text:'まだまだ！',yuto:true,air:true,sparring:true},
+    {speaker:'エア',text:'やるね、ユート。',yuto:true,air:true,sparring:true},
+    {speaker:'ユート',text:'そっちこそ、隙がないな！',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true,sparring:true},
     {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
     {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
     {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
