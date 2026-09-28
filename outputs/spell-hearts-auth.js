@@ -1872,6 +1872,12 @@ function beginChapterTwoAirBattle(scene){
     }
     window.start?.();
     window.setBattleBackdrop?.('story-training-ground.webp');
+    document.body.style.setProperty('background-color','#05070d','important');
+    document.body.style.setProperty('background-image','linear-gradient(rgba(2,5,10,.24),rgba(2,5,10,.46)),url("assets/story-training-ground.webp")','important');
+    document.body.style.setProperty('background-position','center','important');
+    document.body.style.setProperty('background-size','cover','important');
+    document.body.style.setProperty('background-attachment','fixed','important');
+    document.body.style.setProperty('background-repeat','no-repeat','important');
     if(!window.storyAirBattleBgmStarted)window.startBgm?.();
     applySoundLevels();
     // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
