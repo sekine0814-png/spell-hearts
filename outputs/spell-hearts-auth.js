@@ -1648,10 +1648,12 @@ function startChapterTwoLegacy(){
     scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
   const backdrop=scene.querySelector('.chapter-scene-backdrop'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
+  // 背景は専用の img 一枚だけで管理する。CSS背景との二重管理は行わない。
+  scene.classList.remove('chapter-two-css-backdrop');
+  scene.style.removeProperty('--chapter-two-backdrop');
+  backdrop.style.removeProperty('display');
   backdrop.src='assets/story-tavern.jpg';
   scene.dataset.chapterTwoBackdrop='assets/story-tavern.jpg';
-  scene.style.setProperty('--chapter-two-backdrop','url("assets/story-tavern.jpg")');
-  scene.classList.add('chapter-two-css-backdrop');
   let index=0;
   const renderLine=()=>{
     const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
@@ -1810,12 +1812,13 @@ function chapterTwoFade(scene,source,done){
   coverStoryCurtain(curtain);
   setTimeout(()=>{
     const backdrop=scene.querySelector('.chapter-scene-backdrop');
-    // 背景は img の読み込み結果に任せない。失敗時に直前の酒場画像を
-    // 掴んだまま会話だけが進むのを防ぐため、シーン自身の背景として固定する。
-    scene.dataset.chapterTwoBackdrop=source;
-    scene.style.setProperty('--chapter-two-backdrop',`url("${source}")`);
-    scene.classList.add('chapter-two-css-backdrop');
+    // 表示背景はこの画像一枚に統一する。CSS背景を併用すると終盤で黒背景が
+    // 優先されるため、必ず解除してから次の画像へ切り替える。
+    scene.classList.remove('chapter-two-css-backdrop');
+    scene.style.removeProperty('--chapter-two-backdrop');
+    backdrop?.style.removeProperty('display');
     const reveal=()=>{
+      scene.dataset.chapterTwoBackdrop=source;
       if(done)done();
       requestAnimationFrame(()=>revealStoryCurtain(curtain));
       setTimeout(()=>curtain.remove(),1250);
