@@ -687,9 +687,16 @@ function claimStoryChapterReward(chapter,amount){
   return true;
 }
 
+function queueStoryRewardNotice(chapter,amount){
+  const reward=Math.max(0,Number(amount)||0);
+  if(!reward)return;
+  sessionStorage.setItem('spellHeartsStoryRewardNotice',String(reward));
+  if(currentUser&&!currentUser.isAnonymous)localStorage.setItem(`spellHeartsPendingRewardNotice:${currentUser.uid}:${chapter}`,String(reward));
+}
+
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
-onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
+onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();setTimeout(()=>showStoryRewardNotice?.(),0);});
 
 function closeLogin(){modal?.remove();modal=null;}
 
@@ -821,7 +828,7 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.68:sound.id==='winFanfare'?sfx*.82:sfx)/100);
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
@@ -1467,7 +1474,7 @@ function showChapterOneEnd(scene){
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
     const received=claimStoryChapterReward('chapter-one',5),unlocked=unlockStoryChapter(2);
-    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+    if(received)queueStoryRewardNotice('chapter-one',5);
     if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice','2');
     window.returnToTitle?.();
   };
@@ -2096,7 +2103,7 @@ function showChapterTwoEnd(){
   requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
     const received=claimStoryChapterReward('chapter-two',5);
-    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+    if(received)queueStoryRewardNotice('chapter-two',5);
     window.returnToTitle?.();
   };
 }
@@ -2368,7 +2375,24 @@ chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.c
 // 純粋な会話シーンでは、立ち絵を画面の端ではなく会話に寄せて配置する。
 // 会話パートの人物カードは、会話欄と重ならない高さで左右対称に中央へ寄せる。
 chapterOneStyle.textContent+='@media(min-width:601px){.chapter-one-scene .chapter-npc-card{right:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .chapter-two-yuto{right:19vw}.chapter-one-scene .story-wolf-card{right:19vw;bottom:31vh}}@media(max-width:600px){.chapter-one-scene .chapter-npc-card{right:7vw;bottom:27vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:7vw;bottom:27vh}.chapter-one-scene .chapter-two-yuto{right:7vw}.chapter-one-scene .story-wolf-card{right:7vw;bottom:27vh}}';
-function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0),willUnlock=Boolean(sessionStorage.getItem('spellHeartsChapterUnlockNotice'));if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),willUnlock?2350:5000);}
+function showStoryRewardNotice(){
+  let amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0);
+  if(!amount&&currentUser&&!currentUser.isAnonymous){
+    for(const chapter of ['chapter-one','chapter-two']){
+      const key=`spellHeartsPendingRewardNotice:${currentUser.uid}:${chapter}`;
+      amount=Number(localStorage.getItem(key)||0);
+      if(amount){localStorage.removeItem(key);break;}
+    }
+  }
+  const willUnlock=Boolean(sessionStorage.getItem('spellHeartsChapterUnlockNotice'));
+  if(!amount)return;
+  sessionStorage.removeItem('spellHeartsStoryRewardNotice');
+  if(currentUser&&!currentUser.isAnonymous){
+    localStorage.removeItem(`spellHeartsPendingRewardNotice:${currentUser.uid}:chapter-one`);
+    localStorage.removeItem(`spellHeartsPendingRewardNotice:${currentUser.uid}:chapter-two`);
+  }
+  const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),willUnlock?2350:5000);
+}
 function showStoryChapterUnlockNotice(){
   const chapter=Number(sessionStorage.getItem('spellHeartsChapterUnlockNotice')||0);
   if(!chapter)return;
