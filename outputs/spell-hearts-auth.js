@@ -2187,7 +2187,9 @@ function openTutorial(){
 window.primeSpellHeartsAudio=()=>{
   if(window.__spellHeartsAudioPrimed)return;
   window.__spellHeartsAudioPrimed=true;
-  for(const id of ['battleBgm','cardFlipSfx','pursuitSfx','blockSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
+  // BGM はこの準備処理に混ぜない。非同期の pause が最初の対戦 BGM を止めるため、
+  // 開始ボタンを押した瞬間に startBgm で直接再生する。
+  for(const id of ['cardFlipSfx','pursuitSfx','blockSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
     const sound=document.querySelector('#'+id);
     if(!sound)continue;
     const previousVolume=sound.volume;
@@ -2208,13 +2210,16 @@ function makeTutorialButton(){
   menu.insertBefore(button,menu.querySelector('.push-screen'));
 }
 function startCpuBattleFromTitle(){
-  /* Firebase / 着せ替えの同期を待つとユーザー操作の有効期限が切れ、ブラウザが
-     BGM と SE をまとめて拒否する。クリックの瞬間に音声を一度だけ許可する。 */
-  window.primeSpellHeartsAudio?.();
-  const begin=()=>window.restartCpuMatch?.();
+  /* ログインや着せ替え同期を待つと、BGM は自動再生として拒否される。
+     対戦 BGM はクリックの同期中に開始し、盤面初期化だけを後から行う。 */
+  const title=document.querySelector('#titleScreen');
+  title?.classList.add('dismiss');
+  window.startBgm?.();
+  const begin=()=>window.start?.();
+  const restoreTitle=()=>{window.stopBgm?.();title?.classList.remove('dismiss');window.startTitleBgm?.();};
   const guest=window.ensureSpellHeartsGuest?.();
   const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
-  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();});else beginWithCosmetics();
+  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();else restoreTitle();}).catch(restoreTitle);else beginWithCosmetics();
 }
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
