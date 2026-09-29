@@ -2148,7 +2148,9 @@ function installTitlePressMenu(){
     trigger.hidden=true;trigger.style.display='none';
     menu.classList.add('menu-open');
   };
-  trigger.onclick=()=>{playTitlePressSfx();openMenu();};
+  // 開いた直後に title 側の「メニュー外を押したら閉じる」処理へ同じクリックが
+  // 伝わると、PRESS SCREEN が何も起こらないように見えてしまう。
+  trigger.onclick=event=>{event.stopPropagation();playTitlePressSfx();openMenu();};
   menu.addEventListener('click',event=>event.stopPropagation());
   title.addEventListener('click',event=>{
     if(!menu.classList.contains('menu-open'))return;
