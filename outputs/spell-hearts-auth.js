@@ -1690,6 +1690,8 @@ function startChapterTwoLegacy(){
     yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='ユート');
     air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
+    // 「はっ！」が画面に出る操作と同じユーザー操作で、一度だけ剣戟を鳴らす。
+    if(line.sparringSfx===true)playSparringClashSfx();
   };
   dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else chapterTwoHomePrelude(scene);};
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1905,6 +1907,8 @@ function chapterTwoPlayLines(scene,lines,done){
     air.classList.toggle('speaker-active',line.speaker==='エア');
     air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
+    // セリフを送って「はっ！」を表示した、その同じクリックで一度だけ鳴らす。
+    if(line.sparringSfx===true)playSparringClashSfx();
   };
   dialogue.hidden=false;
   dialogue.onclick=()=>{
@@ -1933,7 +1937,7 @@ function chapterTwoHomePrelude(scene){
   ];
   const training=[
     {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true,sparring:true},
-    {speaker:'エア',text:'はっ！',yuto:true,air:true,sparring:true},
+    {speaker:'エア',text:'はっ！',yuto:true,air:true,sparring:true,sparringSfx:true},
     {speaker:'ユート',text:'まだまだ！',yuto:true,air:true,sparring:true},
     {speaker:'エア',text:'やるね、ユート。',yuto:true,air:true,sparring:true},
     {speaker:'ユート',text:'そっちこそ、隙がないな！',yuto:true,air:true,sparring:true},
@@ -1953,8 +1957,6 @@ function chapterTwoHomePrelude(scene){
     chapterTwoPlayLines(scene,night,()=>{
       chapterTwoFade(scene,'assets/story-home-morning.jpg',()=>{
         chapterTwoPlayLines(scene,morning,()=>{
-          // このクリック中に一度だけ再生する。場面遷移後では自動再生扱いになる端末がある。
-          playSparringClashSfx();
           chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
             chapterTwoPlayLines(scene,training,()=>beginChapterTwoAirBattle(scene));
           });
@@ -2073,7 +2075,11 @@ function showChapterTwoEnd(){
   if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;
   requestAnimationFrame(()=>end.classList.add('show'));
-  end.onclick=()=>window.returnToTitle?.();
+  end.onclick=()=>{
+    const received=claimStoryChapterReward('chapter-two',5);
+    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+    window.returnToTitle?.();
+  };
 }
 function installChapterTwoAirResultHandler(){
   const original=window.render;
