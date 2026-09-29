@@ -375,6 +375,9 @@ function preloadStoryVisuals(sources=storyVisualAssets){
   return preloadVisuals(sources.filter(src=>storyVisualAssets.includes(src)));
 }
 function preloadVisualsWhenIdle(sources,delay=0){
+  // 物語中は表示に必要な一枚だけを読ませる。裏で多数の高解像度画像を
+  // デコードすると、場面転換と入力まで止まる端末がある。
+  if(document.body.classList.contains('story-active'))return Promise.resolve();
   setTimeout(()=>{
     const load=()=>preloadVisuals(sources);
     if('requestIdleCallback' in window)window.requestIdleCallback(load,{timeout:2500});
@@ -382,6 +385,8 @@ function preloadVisualsWhenIdle(sources,delay=0){
   },delay);
 }
 function preloadVisualsSequentiallyWhenIdle(sources,delay=0){
+  // Chapter 2 は会話を優先するため、先読みキューを作らない。
+  if(document.body.classList.contains('story-active'))return;
   const queue=[...new Set(sources.filter(Boolean))];
   const begin=()=>{
     const next=()=>{
@@ -1604,7 +1609,8 @@ function startChapterOne(){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-training-ground.webp" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
+    // 暗転・画像読込の途中でも、ここからは確認画面を経由せず必ず復帰できる。
+    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
   }
   const sceneBackdrop=scene.querySelector('.chapter-scene-backdrop');
   const syncSceneBackdrop=()=>{
@@ -1673,7 +1679,8 @@ function startChapterTwoLegacy(){
     scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
+    // Chapter 2 の背景読み込みが失敗・遅延しても、タイトルへ戻る操作は常に有効にする。
+    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
   }
   const backdrop=scene.querySelector('.chapter-scene-backdrop'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
   // 背景は専用の img 一枚だけで管理する。CSS背景との二重管理は行わない。
@@ -1854,15 +1861,27 @@ function chapterTwoFade(scene,source,done){
       setTimeout(()=>curtain.remove(),1250);
     };
     if(!backdrop||backdrop.src.endsWith(source)){reveal();return;}
-    let revealed=false;
-    const ready=()=>{if(revealed)return;revealed=true;reveal();};
-    backdrop.onload=ready;
-    backdrop.onerror=ready;
-    backdrop.src=source;
-    // 端末によってはキャッシュ済み画像で load イベントが発火しないことがある。
-    // その場合も暗転したまま止まらないよう、必ず次の進行へ戻す。
-    setTimeout(ready,900);
-    if(backdrop.complete)requestAnimationFrame(ready);
+    // 表示中の背景を残したまま次の画像だけを裏で確認する。以前は img.src を
+    // 先に差し替えたため、通信・デコード待ちの間に背景が黒くなっていた。
+    const transitionId=String((Number(scene.dataset.chapterTwoTransition||'0')||0)+1);
+    scene.dataset.chapterTwoTransition=transitionId;
+    const candidate=new Image();
+    candidate.decoding='async';
+    let finished=false;
+    const finish=(available)=>{
+      if(finished)return;
+      finished=true;
+      if(available&&scene.dataset.chapterTwoTransition===transitionId){
+        backdrop.onerror=null;
+        backdrop.src=source;
+      }
+      reveal();
+    };
+    candidate.onload=()=>finish(true);
+    candidate.onerror=()=>finish(false);
+    candidate.src=source;
+    // 画像が遅い・壊れている場合も、会話とタイトル復帰を止めない。
+    setTimeout(()=>finish(false),700);
   },1050);
 }
 const chapterTwoFrameStyle=document.createElement('style');
