@@ -69,9 +69,9 @@ main{width:min(1520px,100%)}.top,.stage{max-width:1360px}
 #pGrave img:first-child,#cGrave img:first-child{margin-left:0!important}
 </style>
 <style>.spell-effect-backdrop{position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.68)}.spell-effect-message{position:fixed;z-index:112}</style>
-<style>/* OK は山札も文字も拡縮させず、金色の文字だけをゆっくり明滅させる。 */.deck-button.ok-ready,.deck-button.ok-ready.opening-spell-deck,.slot.cpu-ready{animation:none!important;filter:none!important;transform:none!important}.deck-button.ok-ready:after{display:none!important}.deck-button.ok-ready .ok-label{font-size:clamp(26px,4.3vw,51px)!important;letter-spacing:.08em;transform:none!important;animation:ok-text-gold-flash 1.8s ease-in-out infinite!important}@keyframes ok-text-gold-flash{0%,100%{color:#b87819;opacity:.5;text-shadow:0 0 3px #000,0 0 7px #8a4a00}50%{color:#fff3a0;opacity:1;text-shadow:0 0 4px #000,0 0 15px #e99a17,0 0 30px #ffd949}}</style>
+<style>/* OK は山札も文字も拡縮させず、金色の文字だけを明滅させる。 */.deck-button.ok-ready,.deck-button.ok-ready.opening-spell-deck,.slot.cpu-ready{animation:none!important;filter:none!important;transform:none!important}.deck-button.ok-ready:after{display:none!important}.deck-button.ok-ready .ok-label{font-size:clamp(26px,4.3vw,51px)!important;letter-spacing:.08em;transform:none!important;animation:ok-text-gold-flash 1.15s ease-in-out infinite!important}@keyframes ok-text-gold-flash{0%,100%{color:#b87819;opacity:.5;text-shadow:0 0 3px #000,0 0 7px #8a4a00}50%{color:#fff3a0;opacity:1;text-shadow:0 0 4px #000,0 0 15px #e99a17,0 0 30px #ffd949}}</style>
 <script src="spell-hearts-online-client.js?v=runtime-recovery-v21" defer></script>
-<script type="module" src="spell-hearts-auth.js?v=runtime-recovery-v23"></script>
+<script type="module" src="spell-hearts-auth.js?v=runtime-recovery-v24"></script>
 <style>
 /* 手札は画像要素で描画する。着せ替え画像が読めない場合は onerror で通常絵柄へ戻る。 */
 #pBattle .battle-art-button{background-image:none!important}
