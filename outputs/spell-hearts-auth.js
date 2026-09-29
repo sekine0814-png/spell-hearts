@@ -681,9 +681,17 @@ window.awardSpellHeartsTokens=(amount,matchId)=>{
 function claimStoryChapterReward(chapter,amount){
   if(!currentUser||currentUser.isAnonymous)return false;
   const rewardKey=`spellHeartsStoryReward:${currentUser.uid}:${chapter}`;
-  if(localStorage.getItem(rewardKey)==='claimed')return false;
-  window.awardSpellHeartsTokens?.(amount,`story-${chapter}`);
+  const creditKey=`spellHeartsStoryTokenCredit:v2:${currentUser.uid}:${chapter}`;
+  // Chapter 2 の旧版では「受取済み」だけ記録され、残高へ加算されない場合があった。
+  // v2 の付与記録がない旧データは一度だけ救済し、必ず残高を増やす。
+  const wasClaimed=localStorage.getItem(rewardKey)==='claimed';
+  if(wasClaimed&&(chapter!=='chapter-two'||localStorage.getItem(creditKey)==='credited'))return false;
+  const reward=Math.max(0,Number(amount)||0);
+  if(!reward)return false;
+  if(!isGameOwner())localStorage.setItem(tokenKey(),String(readTokens()+reward));
   localStorage.setItem(rewardKey,'claimed');
+  localStorage.setItem(creditKey,'credited');
+  renderTokenBalance();
   return true;
 }
 
