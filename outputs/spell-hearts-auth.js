@@ -1631,7 +1631,11 @@ function startChapterTwoLegacy(){
     scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
   const backdrop=scene.querySelector('.chapter-scene-backdrop'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
-  backdrop.src='assets/story-tavern.jpg';let index=0;
+  backdrop.src='assets/story-tavern.jpg';
+  scene.dataset.chapterTwoBackdrop='assets/story-tavern.jpg';
+  scene.style.setProperty('--chapter-two-backdrop','url("assets/story-tavern.jpg")');
+  scene.classList.add('chapter-two-css-backdrop');
+  let index=0;
   const renderLine=()=>{
     const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
     speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
@@ -1789,8 +1793,12 @@ function chapterTwoFade(scene,source,done){
   coverStoryCurtain(curtain);
   setTimeout(()=>{
     const backdrop=scene.querySelector('.chapter-scene-backdrop');
+    // 背景は img の読み込み結果に任せない。失敗時に直前の酒場画像を
+    // 掴んだまま会話だけが進むのを防ぐため、シーン自身の背景として固定する。
+    scene.dataset.chapterTwoBackdrop=source;
+    scene.style.setProperty('--chapter-two-backdrop',`url("${source}")`);
+    scene.classList.add('chapter-two-css-backdrop');
     const reveal=()=>{
-      scene.dataset.chapterTwoBackdrop=source;
       if(done)done();
       requestAnimationFrame(()=>revealStoryCurtain(curtain));
       setTimeout(()=>curtain.remove(),1250);
@@ -2268,7 +2276,7 @@ chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background
 chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
-chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
+chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-scene.chapter-two-css-backdrop{background:#120b05 var(--chapter-two-backdrop) center/cover no-repeat!important}.chapter-two-scene.chapter-two-css-backdrop .chapter-scene-backdrop{display:none!important}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
 // 純粋な会話シーンでは、立ち絵を画面の端ではなく会話に寄せて配置する。
 // 会話パートの人物カードは、会話欄と重ならない高さで左右対称に中央へ寄せる。
 chapterOneStyle.textContent+='@media(min-width:601px){.chapter-one-scene .chapter-npc-card{right:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .chapter-two-yuto{right:19vw}.chapter-one-scene .story-wolf-card{right:19vw;bottom:31vh}}@media(max-width:600px){.chapter-one-scene .chapter-npc-card{right:7vw;bottom:27vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:7vw;bottom:27vh}.chapter-one-scene .chapter-two-yuto{right:7vw}.chapter-one-scene .story-wolf-card{right:7vw;bottom:27vh}}';
