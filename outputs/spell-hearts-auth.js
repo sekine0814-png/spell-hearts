@@ -1961,8 +1961,17 @@ function beginChapterTwoAirBattle(scene){
     applySoundLevels();
     // 曲は会話のクリック中に起動済み。再生失敗時だけここで再試行する。
     if(!window.storyAirBattleBgmStarted||battleMusic?.paused)startWolfBattleBgm();
-    // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
-    document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
+    // エア戦でも狼戦と同じく、相手の戦闘用カードを盤面右側に表示する。
+    let opponent=document.querySelector('#storyAirOpponentCard');
+    if(!opponent){
+      opponent=document.createElement('img');
+      opponent.id='storyAirOpponentCard';
+      opponent.className='story-battle-opponent-card';
+      opponent.alt='エア・ノエル';
+      document.body.append(opponent);
+    }
+    opponent.src='assets/story-woman-warrior.webp';
+    opponent.hidden=false;
   });
 }
 function chapterTwoAfterAirBattle(){
