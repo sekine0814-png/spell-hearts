@@ -201,6 +201,33 @@ function startTavernBgm(){
     tavernBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
 }
+function ensureSparringClashSfx(){
+  let sound=document.querySelector('#sparringClashSfx');
+  if(sound)return sound;
+  sound=document.createElement('audio');sound.id='sparringClashSfx';sound.src='assets/story-sparring-clash.mp3';sound.preload='auto';sound.volume=0;
+  document.body.append(sound);return sound;
+}
+function playSparringClashSfx(){
+  const sound=ensureSparringClashSfx();
+  sound.pause();sound.currentTime=0;sound.loop=false;
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.play().catch(()=>{});
+}
+function ensureAirAftermathBgm(){
+  let music=document.querySelector('#airAftermathBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='airAftermathBgm';music.src='assets/story-air-aftermath-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function startAirAftermathBgm(){
+  const music=ensureAirAftermathBgm();
+  music.pause();music.currentTime=0;music.loop=true;music.dataset.keepPlaying='1';music.volume=titleBgmLevel();
+  music.play().catch(()=>{});
+}
+function stopAirAftermathBgm(){
+  const music=document.querySelector('#airAftermathBgm');
+  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;}
+}
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
   if(music)return music;
@@ -388,7 +415,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -789,7 +816,8 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
 
@@ -1618,7 +1646,7 @@ function startChapterTwoLegacy(){
   // 開始時に大きい人物PNG・戦闘カードを同時に通信／デコードすると、
   // 会話のクリックまで固まる。酒場を先に表示し、残りは一枚ずつ後読みする。
   preloadVisualsSequentiallyWhenIdle(['assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],1200);
-  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
+  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
     {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
@@ -1925,6 +1953,8 @@ function chapterTwoHomePrelude(scene){
     chapterTwoPlayLines(scene,night,()=>{
       chapterTwoFade(scene,'assets/story-home-morning.jpg',()=>{
         chapterTwoPlayLines(scene,morning,()=>{
+          // このクリック中に一度だけ再生する。場面遷移後では自動再生扱いになる端末がある。
+          playSparringClashSfx();
           chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
             chapterTwoPlayLines(scene,training,()=>beginChapterTwoAirBattle(scene));
           });
@@ -1987,6 +2017,8 @@ function chapterTwoAfterAirBattle(){
   if(opponent)opponent.hidden=true;
   window.stopBgm?.();
   document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');
+  // エア戦の決着を押した瞬間から、Chapter 2 終了まで KIRI をループする。
+  startAirAftermathBgm();
   const scene=document.querySelector('#chapterTwoScene');
   if(!scene)return;
   const aftermath=[
