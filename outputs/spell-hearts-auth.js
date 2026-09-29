@@ -152,7 +152,8 @@ function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getIte
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='none';music.volume=0;
+  // タイトルは最初の操作で確実に鳴らせるよう、曲本体を先に準備しておく。
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.volume=0;
   document.body.append(music);return music;
 }
 function stopTitleBgm(){
@@ -353,18 +354,33 @@ function preloadVisualsWhenIdle(sources,delay=0){
     else load();
   },delay);
 }
+function preloadVisualsSequentiallyWhenIdle(sources,delay=0){
+  const queue=[...new Set(sources.filter(Boolean))];
+  const begin=()=>{
+    const next=()=>{
+      const source=queue.shift();
+      if(!source)return;
+      preloadVisuals([source]).finally(()=>setTimeout(next,180));
+    };
+    next();
+  };
+  setTimeout(()=>{
+    if('requestIdleCallback' in window)window.requestIdleCallback(begin,{timeout:3500});
+    else begin();
+  },delay);
+}
 function preloadChapterTwoBattleAssets(){
   const core=['rock.webp','scissors.webp','paper.webp','amplify.webp','red-battle-back.webp','blue-battle-back.webp'];
   const equipped=Object.keys(battleArt).map(card=>battleArtFor(publicCosmetics(),card));
   // 酒場を開く瞬間にカード画像を同時取得しない。会話中のアイドル時間で温める。
   const sources=[...new Set([...core,...equipped])].filter(Boolean).map(source=>'assets/'+source);
-  preloadVisualsWhenIdle(sources,900);
+  preloadVisualsSequentiallyWhenIdle(sources,2600);
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
-  if(titleBgmStarted||title?.classList.contains('dismiss'))return;
+  if(title?.classList.contains('dismiss')||(!music.paused&&!music.ended))return;
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;
-  titleBgmStarted=true;music.volume=titleBgmLevel();music.dataset.fading='';
+  titleBgmStarted=true;music.muted=false;music.volume=titleBgmLevel();music.dataset.fading='';
   music.play().catch(()=>{titleBgmStarted=false;});
 }
 function installTitleBgm(){
@@ -1599,8 +1615,9 @@ function startChapterTwoLegacy(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
-  preloadChapterTwoBattleAssets();
+  // 開始時に大きい人物PNG・戦闘カードを同時に通信／デコードすると、
+  // 会話のクリックまで固まる。酒場を先に表示し、残りは一枚ずつ後読みする。
+  preloadVisualsSequentiallyWhenIdle(['assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],1200);
   stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
@@ -2150,7 +2167,7 @@ function installTitlePressMenu(){
   };
   // 開いた直後に title 側の「メニュー外を押したら閉じる」処理へ同じクリックが
   // 伝わると、PRESS SCREEN が何も起こらないように見えてしまう。
-  trigger.onclick=event=>{event.stopPropagation();playTitlePressSfx();openMenu();};
+  trigger.onclick=event=>{event.stopPropagation();startTitleBgm();playTitlePressSfx();openMenu();};
   menu.addEventListener('click',event=>event.stopPropagation());
   title.addEventListener('click',event=>{
     if(!menu.classList.contains('menu-open'))return;
