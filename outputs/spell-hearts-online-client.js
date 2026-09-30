@@ -1,23 +1,247 @@
-/* Online board. It never shares DOM nodes with the CPU board. */
+/* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null,state=null,joining=false,openingHand=false,heartbeat=null,resultSoundPlayed=false;
-  const query=new URLSearchParams(location.search),$=s=>document.querySelector(s);
-  const files={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
-  const data=s=>s==='p'?state.red:state.blue;
-  const send=(type,card)=>socket?.readyState===WebSocket.OPEN&&socket.send(JSON.stringify({type,card}));
-  const style=document.createElement('style');
-  style.textContent=`body.online-mode main{display:none!important}#onlineBoard{min-height:100vh;padding:14px;background:var(--battle-backdrop,#07101b);color:#f9efd2;font-family:Georgia,"Yu Mincho",serif}.online-top{max-width:1256px;margin:0 auto 9px;display:flex;justify-content:space-between;align-items:center}.online-top h1{margin:0;letter-spacing:.13em;text-shadow:0 2px 12px #d89b25}.online-return{padding:9px 14px;border:1px solid #e4bd55;border-radius:7px;background:linear-gradient(#ffe890,#b98020);color:#281807;font-weight:bold;cursor:pointer}.online-stage{position:relative;width:100%;max-width:1256px;aspect-ratio:1.67;margin:auto;overflow:hidden;background:linear-gradient(#080d1b99,#080d1b99),var(--battle-backdrop,#07101b) center/cover no-repeat;border:2px solid #d8ad3d;box-shadow:0 0 26px #000}.online-stage:before{content:"";position:absolute;inset:10px;border:2px solid #d8ad3d;border-radius:18px;pointer-events:none;box-shadow:inset 0 0 25px #d8ad3d88}.online-player{position:absolute;z-index:3;top:4%;min-width:16%;padding:4px 9px;border:1px solid #d8ad3d;background:#07070bdd;text-align:center;text-shadow:0 2px 4px #000}.online-player.red{left:24%;color:#ffaaa1}.online-player.blue{right:24%;color:#a8e8ff}.online-hp{position:absolute;z-index:3;top:10%;font:bold clamp(16px,2.2vw,29px) Georgia,serif;text-shadow:0 2px 5px #000}.online-hp.red{left:24%;color:#ffb0a9}.online-hp.blue{right:24%;color:#a9e7ff}.online-slot{position:absolute;z-index:4;width:10%;height:25%;padding:3px;border:1px dashed #e6c35e;border-radius:7px;background:#03040aaa}.online-slot img{display:block;width:100%;height:100%;object-fit:cover;border-radius:4px}.online-slot button{width:100%;height:100%;padding:0;border:0;background:none;cursor:pointer}.online-slot button:disabled{cursor:default}.online-battle.p{left:14.25%;top:8%}.online-battle.c{right:14.25%;top:8%}.online-spell.p{left:14.25%;top:34%}.online-spell.c{right:14.25%;top:34%}.online-charge{position:absolute;z-index:4;width:10%;height:25%;overflow:hidden;border:1px solid #e6c35e66;border-radius:5px;background:#03040a88}.online-charge img{width:100%;height:100%;object-fit:cover}.online-charge.p{left:4.1%}.online-charge.c{right:4.1%}.online-charge.top{top:8%}.online-charge.spell{top:34%}.online-hand{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:100%;height:100%;transform:scale(1.28);transform-origin:center}.online-hand button{position:relative;overflow:hidden;border:1px solid #d8ad3d;border-radius:3px}.online-hand img{position:absolute;inset:0}.online-hand span{position:absolute;z-index:2;right:2px;bottom:2px;left:2px;padding:2px;background:#09060de0;border:1px solid #e6c35e;color:#fff1bd;font:bold clamp(8px,1vw,13px) Georgia,serif;text-align:center}.online-center{position:absolute;z-index:2;left:36%;top:10%;width:28%;height:45%;background:#09070ccc;border:1px solid #d8ad3d;border-radius:12px;display:grid;place-items:center}.online-center .logo{font-size:clamp(26px,4.3vw,68px);letter-spacing:.08em;color:#ffe39b;text-shadow:0 0 20px #b9791f}.online-played{position:absolute;top:15%;width:43%;height:76%;overflow:hidden;border:2px solid #d6b55d;border-radius:8px;background:#09070c}.online-played.p{left:4%}.online-played.c{right:4%}.online-played img{width:100%;height:100%;object-fit:cover}.online-vs{position:absolute;z-index:2;color:#ffdf7c;font-size:clamp(13px,2vw,25px)}.online-message{position:absolute;z-index:6;top:67%;left:24%;width:52%;text-align:center;font-size:clamp(12px,1.6vw,20px);text-shadow:0 2px 5px #000}.online-info{max-width:1000px;margin:12px auto;text-align:center;min-height:2em}.online-ok{position:absolute;inset:0;display:grid;place-items:center;color:#fff2a6;font:bold clamp(24px,4vw,50px) Georgia,serif;-webkit-text-stroke:2px #bd7913;text-shadow:0 0 8px #4b2600,0 0 20px #ffd447;animation:online-ok 1s steps(2,end) infinite;pointer-events:none}@keyframes online-ok{50%{opacity:.45}}.online-grave{position:absolute;z-index:3;bottom:8%;width:22%;height:25%;display:flex;align-items:end}.online-grave.p{left:8%}.online-grave.c{right:8%;justify-content:end}.online-grave img{width:45%;height:100%;object-fit:cover;border:1px solid #c9aa55;margin-left:-18%}.online-grave img:first-child{margin-left:0}#titleScreen:not(.dismiss)~.board-flight{display:none!important}`;
-  document.head.append(style);
-  const clearFlights=()=>{if($('#titleScreen:not(.dismiss)'))document.querySelectorAll('.board-flight').forEach(x=>x.remove());};
-  new MutationObserver(clearFlights).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});clearFlights();
-  const image=(src,alt='')=>`<img src="${src}" alt="${alt}">`;
-  const back=(side,type)=>A+(side==='p'?(type==='battle'?'red-battle-back.webp':'red-spell-back.webp'):(type==='battle'?'blue-battle-back.webp':'blue-spell-back.webp'));
-  function art(side,key){try{return A+(window.getSpellHeartsBattleArt?.(data(side)?.cosmetics,key)||files[key]||files.rock)}catch{return A+(files[key]||files.rock)}}
-  function mount(){if($('#onlineBoard'))return;const root=document.createElement('section');root.id='onlineBoard';root.innerHTML=`<header class="online-top"><h1>SPELL HEART</h1><button class="online-return" type="button">タイトルに戻る</button></header><section class="online-stage"><div id="onlineNameP" class="online-player red"></div><div id="onlineNameC" class="online-player blue"></div><div id="onlineHpP" class="online-hp red"></div><div id="onlineHpC" class="online-hp blue"></div><div id="onlineBattleP" class="online-slot online-battle p"></div><div id="onlineBattleC" class="online-slot online-battle c"></div><div id="onlineSpellP" class="online-slot online-spell p"></div><div id="onlineSpellC" class="online-slot online-spell c"></div><div id="onlineAmpP" class="online-charge p top"></div><div id="onlineAmpC" class="online-charge c top"></div><div id="onlineHeldP" class="online-charge p spell"></div><div id="onlineHeldC" class="online-charge c spell"></div><div class="online-center"><span class="logo">SPELL HEART</span><div id="onlinePlayedP" class="online-played p"></div><span class="online-vs">VS</span><div id="onlinePlayedC" class="online-played c"></div></div><div id="onlineMessage" class="online-message"></div><div id="onlineGraveP" class="online-grave p"></div><div id="onlineGraveC" class="online-grave c"></div></section><div id="onlineInfo" class="online-info"></div>`;root.querySelector('.online-return').onclick=()=>window.returnToTitle?.();document.body.append(root)}
-  function renderDeck(host,side,type,click,hand){host.replaceChildren();if(hand){const box=document.createElement('div');box.className='online-hand';state.hand.forEach(key=>{const b=document.createElement('button');b.type='button';b.innerHTML=`${image(art(side,key),cards[key]?.n||key)}<span>${cards[key]?.n||key}</span>`;b.onclick=()=>{openingHand=false;send('pick',key);render()};box.append(b)});host.append(box);return}const b=document.createElement('button');b.type='button';b.disabled=!click;b.innerHTML=image(back(side,type));if(click)b.onclick=()=>{if(type==='spell')send('draw');else{openingHand=true;render()}};host.append(b)}
-  function render(){if(!state)return;mount();const me=state.side,phase=state.phase,p=data('p'),c=data('c');$('#onlineNameP').textContent=p.nickname||'RED';$('#onlineNameC').textContent=c.nickname||'BLUE';$('#onlineHpP').textContent=`HP ${p.hp} / 10`;$('#onlineHpC').textContent=`HP ${c.hp} / 10`;for(const side of ['p','c']){const own=side===me,s=data(side),battle=$(`#onlineBattle${side.toUpperCase()}`),spell=$(`#onlineSpell${side.toUpperCase()}`),amp=$(`#onlineAmp${side.toUpperCase()}`),held=$(`#onlineHeld${side.toUpperCase()}`);const hand=phase==='pick'&&own&&!state.picked&&openingHand;renderDeck(battle,side,'battle',phase==='pick'&&own&&!state.picked&&!openingHand,hand);if(phase==='spell'&&(own?state.ok:state.opponentOk))battle.insertAdjacentHTML('beforeend','<span class="online-ok">OK!</span>');renderDeck(spell,side,'spell',phase==='opening'&&own&&!s.hasSpell,false);amp.innerHTML=s.amp==='charged'?image(art(side,'amplify'),'アンプリファイア'):'';held.innerHTML=s.hasSpell?(own?image(A+spells[s.spell].i,spells[s.spell].n):image(back(side,'spell'))):'';held.onclick=phase==='spell'&&own&&state.canUse?()=>send('use'):null;$(`#onlineGrave${side.toUpperCase()}`).innerHTML=(s.grave||[]).map(key=>image(A+spells[key].i,spells[key].n)).join('')}const battle=state.battle;$('#onlinePlayedP').innerHTML=battle?image(phase==='reveal'?back('p','battle'):art('p',battle.a)):'';$('#onlinePlayedC').innerHTML=battle?image(phase==='reveal'?back('c','battle'):art('c',battle.b)):'';$('#onlineMessage').textContent=state.waiting?'対戦相手の入室を待っています。':state.message||'';const own=data(me);$('#onlineInfo').innerHTML=own.spell?`伏せスペル：<strong>${spells[own.spell].n}</strong> ― ${spells[own.spell][own.amp==='charged'?'x':'a']}`:'';renderResult()}
-  function renderResult(){let result=$('#resultScreen');if(!result){result=document.createElement('div');result.id='resultScreen';document.body.append(result)}if(state.phase!=='end'){result.classList.remove('show');result.innerHTML='';resultSoundPlayed=false;return}const winner=state.red.hp===state.blue.hp?null:(state.red.hp>state.blue.hp?'p':'c');result.innerHTML=`<div class="result-stack"><div class="result-word ${winner==='p'?'result-red':winner==='c'?'result-blue':'result-draw'}">${winner==='p'?'RED WIN':winner==='c'?'BLUE WIN':'DRAW GAME'}</div><div class="result-actions"><button class="result-retry" id="onlineRematch" ${state.rematchReady?'disabled':''}>${state.rematchReady?'相手を待っています…':'もう一度対戦'}</button><button class="result-retry" id="onlineTitle">タイトルに戻る</button></div></div>`;$('#onlineRematch').onclick=()=>send('rematch');$('#onlineTitle').onclick=()=>window.returnToTitle?.();requestAnimationFrame(()=>result.classList.add('show'));if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.()}}
-  function connect(room){if(joining)return;joining=true;document.body.classList.add('online-mode');mount();socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};socket.onmessage=e=>{let p;try{p=JSON.parse(e.data)}catch{return}if(p.type==='error'){joining=false;$('#roomNote').textContent=p.message;return}if(p.type==='joined'){history.replaceState({},'',location.pathname+'?room='+encodeURIComponent(p.room));$('#titleScreen').classList.add('dismiss')}if(p.type==='state'){state=p.state;if(state.phase!=='pick')openingHand=false;render()}};socket.onclose=()=>{clearInterval(heartbeat);if(state&&state.phase!=='end')$('#onlineMessage').textContent='接続が切れました。再読み込みして再入室してください。'}}
-  window.beginOnlineMatch=async room=>{if(location.protocol==='file:'){location.href='http://localhost:8787/?room='+encodeURIComponent(room);return}await Promise.resolve(window.waitForSpellHeartsCosmetics?.());connect(room)};
-  if(query.get('room'))setTimeout(()=>window.beginOnlineMatch?.(query.get('room')),0);
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
+  const query=new URLSearchParams(location.search);
+  const $=selector=>document.querySelector(selector);
+  const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
+  const spellSlot=w=>w==='p'?'#pSpell':'#cSpell';
+  const charge=w=>w==='p'?'#pCharge':'#cCharge';
+  const chargeSpell=w=>w==='p'?'#pChargeSpell':'#cChargeSpell';
+  const grave=w=>w==='p'?'#pGrave':'#cGrave';
+  const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
+  const back=(w,kind)=>{
+    const fallback=w==='p'?(kind==='battle'?'red-battle-back.webp':'red-spell-back.webp'):(kind==='battle'?'blue-battle-back.webp':'blue-spell-back.webp');
+    const cosmetics=(w==='p'?net?.red:net?.blue)?.cosmetics;
+    const selected=kind==='spell'?window.getSpellHeartsSpellShrinkArt?.(cosmetics,w):fallback;
+    return `<img class="spell-back" src="${A+(selected||fallback)}" alt="">`;
+  };
+  const battleFallback={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
+  const battleFace=(w,key)=>{
+    const fallback=battleFallback[key]||'rock.webp';
+    try{const selected=window.getSpellHeartsBattleArt?.((w==='p'?net?.red:net?.blue)?.cosmetics,key);return A+(typeof selected==='string'&&selected?selected:fallback);}
+    catch(error){console.warn('Battle art fallback:',error);return A+fallback;}
+  };
+  const battleImage=(w,key)=>{const fallback=A+(battleFallback[key]||'rock.webp');return `<img src="${battleFace(w,key)}" onerror="this.onerror=null;this.src='${fallback}'" alt="">`;};
+  const amplifyFace=w=>battleFace(w,'amplify');
+  const installOnlineAmplifyArt=()=>{
+    const original=window.slideCard;
+    if(typeof original!=='function'||original.onlineAmplifyArtInstalled)return;
+    const enhanced=function(fromSelector,toSelector,source){
+      const w=toSelector==='#pCharge'||fromSelector==='#pCharge'?'p':toSelector==='#cCharge'||fromSelector==='#cCharge'?'c':null;
+      if(w&&/amplify\.(?:jpg|webp)(?:$|[?#])/.test(source))source=amplifyFace(w);
+      return original.call(this,fromSelector,toSelector,source);
+    };
+    enhanced.onlineAmplifyArtInstalled=true;
+    window.slideCard=enhanced;
+  };
+  installOnlineAmplifyArt();
+  const onlineStyle=document.createElement('style');
+  onlineStyle.textContent='.online-battle-ready{animation:online-battle-flash .95s ease-in-out infinite!important}@keyframes online-battle-flash{0%,100%{filter:brightness(1);box-shadow:0 0 0 transparent}50%{filter:brightness(1.65);box-shadow:0 0 15px 4px rgba(255,224,113,.82)}}.online-battle-ready .ok-label{display:grid}.online-mode .pick img{display:block!important;width:100%!important;height:100%!important;opacity:1!important;visibility:visible!important;filter:none!important}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.flight-target{display:block!important;visibility:hidden}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
+  document.head.append(onlineStyle);
+  onlineStyle.textContent+='.online-mode .faction{display:none}.online-nameplate{position:absolute;z-index:6;top:5.2%;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold clamp(11px,1.9vw,23px) Georgia,"Yu Mincho",serif;letter-spacing:.07em;-webkit-text-stroke:1px #10090d;paint-order:stroke fill;text-shadow:0 2px 6px #000}.online-nameplate.p-side{left:8%;color:#ff9b91}.online-nameplate.c-side{right:8%;color:#94dcff;text-align:right}';
+
+  onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
+
+  function hand(){
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}</button>`).join('')}</div>`;
+  }
+
+  function showResult(){
+    let result=$('#resultScreen');
+    if(!result){ result=document.createElement('div'); result.id='resultScreen'; document.body.append(result); }
+    if(net.phase==='end'){
+      const red=net.red.hp>net.blue.hp, blue=net.blue.hp>net.red.hp;
+      const winner=red?'p':blue?'c':null;
+      const reward=winner===net.side?2:1;
+      const rematchLabel=net.rematchReady?'相手の返答を待っています…':'もう一度対戦';
+      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><div class="result-token-reward"><img class="token-coin" src="assets/spell-hearts-token.webp" alt="金貨"><span>+${reward}</span></div><div class="result-actions"><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div></div>`;
+      if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.();}
+      requestAnimationFrame(()=>result.classList.add('show'));
+    }else{ resultSoundPlayed=false; result.classList.remove('show'); result.innerHTML=''; }
+  }
+
+  function runOnlineDamage(before,after){
+    const damage=after.battle?.d||{p:0,c:0};
+    const from={p:before.red.hp,c:before.blue.hp},to={p:after.red.hp,c:after.blue.hp};
+    for(const w of ['p','c'])$('#'+w+'Hp').textContent=`HP ${from[w]} / 10`;
+    const stage=$('.stage');
+    if(damage.c)stage.insertAdjacentHTML('beforeend',effectMarkup('aura-to-c'));
+    if(damage.p)stage.insertAdjacentHTML('beforeend',effectMarkup('aura-to-p'));
+    setTimeout(()=>{
+      let soundIndex=0;
+      for(const w of ['p','c'])if(damage[w]){
+        const hp=$('#'+w+'Hp'); hp.classList.remove('hp-hit'); void hp.offsetWidth; hp.classList.add('hp-hit');
+        setTimeout(()=>hp.classList.remove('hp-hit'),440); playDamageSfx(80+soundIndex*110); soundIndex++;
+      }
+      const timer=setInterval(()=>{
+        let done=true;
+        for(const w of ['p','c'])if(from[w]!==to[w]){from[w]+=Math.sign(to[w]-from[w]);$('#'+w+'Hp').textContent=`HP ${from[w]} / 10`;done=false}
+        if(done){clearInterval(timer);setTimeout(()=>$('.stage').querySelectorAll('.damage-aura').forEach(el=>el.remove()),180)}
+      },120);
+    },620);
+  }
+
+  function renderOnline(){
+    if(!net)return;
+    const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
+    const stage=$('.stage');
+    for(const w of ['p','c']){
+      let plate=$(`#${w}Nameplate`);
+      if(!plate){plate=document.createElement('div');plate.id=`${w}Nameplate`;plate.className=`online-nameplate ${w==='p'?'p':'c'}-side`;stage?.append(plate);}
+      plate.textContent=state[w].nickname||`ゲスト${w==='p'?'RED':'BLUE'}`;
+    }
+    for(const w of ['p','c']){
+      const own=w===me, s=state[w], battleDeck=$(sideSlot(w));
+      $('#'+w+'Hp').textContent=`HP ${s.hp} / 10`;
+      const canPass=net.phase==='spell'&&own&&net.canOk;
+      const keepingOpenHand=net.phase==='pick'&&own&&!net.picked&&chooser&&!!battleDeck.querySelector('.picks');
+      if(!keepingOpenHand)battleDeck.innerHTML=net.phase==='pick'&&own?(net.picked?back(w,'battle'):(chooser?hand():back(w,'battle'))):back(w,'battle');
+      if(canPass)battleDeck.insertAdjacentHTML('beforeend','<span class="ok-label">OK!</span>');
+      battleDeck.classList.toggle('online-battle-ready',(net.phase==='pick'&&own&&!net.picked&&!chooser)||canPass);
+      battleDeck.onclick=canPass?()=>confirmPlayerOk():(net.phase==='pick'&&own&&!net.picked&&!chooser?()=>openBattle():null);
+      battleDeck.style.cursor=canPass||net.phase==='pick'&&own&&!net.picked&&!chooser?'pointer':'default';
+      const spellDeck=$(spellSlot(w));
+      spellDeck.innerHTML=s.deckCount?back(w,'spell'):'<div class="empty-deck">EMPTY</div>';
+      spellDeck.classList.toggle('opening-spell-deck',net.phase==='opening'&&own&&!s.hasSpell);
+      spellDeck.onclick=net.phase==='opening'&&own&&!s.spell?()=>send('draw'):null;
+      spellDeck.style.cursor=net.phase==='opening'&&own&&!s.spell?'pointer':'default';
+      const amplifier=$(charge(w));
+      amplifier.innerHTML=s.amp==='charged'?`<img src="${amplifyFace(w)}" onerror="this.onerror=null;this.src='${A+battleFallback.amplify}'" title="${cardTip('amplify')}" alt="アンプリファイア">`:'';
+      const isOpeningAmplifier=net.phase==='reveal'&&(w==='p'?battle?.a:battle?.b)==='amplify';
+      amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
+      const held=$(chargeSpell(w));
+      held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
+      held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
+      held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
+      held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
+      const visibleSpells=spellInTransit[w]?s.grave.slice(0,-1):s.grave;
+      const graveCards=[...visibleSpells.map(k=>({image:A+spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:amplifyFace(w),title:'アンプリファイア'}]:[])];
+      $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${card.image}" title="${card.title}" alt="">`).join('');
+    }
+    const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
+    $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):battleImage('p',battle.a)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
+    $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):battleImage('c',battle.b)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
+    let message=net.waiting?'対戦相手の入室を待っています。':net.message||'';
+    if(net.phase==='pick')message=`ROUND ${net.round} ― <span class="battle-select-prompt">バトルカードを選択</span>`;
+    $('#message').innerHTML=message;
+    const own=state[me];
+    $('#spellInfo').innerHTML=own.spell?`伏せスペル：<strong>${spells[own.spell].n}</strong> ― ${spells[own.spell][own.amp==='charged'?'x':'a']}`:'伏せスペルはありません';
+    $('#actions').innerHTML='';
+    showResult();
+  }
+
+  function holdOnlineSpell(center,source,side){
+    const host=$(center); if(!host)return;
+    const card=document.createElement('img');
+    card.src=source; card.className=`spell-center-overlay online-spell-overlay ${side==='p'?'p-side':'c-side'}`;
+    host.append(card); setTimeout(()=>card.remove(),1420);
+  }
+
+  function showOnlineSpellMessage(use){
+    const stage=$('.stage');
+    if(!stage.querySelector('.spell-effect-backdrop')){
+      const backdrop=document.createElement('div');
+      backdrop.className='spell-effect-backdrop';
+      stage.append(backdrop);
+    }
+    const message=document.createElement('div');
+    message.className=`spell-effect-message ${use.side==='p'?'p-side':'c-side'}`;
+    const [headline,...detail]=spellResult(use.k,use.x).split('\n');
+    message.innerHTML=`<strong>${headline}</strong><span>${detail.join(' ')}</span>`;
+    stage.append(message); setTimeout(()=>{
+      message.remove();
+      if(!stage.querySelector('.spell-effect-message'))stage.querySelector('.spell-effect-backdrop')?.remove();
+    },3500);
+  }
+
+  function playOnlineSpell(use){
+    const source=A+spells[use.k].i, center=use.side==='p'?'#pPlayed':'#cPlayed';
+    spellInTransit[use.side]=true;
+    const target=$(center);
+    target?.classList.add('spell-display-top');
+    setTimeout(()=>target?.classList.remove('spell-display-top'),3500);
+    slideCard(chargeSpell(use.side),center,source); playCardFlip();
+    setTimeout(()=>{holdOnlineSpell(center,source,use.side);showOnlineSpellMessage(use)},1240);
+    setTimeout(()=>{slideCard(center,grave(use.side),source);playCardFlip()},2650);
+    setTimeout(()=>{spellInTransit[use.side]=false;renderOnline()},4000);
+  }
+
+  function connect(code){
+    if(joining)return;
+    joining=true;
+    document.body.classList.add('online-mode');
+    socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
+    socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
+    socket.onmessage=event=>{
+      let message; try{message=JSON.parse(event.data)}catch{return;}
+      if(message.type==='error'){ $('#roomNote').textContent=message.message; joining=false; return; }
+      if(message.type==='joined'){
+        history.replaceState({},'',location.pathname+'?room='+encodeURIComponent(message.room));
+        window.setBattleBackdrop?.();
+        $('#titleScreen').classList.add('dismiss');
+      }
+      if(message.type==='state'){
+        const previous=net, incoming=message.state;
+        const gameEnded=previous&&previous.phase!=='end'&&incoming.phase==='end';
+        const ownKey=incoming.side==='p'?'red':'blue';
+        const drew=previous&&!previous[ownKey].spell&&!!incoming[ownKey].spell;
+        const opponentSet=previous&&previous.phase==='pick'&&!previous.opponentPicked&&incoming.opponentPicked;
+        const flipped=previous&&previous.phase==='reveal'&&incoming.phase==='spell';
+        const previousUses=previous?.battle?.uses||{}, incomingUses=incoming.battle?.uses||{};
+        const newSpellUses=['p','c'].map(side=>incomingUses[side]&&!previousUses[side]?{...incomingUses[side],side}:null).filter(Boolean);
+        const damaged=previous&&previous.phase==='spell'&&incoming.phase==='damage';
+        if(incoming.phase!=='pick'){chooser=false;localSet=false;remoteSet=false}
+        if(incoming.phase==='opening')spellInTransit={p:false,c:false};
+        if(opponentSet){const opponent=incoming.side==='p'?'c':'p';battleArriving[opponent]=true;$(opponent==='p'?'#pPlayed':'#cPlayed')?.classList.add('flight-target');}
+        const charging=flipped?['p','c'].filter(side=>(side==='p'?incoming.battle?.a:incoming.battle?.b)==='amplify'):[];
+        if(flipped)for(const side of charging)ampArriving[side]=true;
+        newSpellUses.forEach(playOnlineSpell);
+        net=incoming;
+        try{ renderOnline(); }
+        catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
+        if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
+        if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
+        if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),amplifyFace(side));playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
+        newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
+        if(damaged)runOnlineDamage(previous,incoming);
+        if(gameEnded){
+          const winner=incoming.red.hp===incoming.blue.hp?null:(incoming.red.hp>incoming.blue.hp?'p':'c');
+          window.recordSpellHeartsResult?.(winner===null?'draw':winner===incoming.side?'win':'loss',incoming.matchId);
+          window.awardSpellHeartsTokens?.(winner===incoming.side?2:1,incoming.matchId);
+        }
+      }
+    };
+    socket.onclose=()=>{clearInterval(heartbeat);if(net&&net.phase!=='end')$('#message').textContent='接続が切れました。再読み込みして再入室してください。'; };
+  }
+
+  let controlsActive=false;
+  function activateOnlineControls(){
+    if(controlsActive)return;
+    controlsActive=true;
+    window.drawInitial=()=>send('draw');
+    window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
+    window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
+    window.use=()=>send('use');
+    window.confirmPlayerOk=()=>send('ok');
+    window.endRound=()=>send('ok');
+    window.requestRematch=()=>{if(net?.phase==='end'&&!net.rematchReady)send('rematch')};
+  }
+  window.beginOnlineMatch=async code=>{
+    if(location.protocol==='file:'){
+      location.href='http://localhost:8787/?room='+encodeURIComponent(code);
+      return;
+    }
+    // 入室パケットを送る前に、ログイン済みの着せ替え情報を読み切る。
+    // これで接続後に通常カード→選択カードへ差し替わることを防ぐ。
+    await Promise.resolve(window.waitForSpellHeartsCosmetics?.());
+    activateOnlineControls();
+    connect(code);
+  };
+  if(query.get('room')){
+    const code=query.get('room');
+    // 直接リンクで再入室した場合も、認証側の初期化が終わってから接続する。
+    setTimeout(()=>window.beginOnlineMatch?.(code),0);
+  }
+  // 対戦中の見た目は入室時に確定する。アカウント同期の遅延で途中から
+  // 通常カードへ差し替わったり、相手側の見た目が揺れたりしないようにする。
 })();
