@@ -124,6 +124,32 @@
     },1320);
   }
 
+  // opening → pick の遷移直後だけ、旧CPU描画が #cBattle の中身を置換する。
+  // この処理は render のクラスやCSSに依存せず、青山札そのものを明示的に組み直す。
+  function forceBlueBattleDeck(){
+    if(!net||net.phase!=='pick')return;
+    // 青プレイヤーが自分の手札を開いている間は、その手札を消さない。
+    if(net.side==='c'&&!net.picked&&chooser)return;
+    const deck=$('#cBattle');
+    if(!deck)return;
+    const source=A+'blue-battle-back.webp';
+    deck.replaceChildren();
+    const card=document.createElement('img');
+    card.className='battle-back';
+    card.src=source;
+    card.alt='青側バトル山札';
+    card.style.cssText='display:block!important;width:100%!important;height:100%!important;min-height:0!important;object-fit:cover!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:2!important;';
+    deck.append(card);
+    deck.style.setProperty('background-image',`url("${source}")`,'important');
+    deck.style.setProperty('background-size','100% 100%','important');
+    deck.style.setProperty('background-repeat','no-repeat','important');
+  }
+
+  function reinforceInitialBlueBattleDeck(){
+    // 通信状態・認証側の予約描画の完了後まで保持する。
+    [0,40,160,600].forEach(delay=>setTimeout(forceBlueBattleDeck,delay));
+  }
+
   function renderOnline(){
     if(!net)return;
     const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
@@ -171,11 +197,7 @@
     }
     // 両者の初期スペルドロー直後（pick 遷移時）は、青側だけ旧更新の内容に
     // 上書きされることがある。手札を開いている時以外はここで必ず青山札を再設定する。
-    if(net.phase==='pick'){
-      const blueDeck=$('#cBattle');
-      const blueHasOpenHand=me==='c'&&!net.picked&&chooser;
-      if(blueDeck&&!blueHasOpenHand)blueDeck.innerHTML=back('c','battle');
-    }
+    if(net.phase==='pick')forceBlueBattleDeck();
     const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
     $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):battleImage('p',battle.a)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
     $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):battleImage('c',battle.b)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
@@ -207,7 +229,7 @@
       deckRepairScheduled=true;
       queueMicrotask(()=>{
         deckRepairScheduled=false;
-        if(net&&document.body.classList.contains('online-mode'))renderOnline();
+        if(net&&document.body.classList.contains('online-mode'))forceBlueBattleDeck();
       });
     });
     onlineDeckObserver.observe(stage,{childList:true,subtree:true});
@@ -283,6 +305,7 @@
         net=incoming;
         try{ renderOnline(); }
         catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
+        if(previous?.phase==='opening'&&incoming.phase==='pick')reinforceInitialBlueBattleDeck();
         if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
         if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
         if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),amplifyFace(side));playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
