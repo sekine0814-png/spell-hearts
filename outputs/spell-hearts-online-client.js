@@ -155,10 +155,11 @@
   // この処理は render のクラスやCSSに依存せず、青山札そのものを明示的に組み直す。
   function forceBlueBattleDeck(){
     if(!net||net.phase!=='pick')return;
-    // 青プレイヤーが自分の手札を開いている間は、その手札を消さない。
-    if(net.side==='c'&&!net.picked&&chooser)return;
     const deck=$('#cBattle');
     if(!deck)return;
+    // 青プレイヤーの手札を実際に表示している間だけは、その手札を消さない。
+    // chooser フラグだけが残った場合は、空になった山札を必ず復旧する。
+    if(net.side==='c'&&!net.picked&&chooser&&deck.querySelector('.picks'))return;
     const source=A+'blue-battle-back.webp?v=blue-battle-deck-v36';
     deck.replaceChildren();
     const card=document.createElement('img');
