@@ -1237,6 +1237,7 @@ function tutorialAmplifiedPursuit(){
   }));
 }
 function coverStoryCurtain(curtain){
+  clearTransientBoardFlights();
   curtain.classList.remove('lift');
   curtain.style.setProperty('z-index','2147483647','important');
   // 暗転も必ずフェードさせる。inline の !important 指定で瞬時に黒くなるのを防ぐ。
@@ -1598,6 +1599,7 @@ function beginChapterOneTutorial(scene){
   },1150);
 }
 function startChapterOne(){
+  clearTransientBoardFlights();
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
@@ -2117,6 +2119,7 @@ setTimeout(installChapterTwoAirResultHandler,0);
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
+  clearTransientBoardFlights();
   if(!currentUser||currentUser.isAnonymous){
     window.openSpellHeartsLogin?.();
     const status=document.querySelector('.auth-status');if(status)status.textContent='ストーリーモードをプレイするには、ログインして下さい。';
@@ -2745,3 +2748,57 @@ body.story-battle-active .pick{box-sizing:border-box}
 }
 `;
 document.head.append(unifiedStoryBattleStyle);
+
+/* A flight card is only a short-lived animation.  It must never become part of
+   the board, nor survive a story/title transition. */
+function clearTransientBoardFlights(){
+  document.querySelectorAll('.board-flight').forEach(card=>card.remove());
+}
+
+function installTransientFlightGuard(){
+  const original=window.slideCard;
+  if(typeof original!=='function'||original.transientFlightGuardInstalled)return;
+  const guarded=function(...args){
+    const existing=new Set(document.querySelectorAll('.board-flight'));
+    const result=original.apply(this,args);
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('.board-flight').forEach(card=>{
+        if(existing.has(card))return;
+        /* Covers both normal animations and image-load failures. */
+        window.setTimeout(()=>card.remove(),1450);
+      });
+    });
+    return result;
+  };
+  guarded.transientFlightGuardInstalled=true;
+  window.slideCard=guarded;
+}
+installTransientFlightGuard();
+
+/* The Story button starts its fade before the chapter callback runs.  Remove
+   transient cards at the click boundary, so none can appear in that fade. */
+document.addEventListener('click',event=>{
+  if(event.target.closest('.push-screen,[data-title-choice="story"],.story-chapter'))clearTransientBoardFlights();
+},true);
+
+const stableBattleSlotStyle=document.createElement('style');
+stableBattleSlotStyle.textContent=`
+/* Hand expansion grows down from its deck slot.  Center scaling moved the top
+   edge upward, which also displaced the opposite deck's ready marker. */
+#pBattle > .picks,#cBattle > .picks{
+  transform:scale(1.35)!important;
+  transform-origin:top center!important;
+  animation:none!important;
+}
+#pBattle,#cBattle,#pBattle .deck-button,#cBattle .deck-button{position:absolute!important}
+#pBattle .deck-button,#cBattle .deck-button{inset:0!important}
+#pBattle .ok-label,#cBattle .ok-label{
+  position:absolute!important;
+  inset:0!important;
+  display:grid!important;
+  place-items:center!important;
+  line-height:1!important;
+  transform:none!important;
+}
+`;
+document.head.append(stableBattleSlotStyle);
