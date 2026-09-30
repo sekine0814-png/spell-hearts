@@ -66,7 +66,7 @@
   onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
 
   function hand(){
-    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}</button>`).join('')}</div>`;
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick battle-art-button" data-battle-card="${k}" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}<span class="battle-card-name">${cards[k]?.n||k}</span></button>`).join('')}</div>`;
   }
 
   function showResult(){
@@ -134,6 +134,7 @@
       amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
       const held=$(chargeSpell(w));
       held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
+      if(own&&s.hasSpell)held.dataset.spellName=spells[s.spell].n;else delete held.dataset.spellName;
       held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
