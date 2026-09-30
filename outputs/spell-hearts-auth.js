@@ -2125,7 +2125,9 @@ function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
   clearTransientBoardFlights();
+  document.querySelector('main')?.style.setProperty('visibility','hidden','important');
   if(!currentUser||currentUser.isAnonymous){
+    document.querySelector('main')?.style.removeProperty('visibility');
     window.openSpellHeartsLogin?.();
     const status=document.querySelector('.auth-status');if(status)status.textContent='ストーリーモードをプレイするには、ログインして下さい。';
     return;
@@ -2136,8 +2138,8 @@ function openStoryMode(){
     panel=document.createElement('section');panel.id='storyModePanel';panel.className='story-mode-panel';
     panel.innerHTML='<div class="story-mode-book" role="dialog" aria-modal="true" aria-labelledby="storyModeTitle"><button class="story-mode-close" type="button" aria-label="閉じる">×</button><p class="story-mode-kicker">SPELL HEART CHRONICLE</p><h2 id="storyModeTitle">ストーリーモード</h2><p class="story-mode-copy">進む道を選んでください</p><div class="story-chapters"></div><p class="story-mode-note"></p></div>';
     document.body.append(panel);
-    panel.querySelector('.story-mode-close').onclick=()=>panel.hidden=true;
-    panel.onclick=event=>{if(event.target===panel)panel.hidden=true;};
+    panel.querySelector('.story-mode-close').onclick=()=>{panel.hidden=true;document.querySelector('main')?.style.removeProperty('visibility');};
+    panel.onclick=event=>{if(event.target===panel){panel.hidden=true;document.querySelector('main')?.style.removeProperty('visibility');}};
   }
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
   chapters.innerHTML=[1,2].map(chapter=>{

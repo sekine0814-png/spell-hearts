@@ -93,8 +93,24 @@ main{width:min(1520px,100%)}.top,.stage{max-width:1360px}
   line-height:1!important;
 }
 </style>
-<script type="module" src="spell-hearts-auth.js?v=board-lifecycle-v2"></script>
+<script type="module" src="spell-hearts-auth.js?v=board-lifecycle-v3"></script>
 <script type="module" src="spell-hearts-online-client.js?v=online-single-render-v1"></script>
+<script>
+/* Both CPU and online renderers recreate the blue ready label.  Pin every new
+   label directly to its deck instead of allowing a later renderer rule to put
+   it below the card. */
+function pinBlueReadyLabel(){
+  const label=document.querySelector('#cBattle > .ok-label');
+  if(!label)return;
+  label.style.setProperty('position','absolute','important');
+  label.style.setProperty('inset','0','important');
+  label.style.setProperty('display','grid','important');
+  label.style.setProperty('place-items','center','important');
+  label.style.setProperty('z-index','5','important');
+}
+new MutationObserver(pinBlueReadyLabel).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('DOMContentLoaded',pinBlueReadyLabel);
+</script>
 <style>body:has(#titleScreen:not(.dismiss)) .board-flight{display:none!important}</style>
 <script>new MutationObserver(()=>{if(document.querySelector('#titleScreen:not(.dismiss)'))document.querySelectorAll('.board-flight').forEach(card=>card.remove())}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});</script>
 <style>
