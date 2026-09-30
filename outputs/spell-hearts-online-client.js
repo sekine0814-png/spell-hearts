@@ -262,6 +262,18 @@
     onlineDeckObserver.observe(stage,{childList:true,subtree:true});
   }
 
+  // オンライン中に残ったCPU用のonclickが呼ばれても、ローカル g を進行させない。
+  // 盤面操作は上のキャプチャ処理とオンライン専用ハンドラだけが担当する。
+  function disableCpuBattleEntrypoints(){
+    if(!document.body.classList.contains('online-mode'))return;
+    window.drawInitial=()=>{};
+    window.openBattle=()=>{};
+    window.pick=()=>{};
+    window.use=()=>{};
+    window.confirmPlayerOk=()=>{};
+    window.endRound=()=>{};
+  }
+
   function holdOnlineSpell(center,source,side){
     const host=$(center); if(!host)return;
     const card=document.createElement('img');
@@ -302,6 +314,7 @@
     if(joining)return;
     joining=true;
     document.body.classList.add('online-mode');
+    disableCpuBattleEntrypoints();
     installOnlineDeckIntegrity();
     socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
     socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
