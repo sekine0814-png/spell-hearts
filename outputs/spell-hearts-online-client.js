@@ -1,6 +1,13 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
   let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
+  // オンライン接続後にもCPU戦の予約済み描画が走ると、オンライン盤面の上へ
+  // CPU用の黒い BATTLE CARD 枠と OK 表示が上書きされる。オンライン中は止める。
+  const soloRender=window.render;
+  if(typeof soloRender==='function')window.render=function(...args){
+    if(document.body.classList.contains('online-mode'))return;
+    return soloRender.apply(this,args);
+  };
   const query=new URLSearchParams(location.search);
   const $=selector=>document.querySelector(selector);
   const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
