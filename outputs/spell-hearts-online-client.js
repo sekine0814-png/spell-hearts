@@ -159,22 +159,23 @@
     if(!net||!document.body.classList.contains('online-mode'))return;
     const deck=$('#cBattle');
     if(!deck)return;
+    const stage=$('.stage');
+    if(!stage)return;
     if(!blueDeckOverlay){
       blueDeckOverlay=document.createElement('img');
       blueDeckOverlay.id='onlineBlueBattleDeckOverlay';
       blueDeckOverlay.alt='青側バトル山札';
-      blueDeckOverlay.src=A+'blue-battle-back.webp?v=blue-battle-overlay-v37';
-      blueDeckOverlay.style.cssText='position:fixed!important;z-index:999!important;display:block!important;object-fit:cover!important;border-radius:5px!important;pointer-events:none!important;box-sizing:border-box!important;';
-      document.body.append(blueDeckOverlay);
+      blueDeckOverlay.src=A+'blue-battle-back.webp?v=blue-battle-overlay-v38';
+      blueDeckOverlay.style.cssText='position:absolute!important;z-index:50!important;display:block!important;object-fit:cover!important;border-radius:5px!important;pointer-events:none!important;box-sizing:border-box!important;';
+      stage.append(blueDeckOverlay);
     }
     const blueChoosing=net.phase==='pick'&&net.side==='c'&&!net.picked&&chooser;
     if(blueChoosing||net.phase==='end'){blueDeckOverlay.style.display='none';return;}
-    const rect=deck.getBoundingClientRect();
     blueDeckOverlay.style.display='block';
-    blueDeckOverlay.style.left=`${rect.left+4}px`;
-    blueDeckOverlay.style.top=`${rect.top+4}px`;
-    blueDeckOverlay.style.width=`${Math.max(0,rect.width-8)}px`;
-    blueDeckOverlay.style.height=`${Math.max(0,rect.height-8)}px`;
+    blueDeckOverlay.style.left=`${deck.offsetLeft+4}px`;
+    blueDeckOverlay.style.top=`${deck.offsetTop+4}px`;
+    blueDeckOverlay.style.width=`${Math.max(0,deck.offsetWidth-8)}px`;
+    blueDeckOverlay.style.height=`${Math.max(0,deck.offsetHeight-8)}px`;
   }
   window.addEventListener('resize',renderBlueBattleOverlay);
   window.addEventListener('scroll',renderBlueBattleOverlay,{passive:true});
