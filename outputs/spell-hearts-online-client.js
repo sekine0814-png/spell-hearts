@@ -127,6 +127,13 @@
       const graveCards=[...visibleSpells.map(k=>({image:A+spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:amplifyFace(w),title:'アンプリファイア'}]:[])];
       $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${card.image}" title="${card.title}" alt="">`).join('');
     }
+    // 両者の初期スペルドロー直後（pick 遷移時）は、青側だけ旧更新の内容に
+    // 上書きされることがある。手札を開いている時以外はここで必ず青山札を再設定する。
+    if(net.phase==='pick'){
+      const blueDeck=$('#cBattle');
+      const blueHasOpenHand=me==='c'&&!net.picked&&chooser;
+      if(blueDeck&&!blueHasOpenHand)blueDeck.innerHTML=back('c','battle');
+    }
     const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
     $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):battleImage('p',battle.a)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
     $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):battleImage('c',battle.b)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
