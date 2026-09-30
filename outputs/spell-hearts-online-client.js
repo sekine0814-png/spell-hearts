@@ -1,6 +1,6 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false}, blueDeckFrame=null;
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
   const query=new URLSearchParams(location.search);
   const $=selector=>document.querySelector(selector);
   const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
@@ -9,25 +9,6 @@
   const chargeSpell=w=>w==='p'?'#pChargeSpell':'#cChargeSpell';
   const grave=w=>w==='p'?'#pGrave':'#cGrave';
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
-  // オンライン戦ではCPU用の render が残っていても、青側の山札だけは
-  // サーバー状態から毎フレーム復元する。手札を開いている青プレイヤーには触れない。
-  function keepBlueBattleDeck(){
-    if(!net||net.phase!=='pick')return;
-    const deck=$('#cBattle');
-    if(!deck)return;
-    if(net.side==='c'&&!net.picked&&chooser&&deck.querySelector('.picks'))return;
-    const image=deck.querySelector('img[data-online-blue-deck]');
-    if(image&&image.getAttribute('src')===A+'blue-battle-back.webp')return;
-    deck.replaceChildren();
-    const card=document.createElement('img');
-    card.dataset.onlineBlueDeck='true';card.src=A+'blue-battle-back.webp';card.alt='青側バトル山札';
-    card.style.cssText='display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;opacity:1!important;visibility:visible!important;';
-    deck.append(card);
-  }
-  function runBlueDeckFrame(){
-    keepBlueBattleDeck();
-    if(document.body.classList.contains('online-mode'))blueDeckFrame=requestAnimationFrame(runBlueDeckFrame);
-  }
   function clearTitleFlights(){
     if(document.querySelector('#titleScreen:not(.dismiss)'))document.querySelectorAll('.board-flight').forEach(card=>card.remove());
   }
@@ -194,7 +175,6 @@
     if(joining)return;
     joining=true;
     document.body.classList.add('online-mode');
-    if(!blueDeckFrame)blueDeckFrame=requestAnimationFrame(runBlueDeckFrame);
     socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
     socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
     socket.onmessage=event=>{
@@ -203,6 +183,7 @@
       if(message.type==='joined'){
         history.replaceState({},'',location.pathname+'?room='+encodeURIComponent(message.room));
         window.setBattleBackdrop?.();
+        document.querySelector('main')?.style.removeProperty('visibility');
         $('#titleScreen').classList.add('dismiss');
       }
       if(message.type==='state'){

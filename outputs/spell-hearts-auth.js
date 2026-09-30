@@ -1600,6 +1600,7 @@ function beginChapterOneTutorial(scene){
 }
 function startChapterOne(){
   clearTransientBoardFlights();
+  document.querySelector('main')?.style.setProperty('visibility','hidden','important');
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
@@ -1659,6 +1660,8 @@ function startChapterOne(){
 }
 window.startChapterOne=startChapterOne;
 function startChapterTwoLegacy(){
+  clearTransientBoardFlights();
+  document.querySelector('main')?.style.setProperty('visibility','hidden','important');
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
@@ -1776,6 +1779,8 @@ function showChapterTwoEndLegacy(){
   end.onclick=()=>window.returnToTitle?.();
 }
 function startChapterTwoExpanded(){
+  clearTransientBoardFlights();
+  document.querySelector('main')?.style.setProperty('visibility','hidden','important');
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
   preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
@@ -2198,6 +2203,7 @@ function startCpuBattleFromTitle(){
   /* ログインや着せ替え同期を待つと、BGM は自動再生として拒否される。
      対戦 BGM はクリックの同期中に開始し、盤面初期化だけを後から行う。 */
   const title=document.querySelector('#titleScreen');
+  document.querySelector('main')?.style.removeProperty('visibility');
   title?.classList.add('dismiss');
   window.startBgm?.();
   const begin=()=>window.start?.();
@@ -2636,6 +2642,7 @@ function clearStoryBattleVisuals(){
 }
 function startStoryBattle(config){
   clearStoryBattleVisuals();
+  document.querySelector('main')?.style.removeProperty('visibility');
   storyBattleRuntime.kind=config.kind;
   document.body.classList.remove('story-cinematic','story-battle-tutorial','story-battle-wolf','story-battle-air');
   document.body.classList.add('story-active','story-battle-active',`story-battle-${config.kind}`);
