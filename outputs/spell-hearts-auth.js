@@ -2654,6 +2654,7 @@ function clearStoryBattleVisuals(){
   document.querySelectorAll('.board-flight').forEach(node=>node.remove());
 }
 function startStoryBattle(config){
+  return window.SpellHeartsStoryBattleStart?.(config);
   clearStoryBattleVisuals();
   storyBattleRuntime.kind=config.kind;
   document.body.classList.remove('story-cinematic','story-battle-tutorial','story-battle-wolf','story-battle-air');
@@ -2667,6 +2668,7 @@ function startStoryBattle(config){
   window.setBattleBackdrop?.(config.backdrop);
 }
 function finishStoryBattle(kind){
+  return window.SpellHeartsStoryBattleFinish?.(kind);
   if(kind&&storyBattleRuntime.kind!==kind)return;
   storyBattleRuntime.kind=null;
   clearStoryBattleVisuals();
