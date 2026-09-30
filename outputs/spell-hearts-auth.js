@@ -1211,8 +1211,7 @@ function tutorialRoundThree(){
 }
 function tutorialBeginAmplifyLesson(){
   tutorialDialogue('次はアンプリファイアだ。盤面を整えて、\nその力を実際に確かめてみよう。',()=>{
-    window.start?.();window.setBattleBackdrop?.('story-training-ground.webp');
-    if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
+    startStoryBattle({kind:'tutorial',backdrop:'story-training-ground.webp',playerDeck:['scheme','block','pursuit'],cpuDeck:['pursuit','block','scheme']});
     setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
       window.drawInitial?.();
       setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n俺はグーを出す。',()=>{
@@ -1254,6 +1253,7 @@ function revealStoryCurtain(curtain){
   curtain.classList.add('lift');
 }
 function tutorialFinishChapterOne(scene){
+  finishStoryBattle('tutorial');
   stopChapterOneBgm();
   const title=document.querySelector('#titleScreen');
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1270,6 +1270,7 @@ function tutorialFinishChapterOne(scene){
 }
 function tutorialReturnToStory(){
   cancelTutorialInteractions();stopTutorialBattleBgm();
+  finishStoryBattle('tutorial');
   document.body.classList.add('story-cinematic');
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
@@ -1370,12 +1371,8 @@ function beginVillageBattle(scene){
   setTimeout(()=>{
     scene.hidden=true;scene.classList.remove('show','preparing','leaving');document.body.classList.remove('story-cinematic');
     window.storyWolfBattleActive=true;window.storyWolfBattleResolved=false;
-    window.start?.();
-    if(typeof g!=='undefined'){g.c.deck=['pursuit','scheme','block'];g.p.deck=['scheme','block','pursuit'];window.render?.();}
-    window.setBattleBackdrop?.('story-village.webp');startWolfBattleBgm();
-    let opponent=document.querySelector('#storyBattleOpponentCard');
-    if(!opponent){opponent=document.createElement('img');opponent.id='storyBattleOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
-    opponent.src='assets/story-wolf-monster.webp';opponent.alt='狼のような魔物';opponent.hidden=false;
+    startStoryBattle({kind:'wolf',backdrop:'story-village.webp',playerDeck:['scheme','block','pursuit'],cpuDeck:['pursuit','scheme','block']});
+    startWolfBattleBgm();
     let intro=document.querySelector('#villageBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='villageBattleIntro';
@@ -1403,7 +1400,7 @@ function beginWolfAftermath(){
   const overlay=document.querySelector('#wolfBattleContinue');if(overlay)overlay.hidden=true;
   const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyBattleOpponentCard');if(opponent)opponent.hidden=true;
-  window.storyWolfBattleActive=false;stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.removeAttribute('data-story-keep-playing');battleMusic.pause();battleMusic.currentTime=0;}
+  window.storyWolfBattleActive=false;finishStoryBattle('wolf');stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.removeAttribute('data-story-keep-playing');battleMusic.pause();battleMusic.currentTime=0;}
   let scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
@@ -1584,8 +1581,7 @@ function beginChapterOneTutorial(scene){
   scene.classList.add('leaving');
   setTimeout(()=>{
     scene.hidden=true;document.body.classList.remove('story-cinematic');
-    window.start?.();
-    window.setBattleBackdrop?.('story-training-ground.webp');
+    startStoryBattle({kind:'tutorial',backdrop:'story-training-ground.webp'});
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
@@ -2017,10 +2013,7 @@ function beginChapterTwoAirBattle(scene){
       const sound=document.querySelector('#'+id);
       if(sound){sound.preload='auto';sound.volume=sfxLevel;sound.load();}
     }
-    window.start?.();
-    window.setBattleBackdrop?.('story-training-ground.webp');
-    // start() 後に盤面を一度だけ描き直し、会話用DOMや前戦の残りを持ち込まない。
-    window.render?.();
+    startStoryBattle({kind:'air',backdrop:'story-training-ground.webp',playerDeck:['scheme','block','pursuit'],cpuDeck:['pursuit','scheme','block']});
     document.body.style.setProperty('background-color','#05070d','important');
     document.body.style.setProperty('background-image','linear-gradient(rgba(2,5,10,.24),rgba(2,5,10,.46)),url("assets/story-training-ground.webp")','important');
     document.body.style.setProperty('background-position','center','important');
@@ -2030,23 +2023,12 @@ function beginChapterTwoAirBattle(scene){
     applySoundLevels();
     // 曲は会話のクリック中に起動済み。再生失敗時だけここで再試行する。
     if(!window.storyAirBattleBgmStarted||battleMusic?.paused)startWolfBattleBgm();
-    // エア戦でも狼戦と同じく、相手の戦闘用カードを盤面右側に表示する。
-    let opponent=document.querySelector('#storyAirOpponentCard');
-    if(!opponent){
-      opponent=document.createElement('img');
-      opponent.id='storyAirOpponentCard';
-      opponent.className='story-battle-opponent-card';
-      opponent.alt='エア・ノエル';
-      document.body.append(opponent);
-    }
-    opponent.src='assets/story-woman-warrior.webp';
-    opponent.hidden=false;
   });
 }
 function chapterTwoAfterAirBattle(){
   if(window.storyAirBattleResolved)return;
   window.storyAirBattleResolved=true;
-  window.storyAirBattleActive=false;
+  window.storyAirBattleActive=false;finishStoryBattle('air');
   const result=document.querySelector('#resultScreen');
   if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyAirOpponentCard');
@@ -2650,7 +2632,6 @@ function clearStoryBattleVisuals(){
   document.querySelectorAll('.board-flight').forEach(node=>node.remove());
 }
 function startStoryBattle(config){
-  return window.SpellHeartsStoryBattleStart?.(config);
   clearStoryBattleVisuals();
   storyBattleRuntime.kind=config.kind;
   document.body.classList.remove('story-cinematic','story-battle-tutorial','story-battle-wolf','story-battle-air');
@@ -2664,7 +2645,6 @@ function startStoryBattle(config){
   window.setBattleBackdrop?.(config.backdrop);
 }
 function finishStoryBattle(kind){
-  return window.SpellHeartsStoryBattleFinish?.(kind);
   if(kind&&storyBattleRuntime.kind!==kind)return;
   storyBattleRuntime.kind=null;
   clearStoryBattleVisuals();
