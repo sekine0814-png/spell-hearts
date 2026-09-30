@@ -1210,6 +1210,7 @@ function tutorialRoundThree(){
   }));
 }
 function tutorialBeginAmplifyLesson(){
+  return beginUnifiedTutorialAmplifyLesson();
   tutorialDialogue('次はアンプリファイアだ。盤面を整えて、\nその力を実際に確かめてみよう。',()=>{
     window.start?.();window.setBattleBackdrop?.('story-training-ground.webp');
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
@@ -1254,6 +1255,7 @@ function revealStoryCurtain(curtain){
   curtain.classList.add('lift');
 }
 function tutorialFinishChapterOne(scene){
+  finishStoryBattle?.('tutorial');
   stopChapterOneBgm();
   const title=document.querySelector('#titleScreen');
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1270,6 +1272,7 @@ function tutorialFinishChapterOne(scene){
 }
 function tutorialReturnToStory(){
   cancelTutorialInteractions();stopTutorialBattleBgm();
+  finishStoryBattle?.('tutorial');
   document.body.classList.add('story-cinematic');
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
@@ -1360,6 +1363,7 @@ function beginVillageEncounter(scene){
   },1150);
 }
 function beginVillageBattle(scene){
+  return beginUnifiedVillageBattle(scene);
   // チュートリアルのクリック監視・遅延処理を狼戦へ持ち込まない。
   cancelTutorialInteractions();window.storyWolfAftermathStarted=false;
   stopVillageAmbience();stopVillageDangerBgm();
@@ -1403,7 +1407,7 @@ function beginWolfAftermath(){
   const overlay=document.querySelector('#wolfBattleContinue');if(overlay)overlay.hidden=true;
   const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyBattleOpponentCard');if(opponent)opponent.hidden=true;
-  window.storyWolfBattleActive=false;stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.removeAttribute('data-story-keep-playing');battleMusic.pause();battleMusic.currentTime=0;}
+  window.storyWolfBattleActive=false;finishStoryBattle?.('wolf');stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.removeAttribute('data-story-keep-playing');battleMusic.pause();battleMusic.currentTime=0;}
   let scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
@@ -1584,8 +1588,7 @@ function beginChapterOneTutorial(scene){
   scene.classList.add('leaving');
   setTimeout(()=>{
     scene.hidden=true;document.body.classList.remove('story-cinematic');
-    window.start?.();
-    window.setBattleBackdrop?.('story-training-ground.webp');
+    startStoryBattle({kind:'tutorial',backdrop:'story-training-ground.webp'});
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
@@ -1761,7 +1764,7 @@ function installStoryAirResultHandler(){
   wrapped.storyAirResultHandlerInstalled=true;window.render=wrapped;
 }
 setTimeout(installStoryAirResultHandler,0);
-function beginChapterTwoAirBattle(scene,after){
+function beginChapterTwoAirBattleLegacy(scene,after){
   window.chapterTwoAfterBattle=after;window.storyAirBattleActive=true;window.storyAirBattleResolved=false;
   stopTavernBgm();fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>{
     scene.hidden=true;document.body.classList.remove('story-cinematic');
@@ -1771,7 +1774,7 @@ function beginChapterTwoAirBattle(scene,after){
     opponent.src='assets/story-woman-warrior.webp';opponent.alt='エア・ノエル';opponent.hidden=false;
   });
 }
-function showChapterTwoEnd(){
+function showChapterTwoEndLegacy(){
   let end=document.querySelector('#chapterTwoEndScreen');
   if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
@@ -2000,6 +2003,7 @@ function chapterTwoHomePrelude(scene){
   });
 }
 function beginChapterTwoAirBattle(scene){
+  return beginUnifiedChapterTwoAirBattle(scene);
   // 最後の会話クリック内で再生を開始する。フェード後に play() すると、
   // 一部ブラウザでは自動再生扱いになって無音になるため。
   const battleMusic=document.querySelector('#battleBgm');
@@ -2046,7 +2050,7 @@ function beginChapterTwoAirBattle(scene){
 function chapterTwoAfterAirBattle(){
   if(window.storyAirBattleResolved)return;
   window.storyAirBattleResolved=true;
-  window.storyAirBattleActive=false;
+  window.storyAirBattleActive=false;finishStoryBattle?.('air');
   const result=document.querySelector('#resultScreen');
   if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyAirOpponentCard');
@@ -2633,3 +2637,133 @@ mobileDressupStyle.textContent=`
 }
 `;
 document.head.append(mobileDressupStyle);
+
+/*
+ * Story battle runtime
+ *
+ * Chapter 1 の演習・狼戦と Chapter 2 のエア戦は、以前はそれぞれが盤面を直接
+ * 操作していた。その結果、立ち絵用の固定要素と手札が同じ座標を取り合い、
+ * 暗転後や画面サイズ変更後にカードが残ることがあった。
+ *
+ * 戦闘開始の入口をここへ一本化する。ストーリーの人物絵は会話シーンだけに置き、
+ * 戦闘盤面にはゲームのカード以外を追加しない。
+ */
+const storyBattleRuntime={kind:null};
+function clearStoryBattleVisuals(){
+  document.querySelectorAll('#storyBattleOpponentCard,#storyAirOpponentCard,.story-battle-opponent-card').forEach(node=>node.remove());
+  document.querySelectorAll('.board-flight').forEach(node=>node.remove());
+}
+function startStoryBattle(config){
+  clearStoryBattleVisuals();
+  storyBattleRuntime.kind=config.kind;
+  document.body.classList.remove('story-cinematic','story-battle-tutorial','story-battle-wolf','story-battle-air');
+  document.body.classList.add('story-active','story-battle-active',`story-battle-${config.kind}`);
+  window.start?.();
+  if(typeof g!=='undefined'){
+    g.p.deck=[...(config.playerDeck||['scheme','block','pursuit'])];
+    g.c.deck=[...(config.cpuDeck||['pursuit','scheme','block'])];
+    window.render?.();
+  }
+  window.setBattleBackdrop?.(config.backdrop);
+}
+function finishStoryBattle(kind){
+  if(kind&&storyBattleRuntime.kind!==kind)return;
+  storyBattleRuntime.kind=null;
+  clearStoryBattleVisuals();
+  document.body.classList.remove('story-battle-active','story-battle-tutorial','story-battle-wolf','story-battle-air');
+}
+
+/* Chapter 1: tutorial battle.  This keeps the existing scripted lesson but
+   initializes it through the same clean board lifecycle as every story fight. */
+function beginUnifiedTutorialAmplifyLesson(){
+  tutorialDialogue('次はアンプリファイアだ。盤面を整えて、\nその力を実際に確かめてみよう。',()=>{
+    startStoryBattle({kind:'tutorial',backdrop:'story-training-ground.webp',playerDeck:['scheme','block','pursuit'],cpuDeck:['pursuit','block','scheme']});
+    setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
+      window.drawInitial?.();
+      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n俺はグーを出す。',()=>{
+        window.openBattle?.();setTimeout(()=>tutorialPick('amplify','rock',tutorialExplainAmplify),350);
+      }),680);
+    })),500);
+  });
+}
+
+/* Chapter 1: wolf encounter. */
+function beginUnifiedVillageBattle(scene){
+  cancelTutorialInteractions();
+  window.storyWolfAftermathStarted=false;
+  stopVillageAmbience();stopVillageDangerBgm();primeWolfBattleTrack();
+  let curtain=document.querySelector('#tutorialBattleCurtain');
+  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  coverStoryCurtain(curtain);scene.classList.add('leaving');
+  setTimeout(()=>{
+    scene.hidden=true;scene.classList.remove('show','preparing','leaving');
+    window.storyWolfBattleActive=true;window.storyWolfBattleResolved=false;
+    startStoryBattle({kind:'wolf',backdrop:'story-village.webp',playerDeck:['scheme','block','pursuit'],cpuDeck:['pursuit','scheme','block']});
+    startWolfBattleBgm();
+    let intro=document.querySelector('#villageBattleIntro');
+    if(!intro){
+      intro=document.createElement('section');intro.id='villageBattleIntro';
+      intro.innerHTML='<button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……ユート先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      document.body.append(intro);
+    }
+    intro.querySelector('.chapter-speaker').textContent=storySpeakerName('主人公');
+    intro.hidden=false;requestAnimationFrame(()=>{intro.classList.add('show');revealStoryCurtain(curtain);});
+    intro.querySelector('.village-battle-dialogue').onclick=()=>{intro.classList.remove('show');setTimeout(()=>{intro.hidden=true;},350);};
+    setTimeout(()=>curtain.remove(),1150);
+  },1150);
+}
+
+/* Chapter 2: Air battle.  No Air portrait is attached to the battle board;
+   her portrait belongs to the dialogue scene and therefore cannot overlap blue cards. */
+function beginUnifiedChapterTwoAirBattle(scene){
+  const battleMusic=document.querySelector('#battleBgm');
+  startWolfBattleBgm();
+  window.storyAirBattleBgmStarted=!!battleMusic&&!battleMusic.paused;
+  chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
+    scene.hidden=true;
+    document.querySelector('main')?.style.removeProperty('visibility');
+    window.storyAirBattleActive=true;window.storyAirBattleResolved=false;
+    const sfxLevel=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.72));
+    for(const id of ['damageSfxOne','damageSfxTwo']){const sound=document.querySelector('#'+id);if(sound){sound.preload='auto';sound.volume=sfxLevel;sound.load();}}
+    startStoryBattle({kind:'air',backdrop:'story-training-ground.webp',playerDeck:['scheme','block','pursuit'],cpuDeck:['pursuit','scheme','block']});
+    applySoundLevels();
+    if(!window.storyAirBattleBgmStarted||battleMusic?.paused)startWolfBattleBgm();
+  });
+}
+
+/* One result hook for every rewritten story fight. */
+function installUnifiedStoryBattleResultHandler(){
+  const original=window.render;
+  if(typeof original!=='function'||original.unifiedStoryBattleResultHandlerInstalled)return;
+  const wrapped=function(...args){
+    const result=original.apply(this,args);
+    if(!document.body.classList.contains('story-battle-active')||typeof g==='undefined'||g?.phase!=='end')return result;
+    const screen=document.querySelector('#resultScreen');
+    if(!screen)return result;
+    screen.querySelector('.result-actions')?.remove();
+    screen.onclick=()=>{
+      if(storyBattleRuntime.kind==='wolf')beginWolfAftermath();
+      else if(storyBattleRuntime.kind==='air')chapterTwoAfterAirBattle();
+    };
+    return result;
+  };
+  wrapped.unifiedStoryBattleResultHandlerInstalled=true;window.render=wrapped;
+}
+setTimeout(installUnifiedStoryBattleResultHandler,0);
+
+const unifiedStoryBattleStyle=document.createElement('style');
+unifiedStoryBattleStyle.textContent=`
+/* Story fights own a clean board: only the board's card slots may draw cards. */
+body.story-battle-active .story-battle-opponent-card,
+body.story-battle-active #storyBattleOpponentCard,
+body.story-battle-active #storyAirOpponentCard{display:none!important}
+body.story-battle-active .picks,
+body.story-battle-active #pBattle .picks,
+body.story-battle-active #cBattle .picks{transform:none!important;transform-origin:center!important}
+body.story-battle-active .pick{box-sizing:border-box}
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  body.story-battle-active #pBattle .picks,
+  body.story-battle-active #cBattle .picks{transform:scale(1.04)!important;transform-origin:center!important}
+}
+`;
+document.head.append(unifiedStoryBattleStyle);
