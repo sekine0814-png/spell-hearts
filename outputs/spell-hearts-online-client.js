@@ -27,7 +27,11 @@
     const fallback=w==='p'?(kind==='battle'?'red-battle-back.webp':'red-spell-back.webp'):(kind==='battle'?'blue-battle-back.webp':'blue-spell-back.webp');
     const cosmetics=(w==='p'?net?.red:net?.blue)?.cosmetics;
     const selected=kind==='spell'?window.getSpellHeartsSpellShrinkArt?.(cosmetics,w):fallback;
-    return `<img class="${kind==='battle'?'battle-back':'spell-back'}" src="${A+(selected||fallback)}" alt="">`;
+    const source=A+(selected||fallback);
+    // 青バトル山札だけは過去に同名アセットを差し替えているため、古い黒い画像を
+    // ブラウザ/CDNが保持しないようURLを明示的に更新する。
+    const version=kind==='battle'&&w==='c'?'?v=blue-battle-deck-v36':'';
+    return `<img class="${kind==='battle'?'battle-back':'spell-back'}" src="${source+version}" alt="">`;
   };
   const battleFallback={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
   const battleFace=(w,key)=>{
@@ -132,7 +136,7 @@
     if(net.side==='c'&&!net.picked&&chooser)return;
     const deck=$('#cBattle');
     if(!deck)return;
-    const source=A+'blue-battle-back.webp';
+    const source=A+'blue-battle-back.webp?v=blue-battle-deck-v36';
     deck.replaceChildren();
     const card=document.createElement('img');
     card.className='battle-back';
