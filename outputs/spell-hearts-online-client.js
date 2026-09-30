@@ -1,6 +1,6 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false};
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false}, onlineDeckObserver=null, deckRepairScheduled=false;
   // オンライン接続後にもCPU戦の予約済み描画が走ると、オンライン盤面の上へ
   // CPU用の黒い BATTLE CARD 枠と OK 表示が上書きされる。オンライン中は止める。
   const soloRender=window.render;
@@ -153,6 +153,31 @@
     showResult();
   }
 
+  /*
+   * 認証・ストーリー用の旧描画器は、あとから window.render を差し替える。
+   * そのため外側の停止条件だけでは、オンライン中にも CPU 用の
+   * 「BATTLE CARD + OK」枠が青側へ一瞬でなく残ることがあった。
+   * 青側の山札を監視し、旧描画器による置換だけを即座にオンライン状態へ戻す。
+   */
+  function installOnlineDeckIntegrity(){
+    const stage=$('.stage');
+    if(!stage||onlineDeckObserver)return;
+    onlineDeckObserver=new MutationObserver(()=>{
+      if(!net||!document.body.classList.contains('online-mode')||deckRepairScheduled)return;
+      const deck=$('#cBattle');
+      if(!deck)return;
+      const blueChoosing=net.phase==='pick'&&net.side==='c'&&!net.picked&&chooser;
+      const overwritten=deck.querySelector('b')||(!blueChoosing&&!deck.querySelector('img.battle-back'))||(blueChoosing&&!deck.querySelector('.picks'));
+      if(!overwritten)return;
+      deckRepairScheduled=true;
+      queueMicrotask(()=>{
+        deckRepairScheduled=false;
+        if(net&&document.body.classList.contains('online-mode'))renderOnline();
+      });
+    });
+    onlineDeckObserver.observe(stage,{childList:true,subtree:true});
+  }
+
   function holdOnlineSpell(center,source,side){
     const host=$(center); if(!host)return;
     const card=document.createElement('img');
@@ -193,6 +218,7 @@
     if(joining)return;
     joining=true;
     document.body.classList.add('online-mode');
+    installOnlineDeckIntegrity();
     socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
     socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
     socket.onmessage=event=>{
