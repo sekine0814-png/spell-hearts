@@ -99,11 +99,13 @@
       $('#'+w+'Hp').textContent=`HP ${s.hp} / 10`;
       const canPass=net.phase==='spell'&&own&&net.canOk;
       const confirmed=net.phase==='spell'&&(own?net.ok:net.opponentOk);
+      const choosingBattle=net.phase==='pick'&&own&&!net.picked&&!chooser;
       const keepingOpenHand=net.phase==='pick'&&own&&!net.picked&&chooser&&!!battleDeck.querySelector('.picks');
       if(!keepingOpenHand)battleDeck.innerHTML=net.phase==='pick'&&own?(net.picked?back(w,'battle'):(chooser?hand():back(w,'battle'))):back(w,'battle');
       if(confirmed)battleDeck.insertAdjacentHTML('beforeend','<span class="ok-label">OK!</span>');
       battleDeck.classList.toggle('ok-ready',confirmed);
       battleDeck.classList.toggle('online-battle-ready',(net.phase==='pick'&&own&&!net.picked&&!chooser)||confirmed);
+      battleDeck.classList.toggle('battle-deck-prompt',choosingBattle);
       battleDeck.onclick=canPass?()=>confirmPlayerOk():(net.phase==='pick'&&own&&!net.picked&&!chooser?()=>openBattle():null);
       battleDeck.style.cursor=canPass||net.phase==='pick'&&own&&!net.picked&&!chooser?'pointer':'default';
       const spellDeck=$(spellSlot(w));
@@ -117,6 +119,7 @@
       amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
       const held=$(chargeSpell(w));
       held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
+      if(own&&s.hasSpell)held.dataset.spellName=spells[s.spell].n;else delete held.dataset.spellName;
       held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
