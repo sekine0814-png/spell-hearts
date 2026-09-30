@@ -1210,7 +1210,6 @@ function tutorialRoundThree(){
   }));
 }
 function tutorialBeginAmplifyLesson(){
-  return beginUnifiedTutorialAmplifyLesson();
   tutorialDialogue('次はアンプリファイアだ。盤面を整えて、\nその力を実際に確かめてみよう。',()=>{
     window.start?.();window.setBattleBackdrop?.('story-training-ground.webp');
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
@@ -1255,7 +1254,6 @@ function revealStoryCurtain(curtain){
   curtain.classList.add('lift');
 }
 function tutorialFinishChapterOne(scene){
-  finishStoryBattle?.('tutorial');
   stopChapterOneBgm();
   const title=document.querySelector('#titleScreen');
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1272,7 +1270,6 @@ function tutorialFinishChapterOne(scene){
 }
 function tutorialReturnToStory(){
   cancelTutorialInteractions();stopTutorialBattleBgm();
-  finishStoryBattle?.('tutorial');
   document.body.classList.add('story-cinematic');
   let intro=document.querySelector('#tutorialBattleIntro'),scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
@@ -1363,7 +1360,6 @@ function beginVillageEncounter(scene){
   },1150);
 }
 function beginVillageBattle(scene){
-  return beginUnifiedVillageBattle(scene);
   // チュートリアルのクリック監視・遅延処理を狼戦へ持ち込まない。
   cancelTutorialInteractions();window.storyWolfAftermathStarted=false;
   stopVillageAmbience();stopVillageDangerBgm();
@@ -1407,7 +1403,7 @@ function beginWolfAftermath(){
   const overlay=document.querySelector('#wolfBattleContinue');if(overlay)overlay.hidden=true;
   const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyBattleOpponentCard');if(opponent)opponent.hidden=true;
-  window.storyWolfBattleActive=false;finishStoryBattle?.('wolf');stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.removeAttribute('data-story-keep-playing');battleMusic.pause();battleMusic.currentTime=0;}
+  window.storyWolfBattleActive=false;stopTutorialBattleBgm();const battleMusic=document.querySelector('#battleBgm');if(battleMusic){battleMusic.removeAttribute('data-story-keep-playing');battleMusic.pause();battleMusic.currentTime=0;}
   let scene=document.querySelector('#chapterOneScene'),curtain=document.querySelector('#tutorialBattleCurtain');
   if(!scene)return;
   if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
@@ -1588,7 +1584,8 @@ function beginChapterOneTutorial(scene){
   scene.classList.add('leaving');
   setTimeout(()=>{
     scene.hidden=true;document.body.classList.remove('story-cinematic');
-    startStoryBattle({kind:'tutorial',backdrop:'story-training-ground.webp'});
+    window.start?.();
+    window.setBattleBackdrop?.('story-training-ground.webp');
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
@@ -2003,7 +2000,6 @@ function chapterTwoHomePrelude(scene){
   });
 }
 function beginChapterTwoAirBattle(scene){
-  return beginUnifiedChapterTwoAirBattle(scene);
   // 最後の会話クリック内で再生を開始する。フェード後に play() すると、
   // 一部ブラウザでは自動再生扱いになって無音になるため。
   const battleMusic=document.querySelector('#battleBgm');
@@ -2050,7 +2046,7 @@ function beginChapterTwoAirBattle(scene){
 function chapterTwoAfterAirBattle(){
   if(window.storyAirBattleResolved)return;
   window.storyAirBattleResolved=true;
-  window.storyAirBattleActive=false;finishStoryBattle?.('air');
+  window.storyAirBattleActive=false;
   const result=document.querySelector('#resultScreen');
   if(result){result.classList.remove('show');result.innerHTML='';result.onclick=null;}
   const opponent=document.querySelector('#storyAirOpponentCard');
