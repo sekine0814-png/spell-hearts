@@ -1,13 +1,20 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
   let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false}, onlineDeckObserver=null, deckRepairScheduled=false;
-  // オンライン接続後にもCPU戦の予約済み描画が走ると、オンライン盤面の上へ
-  // CPU用の黒い BATTLE CARD 枠と OK 表示が上書きされる。オンライン中は止める。
-  const soloRender=window.render;
-  if(typeof soloRender==='function')window.render=function(...args){
-    if(document.body.classList.contains('online-mode'))return;
-    return soloRender.apply(this,args);
+  // 認証・ストーリー側の初期化完了後にCPU描画を止める。
+  // ここを早く実行し過ぎると、その後の初期化が再びCPU用 render を登録してしまう。
+  const lockSoloRenderer=()=>{
+    const soloRender=window.render;
+    if(typeof soloRender!=='function'||soloRender.onlineRenderLocked)return;
+    const guarded=function(...args){
+      if(document.body.classList.contains('online-mode'))return;
+      return soloRender.apply(this,args);
+    };
+    guarded.onlineRenderLocked=true;
+    window.render=guarded;
   };
+  lockSoloRenderer();
+  setTimeout(lockSoloRenderer,0);
   const query=new URLSearchParams(location.search);
   const $=selector=>document.querySelector(selector);
   const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
@@ -53,7 +60,7 @@
     // CPU戦と同一のDOM・同一のCSSクラスで描画する。オンライン専用のカード構造は使わない。
     return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>{
       const selected=battleFace(net.side,k),fallback=A+(battleFallback[k]||'rock.webp'),name=cards?.[k]?.n||k;
-      return `<button class="pick battle-art-button" data-battle-card="${k}" title="${cardTip(k)}" onclick="pick('${k}')"><img class="battle-card-face" src="${selected}" data-battle-fallback="${fallback}" onerror="this.onerror=null;this.src=this.dataset.battleFallback" alt=""><span class="battle-card-name">${name}</span></button>`;
+      return `<button class="pick battle-art-button" data-online-battle-card="${k}" title="${cardTip(k)}"><img class="battle-card-face" src="${selected}" data-battle-fallback="${fallback}" onerror="this.onerror=null;this.src=this.dataset.battleFallback" alt=""><span class="battle-card-name">${name}</span></button>`;
     }).join('')}</div>`;
   }
 
@@ -92,6 +99,31 @@
     },620);
   }
 
+  function openOnlineBattle(){
+    if(net?.phase!=='pick'||net.picked)return;
+    chooser=true;
+    playCardFlip();
+    renderOnline();
+  }
+
+  function pickOnlineBattle(card){
+    if(net?.phase!=='pick'||net.picked)return;
+    const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');
+    chooser=false;
+    battleArriving[mine]=true;
+    target?.classList.add('flight-target');
+    renderOnline();
+    slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.webp':'blue-battle-back.webp'));
+    playCardFlip();
+    send('pick',card);
+    setTimeout(()=>{
+      target?.classList.remove('flight-target');
+      battleArriving[mine]=false;
+      localSet=true;
+      renderOnline();
+    },1320);
+  }
+
   function renderOnline(){
     if(!net)return;
     const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
@@ -113,8 +145,11 @@
       battleDeck.classList.toggle('ok-ready',confirmed);
       battleDeck.classList.toggle('online-battle-ready',(net.phase==='pick'&&own&&!net.picked&&!chooser)||confirmed);
       battleDeck.classList.toggle('battle-deck-prompt',choosingBattle);
-      battleDeck.onclick=canPass?()=>confirmPlayerOk():(net.phase==='pick'&&own&&!net.picked&&!chooser?()=>openBattle():null);
+      battleDeck.onclick=canPass?()=>send('ok'):(net.phase==='pick'&&own&&!net.picked&&!chooser?openOnlineBattle:null);
       battleDeck.style.cursor=canPass||net.phase==='pick'&&own&&!net.picked&&!chooser?'pointer':'default';
+      battleDeck.querySelectorAll('[data-online-battle-card]').forEach(button=>{
+        button.onclick=()=>pickOnlineBattle(button.dataset.onlineBattleCard);
+      });
       const spellDeck=$(spellSlot(w));
       spellDeck.innerHTML=s.deckCount?back(w,'spell'):'<div class="empty-deck">EMPTY</div>';
       spellDeck.classList.toggle('opening-spell-deck',net.phase==='opening'&&own&&!s.hasSpell);
