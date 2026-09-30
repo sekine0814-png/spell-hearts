@@ -1,6 +1,6 @@
 /* Shared board client. Loaded by the polished solo board; active only with ?room=. */
 (()=>{
-  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false}, onlineDeckObserver=null, deckRepairScheduled=false, blueDeckOverlay=null;
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false}, onlineDeckObserver=null, deckRepairScheduled=false;
   // 認証・ストーリー側の初期化完了後にCPU描画を止める。
   // ここを早く実行し過ぎると、その後の初期化が再びCPU用 render を登録してしまう。
   const lockSoloRenderer=()=>{
@@ -23,6 +23,29 @@
   const chargeSpell=w=>w==='p'?'#pChargeSpell':'#cChargeSpell';
   const grave=w=>w==='p'?'#pGrave':'#cGrave';
   const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
+  // CPU盤面の onclick より先にオンライン入力を確保する。
+  // 初期スペルドローがCPUの drawInitial に入ると、通信状態は opening のままなのに
+  // 見た目だけ pick へ進み、青山札が空になる。
+  document.addEventListener('click',event=>{
+    if(!net||!document.body.classList.contains('online-mode'))return;
+    const target=event.target instanceof Element?event.target:null;
+    if(!target)return;
+    const spellDeck=target.closest('#pSpell,#cSpell');
+    if(spellDeck&&net.phase==='opening'){
+      const side=spellDeck.id==='pSpell'?'p':'c';
+      const own=side===net.side, state=side==='p'?net.red:net.blue;
+      if(own&&!state.hasSpell){event.preventDefault();event.stopImmediatePropagation();send('draw');}
+      return;
+    }
+    const battleCard=target.closest('[data-online-battle-card]');
+    const battleDeck=target.closest('#pBattle,#cBattle');
+    if(!battleDeck||net.phase!=='pick')return;
+    const side=battleDeck.id==='pBattle'?'p':'c';
+    if(side!==net.side)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(battleCard)pickOnlineBattle(battleCard.dataset.onlineBattleCard);
+    else if(!net.picked&&!chooser)openOnlineBattle();
+  },true);
   const back=(w,kind)=>{
     const fallback=w==='p'?(kind==='battle'?'red-battle-back.webp':'red-spell-back.webp'):(kind==='battle'?'blue-battle-back.webp':'blue-spell-back.webp');
     const cosmetics=(w==='p'?net?.red:net?.blue)?.cosmetics;
@@ -154,32 +177,6 @@
     [0,40,160,600].forEach(delay=>setTimeout(forceBlueBattleDeck,delay));
   }
 
-  // 既存のCPU盤面が #cBattle を空にしても、オンラインの青山札は別レイヤーで保持する。
-  function renderBlueBattleOverlay(){
-    if(!net||!document.body.classList.contains('online-mode'))return;
-    const deck=$('#cBattle');
-    if(!deck)return;
-    const stage=$('.stage');
-    if(!stage)return;
-    if(!blueDeckOverlay){
-      blueDeckOverlay=document.createElement('img');
-      blueDeckOverlay.id='onlineBlueBattleDeckOverlay';
-      blueDeckOverlay.alt='青側バトル山札';
-      blueDeckOverlay.src=A+'blue-battle-back.webp?v=blue-battle-overlay-v38';
-      blueDeckOverlay.style.cssText='position:absolute!important;z-index:50!important;display:block!important;object-fit:cover!important;border-radius:5px!important;pointer-events:none!important;box-sizing:border-box!important;';
-      stage.append(blueDeckOverlay);
-    }
-    const blueChoosing=net.phase==='pick'&&net.side==='c'&&!net.picked&&chooser;
-    if(blueChoosing||net.phase==='end'){blueDeckOverlay.style.display='none';return;}
-    blueDeckOverlay.style.display='block';
-    blueDeckOverlay.style.left=`${deck.offsetLeft+4}px`;
-    blueDeckOverlay.style.top=`${deck.offsetTop+4}px`;
-    blueDeckOverlay.style.width=`${Math.max(0,deck.offsetWidth-8)}px`;
-    blueDeckOverlay.style.height=`${Math.max(0,deck.offsetHeight-8)}px`;
-  }
-  window.addEventListener('resize',renderBlueBattleOverlay);
-  window.addEventListener('scroll',renderBlueBattleOverlay,{passive:true});
-
   function renderOnline(){
     if(!net)return;
     const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
@@ -228,7 +225,6 @@
     // 両者の初期スペルドロー直後（pick 遷移時）は、青側だけ旧更新の内容に
     // 上書きされることがある。手札を開いている時以外はここで必ず青山札を再設定する。
     if(net.phase==='pick')forceBlueBattleDeck();
-    renderBlueBattleOverlay();
     const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
     $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):battleImage('p',battle.a)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
     $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):battleImage('c',battle.b)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
