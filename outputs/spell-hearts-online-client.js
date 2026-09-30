@@ -315,6 +315,10 @@
     if(joining)return;
     joining=true;
     document.body.classList.add('online-mode');
+    // 認証側の遅延初期化が render を差し替えた後なので、入室時点の最終描画器を
+    // オンライン専用に固定する。これをしないとCPU描画が青山札を上書きする。
+    lockSoloRenderer();
+    [0,40,160].forEach(delay=>setTimeout(lockSoloRenderer,delay));
     disableCpuBattleEntrypoints();
     installOnlineDeckIntegrity();
     socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
