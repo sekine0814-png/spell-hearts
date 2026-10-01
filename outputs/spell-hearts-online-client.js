@@ -1,1 +1,384 @@
-(()=>{const $=id=>document.getElementById(id),overlay=$('overlay');let socket=null,side=null,ownName='';const send=(type,x={})=>{if(socket&&socket.readyState===1)socket.send(JSON.stringify({type,...x}));};const close=()=>{if(socket){socket.close();socket=null;}};function receive(s){const me=s.side||side;document.body.dataset.me=me==='p'?'r':'b';document.body.dataset.online='1';const cv=x=>({hp:x.hp,spell:x.spell,name:x.nickname,deck:Array(x.deckCount).fill(0)});g={r:cv(s.red),b:cv(s.blue),me:me==='p'?'r':'b',online:true,phase:s.phase==='opening'?'open':s.phase,round:s.round,rp:s.battle?.a||null,bp:s.battle?.b||null,hand:s.hand||[],canUse:!!s.canUse,canOk:!!s.canOk,msg:s.message};$('title').classList.add('hide');$('app').classList.remove('hide');overlay.classList.add('hide');window.SHRender();}function connect(room,name){close();ownName=name||'ゲスト';socket=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host);socket.onopen=()=>send('join',{room,nickname:ownName});socket.onmessage=e=>{let p;try{p=JSON.parse(e.data);}catch{return;}if(p.type==='joined')side=p.side;if(p.type==='state')receive(p.state);if(p.type==='error')$('note').textContent=p.message;};socket.onerror=()=>{$('note').textContent='接続できませんでした。';};}window.SHOnline={open(){overlay.innerHTML='<section class="panel"><h2>オンライン対戦</h2><p>同じ合言葉を入力した二人で対戦します。</p><input id="room" placeholder="合言葉" maxlength="10"><input id="name" placeholder="名前" maxlength="16"><button id="join">入室</button><button id="cancel">戻る</button><p id="note"></p></section>';overlay.classList.remove('hide');$('cancel').onclick=()=>overlay.classList.add('hide');$('join').onclick=()=>{const room=$('room').value.trim();if(!room){$('note').textContent='合言葉を入力してください。';return;}connect(room,$('name').value.trim());};},controller:{draw:()=>send('draw'),pick:card=>send('pick',{card}),use:()=>send('use'),ok:()=>send('ok'),close}};})();
+/* Shared board client. Loaded by the polished solo board; active only with ?room=. */
+(()=>{
+  let socket=null, net=null, joining=false, chooser=false, localSet=false, remoteSet=false, heartbeat=null, resultSoundPlayed=false, spellInTransit={p:false,c:false}, ampArriving={p:false,c:false}, battleArriving={p:false,c:false}, onlineDeckObserver=null, deckRepairScheduled=false, blueDeckOverlay=null;
+  // 認証・ストーリー側の初期化完了後にCPU描画を止める。
+  // ここを早く実行し過ぎると、その後の初期化が再びCPU用 render を登録してしまう。
+  const lockSoloRenderer=()=>{
+    const soloRender=window.render;
+    if(typeof soloRender!=='function'||soloRender.onlineRenderLocked)return;
+    const guarded=function(...args){
+      if(document.body.classList.contains('online-mode'))return;
+      return soloRender.apply(this,args);
+    };
+    guarded.onlineRenderLocked=true;
+    window.render=guarded;
+  };
+  lockSoloRenderer();
+  setTimeout(lockSoloRenderer,0);
+  const query=new URLSearchParams(location.search);
+  const $=selector=>document.querySelector(selector);
+  const sideSlot=w=>w==='p'?'#pBattle':'#cBattle';
+  const spellSlot=w=>w==='p'?'#pSpell':'#cSpell';
+  const charge=w=>w==='p'?'#pCharge':'#cCharge';
+  const chargeSpell=w=>w==='p'?'#pChargeSpell':'#cChargeSpell';
+  const grave=w=>w==='p'?'#pGrave':'#cGrave';
+  const send=(type,card)=>socket?.readyState===1&&socket.send(JSON.stringify({type,card}));
+  const back=(w,kind)=>{
+    const fallback=w==='p'?(kind==='battle'?'red-battle-back.webp':'red-spell-back.webp'):(kind==='battle'?'blue-battle-back.webp':'blue-spell-back.webp');
+    const cosmetics=(w==='p'?net?.red:net?.blue)?.cosmetics;
+    const selected=kind==='spell'?window.getSpellHeartsSpellShrinkArt?.(cosmetics,w):fallback;
+    const source=A+(selected||fallback);
+    // 青バトル山札だけは過去に同名アセットを差し替えているため、古い黒い画像を
+    // ブラウザ/CDNが保持しないようURLを明示的に更新する。
+    const version=kind==='battle'&&w==='c'?'?v=blue-battle-deck-v36':'';
+    return `<img class="${kind==='battle'?'battle-back':'spell-back'}" src="${source+version}" alt="">`;
+  };
+  const battleFallback={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
+  const battleFace=(w,key)=>{
+    const fallback=battleFallback[key]||'rock.webp';
+    try{const selected=window.getSpellHeartsBattleArt?.((w==='p'?net?.red:net?.blue)?.cosmetics,key);return A+(typeof selected==='string'&&selected?selected:fallback);}
+    catch(error){console.warn('Battle art fallback:',error);return A+fallback;}
+  };
+  const battleImage=(w,key)=>{const fallback=A+(battleFallback[key]||'rock.webp');return `<img src="${battleFace(w,key)}" onerror="this.onerror=null;this.src='${fallback}'" alt="">`;};
+  const amplifyFace=w=>battleFace(w,'amplify');
+  const installOnlineAmplifyArt=()=>{
+    const original=window.slideCard;
+    if(typeof original!=='function'||original.onlineAmplifyArtInstalled)return;
+    const enhanced=function(fromSelector,toSelector,source){
+      const w=toSelector==='#pCharge'||fromSelector==='#pCharge'?'p':toSelector==='#cCharge'||fromSelector==='#cCharge'?'c':null;
+      if(w&&/amplify\.(?:jpg|webp)(?:$|[?#])/.test(source))source=amplifyFace(w);
+      return original.call(this,fromSelector,toSelector,source);
+    };
+    enhanced.onlineAmplifyArtInstalled=true;
+    window.slideCard=enhanced;
+  };
+  installOnlineAmplifyArt();
+  const onlineStyle=document.createElement('style');
+  onlineStyle.textContent='.online-battle-ready .ok-label{display:grid}.online-mode .slot .battle-back{height:100%!important;visibility:visible!important;opacity:1!important}.online-mode #pBattle .battle-art-button,.online-mode #cBattle .battle-art-button{background-image:none!important}.online-mode #pBattle .battle-art-button .battle-card-face,.online-mode #cBattle .battle-art-button .battle-card-face{position:absolute!important;inset:0!important;z-index:1!important;display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;background:#111!important}.online-mode .pick img{display:block!important;width:100%!important;height:100%!important;opacity:1!important;visibility:visible!important;filter:none!important}.online-mode .arena{left:0;width:100%;display:block;pointer-events:none}.online-mode .played{position:absolute;top:15%;width:12%;height:76%}.online-mode .played.flight-target{display:block!important;visibility:hidden}.online-mode .played.spell-display-top{z-index:20;overflow:visible}.online-mode #pPlayed{left:29%}.online-mode #cPlayed{right:29%}.online-mode .vs{left:50%;top:44%;transform:translate(-50%,-50%)}.online-spell-overlay{inset:auto!important;width:82%!important;height:82%!important;top:14%!important;z-index:10!important;filter:brightness(1.18);box-shadow:0 0 19px #e3adff}.online-spell-overlay.p-side{left:-18%!important}.online-spell-overlay.c-side{right:-18%!important}.spell-effect-backdrop{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.68);pointer-events:none;animation:spell-backdrop-in .22s ease-out both}.online-mode .spell-effect-message.p-side{color:#ff756f!important;text-shadow:0 0 8px #641411,0 0 20px #ff4e48!important}.online-mode .spell-effect-message.c-side{color:#70d8ff!important;text-shadow:0 0 8px #0b3862,0 0 20px #3aafff!important}@keyframes spell-backdrop-in{from{opacity:0}to{opacity:1}}';
+  document.head.append(onlineStyle);
+  onlineStyle.textContent+='.online-mode .faction{display:none}.online-nameplate{position:absolute;z-index:6;top:5.2%;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold clamp(11px,1.9vw,23px) Georgia,"Yu Mincho",serif;letter-spacing:.07em;-webkit-text-stroke:1px #10090d;paint-order:stroke fill;text-shadow:0 2px 6px #000}.online-nameplate.p-side{left:8%;color:#ff9b91}.online-nameplate.c-side{right:8%;color:#94dcff;text-align:right}';
+
+  onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
+
+  function hand(){
+    // CPU戦と同一のDOM・同一のCSSクラスで描画する。オンライン専用のカード構造は使わない。
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>{
+      const selected=battleFace(net.side,k),fallback=A+(battleFallback[k]||'rock.webp'),name=cards?.[k]?.n||k;
+      return `<button class="pick battle-art-button" data-online-battle-card="${k}" title="${cardTip(k)}"><img class="battle-card-face" src="${selected}" data-battle-fallback="${fallback}" onerror="this.onerror=null;this.src=this.dataset.battleFallback" alt=""><span class="battle-card-name">${name}</span></button>`;
+    }).join('')}</div>`;
+  }
+
+  function showResult(){
+    let result=$('#resultScreen');
+    if(!result){ result=document.createElement('div'); result.id='resultScreen'; document.body.append(result); }
+    if(net.phase==='end'){
+      const red=net.red.hp>net.blue.hp, blue=net.blue.hp>net.red.hp;
+      const winner=red?'p':blue?'c':null;
+      const reward=winner===net.side?2:1;
+      const rematchLabel=net.rematchReady?'相手の返答を待っています…':'もう一度対戦';
+      result.innerHTML=`<div class="result-stack"><div class="result-word ${red?'result-red':blue?'result-blue':'result-draw'}">${red?'RED WIN':blue?'BLUE WIN':'DRAW GAME'}</div><div class="result-token-reward"><img class="token-coin" src="assets/spell-hearts-token.webp" alt="金貨"><span>+${reward}</span></div><div class="result-actions"><button class="result-retry" onclick="requestRematch()" ${net.rematchReady?'disabled':''}>${rematchLabel}</button><button class="result-retry" onclick="returnToTitle()">タイトルへ戻る</button></div></div>`;
+      if(!resultSoundPlayed){resultSoundPlayed=true;window.playWinFanfare?.();}
+      requestAnimationFrame(()=>result.classList.add('show'));
+    }else{ resultSoundPlayed=false; result.classList.remove('show'); result.innerHTML=''; }
+  }
+
+  function runOnlineDamage(before,after){
+    const damage=after.battle?.d||{p:0,c:0};
+    const from={p:before.red.hp,c:before.blue.hp},to={p:after.red.hp,c:after.blue.hp};
+    for(const w of ['p','c'])$('#'+w+'Hp').textContent=`HP ${from[w]} / 10`;
+    const stage=$('.stage');
+    if(damage.c)stage.insertAdjacentHTML('beforeend',effectMarkup('aura-to-c'));
+    if(damage.p)stage.insertAdjacentHTML('beforeend',effectMarkup('aura-to-p'));
+    setTimeout(()=>{
+      let soundIndex=0;
+      for(const w of ['p','c'])if(damage[w]){
+        const hp=$('#'+w+'Hp'); hp.classList.remove('hp-hit'); void hp.offsetWidth; hp.classList.add('hp-hit');
+        setTimeout(()=>hp.classList.remove('hp-hit'),440); playDamageSfx(80+soundIndex*110); soundIndex++;
+      }
+      const timer=setInterval(()=>{
+        let done=true;
+        for(const w of ['p','c'])if(from[w]!==to[w]){from[w]+=Math.sign(to[w]-from[w]);$('#'+w+'Hp').textContent=`HP ${from[w]} / 10`;done=false}
+        if(done){clearInterval(timer);setTimeout(()=>$('.stage').querySelectorAll('.damage-aura').forEach(el=>el.remove()),180)}
+      },120);
+    },620);
+  }
+
+  function openOnlineBattle(){
+    if(net?.phase!=='pick'||net.picked)return;
+    chooser=true;
+    playCardFlip();
+    renderOnline();
+  }
+
+  function pickOnlineBattle(card){
+    if(net?.phase!=='pick'||net.picked)return;
+    const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');
+    chooser=false;
+    battleArriving[mine]=true;
+    target?.classList.add('flight-target');
+    renderOnline();
+    slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.webp':'blue-battle-back.webp'));
+    playCardFlip();
+    send('pick',card);
+    setTimeout(()=>{
+      target?.classList.remove('flight-target');
+      battleArriving[mine]=false;
+      localSet=true;
+      renderOnline();
+    },1320);
+  }
+
+  // opening → pick の遷移直後だけ、旧CPU描画が #cBattle の中身を置換する。
+  // この処理は render のクラスやCSSに依存せず、青山札そのものを明示的に組み直す。
+  function forceBlueBattleDeck(){
+    if(!net||net.phase!=='pick')return;
+    // 青プレイヤーが自分の手札を開いている間は、その手札を消さない。
+    if(net.side==='c'&&!net.picked&&chooser)return;
+    const deck=$('#cBattle');
+    if(!deck)return;
+    const source=A+'blue-battle-back.webp?v=blue-battle-deck-v36';
+    deck.replaceChildren();
+    const card=document.createElement('img');
+    card.className='battle-back';
+    card.src=source;
+    card.alt='青側バトル山札';
+    card.style.cssText='display:block!important;width:100%!important;height:100%!important;min-height:0!important;object-fit:cover!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:2!important;';
+    deck.append(card);
+    deck.style.setProperty('background-image',`url("${source}")`,'important');
+    deck.style.setProperty('background-size','100% 100%','important');
+    deck.style.setProperty('background-repeat','no-repeat','important');
+  }
+
+  function reinforceInitialBlueBattleDeck(){
+    // 通信状態・認証側の予約描画の完了後まで保持する。
+    [0,40,160,600].forEach(delay=>setTimeout(forceBlueBattleDeck,delay));
+  }
+
+  // 既存のCPU盤面が #cBattle を空にしても、オンラインの青山札は別レイヤーで保持する。
+  function renderBlueBattleOverlay(){
+    if(!net||!document.body.classList.contains('online-mode'))return;
+    const deck=$('#cBattle');
+    if(!deck)return;
+    if(!blueDeckOverlay){
+      blueDeckOverlay=document.createElement('img');
+      blueDeckOverlay.id='onlineBlueBattleDeckOverlay';
+      blueDeckOverlay.alt='青側バトル山札';
+      blueDeckOverlay.src=A+'blue-battle-back.webp?v=blue-battle-overlay-v37';
+      blueDeckOverlay.style.cssText='position:fixed!important;z-index:999!important;display:block!important;object-fit:cover!important;border-radius:5px!important;pointer-events:none!important;box-sizing:border-box!important;';
+      document.body.append(blueDeckOverlay);
+    }
+    const blueChoosing=net.phase==='pick'&&net.side==='c'&&!net.picked&&chooser;
+    if(blueChoosing||net.phase==='end'){blueDeckOverlay.style.display='none';return;}
+    const rect=deck.getBoundingClientRect();
+    blueDeckOverlay.style.display='block';
+    blueDeckOverlay.style.left=`${rect.left+4}px`;
+    blueDeckOverlay.style.top=`${rect.top+4}px`;
+    blueDeckOverlay.style.width=`${Math.max(0,rect.width-8)}px`;
+    blueDeckOverlay.style.height=`${Math.max(0,rect.height-8)}px`;
+  }
+  window.addEventListener('resize',renderBlueBattleOverlay);
+  window.addEventListener('scroll',renderBlueBattleOverlay,{passive:true});
+
+  function renderOnline(){
+    if(!net)return;
+    const me=net.side, state={p:net.red,c:net.blue}, battle=net.battle;
+    const stage=$('.stage');
+    for(const w of ['p','c']){
+      let plate=$(`#${w}Nameplate`);
+      if(!plate){plate=document.createElement('div');plate.id=`${w}Nameplate`;plate.className=`online-nameplate ${w==='p'?'p':'c'}-side`;stage?.append(plate);}
+      plate.textContent=state[w].nickname||`ゲスト${w==='p'?'RED':'BLUE'}`;
+    }
+    for(const w of ['p','c']){
+      const own=w===me, s=state[w], battleDeck=$(sideSlot(w));
+      $('#'+w+'Hp').textContent=`HP ${s.hp} / 10`;
+      const canPass=net.phase==='spell'&&own&&net.canOk;
+      const confirmed=net.phase==='spell'&&(own?net.ok:net.opponentOk);
+      const choosingBattle=net.phase==='pick'&&own&&!net.picked&&!chooser;
+      const keepingOpenHand=net.phase==='pick'&&own&&!net.picked&&chooser&&!!battleDeck.querySelector('.picks');
+      if(!keepingOpenHand)battleDeck.innerHTML=net.phase==='pick'&&own?(net.picked?back(w,'battle'):(chooser?hand():back(w,'battle'))):back(w,'battle');
+      if(confirmed)battleDeck.insertAdjacentHTML('beforeend','<span class="ok-label">OK!</span>');
+      battleDeck.classList.toggle('ok-ready',confirmed);
+      battleDeck.classList.toggle('online-battle-ready',(net.phase==='pick'&&own&&!net.picked&&!chooser)||confirmed);
+      battleDeck.classList.toggle('battle-deck-prompt',choosingBattle);
+      battleDeck.onclick=canPass?()=>send('ok'):(net.phase==='pick'&&own&&!net.picked&&!chooser?openOnlineBattle:null);
+      battleDeck.style.cursor=canPass||net.phase==='pick'&&own&&!net.picked&&!chooser?'pointer':'default';
+      battleDeck.querySelectorAll('[data-online-battle-card]').forEach(button=>{
+        button.onclick=()=>pickOnlineBattle(button.dataset.onlineBattleCard);
+      });
+      const spellDeck=$(spellSlot(w));
+      spellDeck.innerHTML=s.deckCount?back(w,'spell'):'<div class="empty-deck">EMPTY</div>';
+      spellDeck.classList.toggle('opening-spell-deck',net.phase==='opening'&&own&&!s.hasSpell);
+      spellDeck.onclick=net.phase==='opening'&&own&&!s.spell?()=>send('draw'):null;
+      spellDeck.style.cursor=net.phase==='opening'&&own&&!s.spell?'pointer':'default';
+      const amplifier=$(charge(w));
+      amplifier.innerHTML=s.amp==='charged'?`<img src="${amplifyFace(w)}" onerror="this.onerror=null;this.src='${A+battleFallback.amplify}'" title="${cardTip('amplify')}" alt="アンプリファイア">`:'';
+      const isOpeningAmplifier=net.phase==='reveal'&&(w==='p'?battle?.a:battle?.b)==='amplify';
+      amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
+      const held=$(chargeSpell(w));
+      held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
+      if(own&&s.hasSpell)held.dataset.spellName=spells[s.spell].n;else delete held.dataset.spellName;
+      held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
+      held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
+      held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
+      const visibleSpells=spellInTransit[w]?s.grave.slice(0,-1):s.grave;
+      const graveCards=[...visibleSpells.map(k=>({image:A+spells[k].i,title:spells[k].n})),...(s.ampGrave?[{image:amplifyFace(w),title:'アンプリファイア'}]:[])];
+      $(grave(w)).innerHTML=graveCards.map(card=>`<img src="${card.image}" title="${card.title}" alt="">`).join('');
+    }
+    // 両者の初期スペルドロー直後（pick 遷移時）は、青側だけ旧更新の内容に
+    // 上書きされることがある。手札を開いている時以外はここで必ず青山札を再設定する。
+    if(net.phase==='pick')forceBlueBattleDeck();
+    renderBlueBattleOverlay();
+    const pShown=battle&&!battleArriving.p, cShown=battle&&!battleArriving.c;
+    $('#pPlayed').innerHTML=pShown?(net.phase==='reveal'?back('p','battle'):battleImage('p',battle.a)):((!battleArriving.p&&(localSet&&me==='p'||remoteSet&&me==='c'))?back('p','battle'):'' );
+    $('#cPlayed').innerHTML=cShown?(net.phase==='reveal'?back('c','battle'):battleImage('c',battle.b)):((!battleArriving.c&&(localSet&&me==='c'||remoteSet&&me==='p'))?back('c','battle'):'' );
+    let message=net.waiting?'対戦相手の入室を待っています。':net.message||'';
+    if(net.phase==='pick')message=`ROUND ${net.round} ― <span class="battle-select-prompt">バトルカードを選択</span>`;
+    $('#message').innerHTML=message;
+    const own=state[me];
+    $('#spellInfo').innerHTML=own.spell?`伏せスペル：<strong>${spells[own.spell].n}</strong> ― ${spells[own.spell][own.amp==='charged'?'x':'a']}`:'伏せスペルはありません';
+    $('#actions').innerHTML='';
+    showResult();
+  }
+
+  /*
+   * 認証・ストーリー用の旧描画器は、あとから window.render を差し替える。
+   * そのため外側の停止条件だけでは、オンライン中にも CPU 用の
+   * 「BATTLE CARD + OK」枠が青側へ一瞬でなく残ることがあった。
+   * 青側の山札を監視し、旧描画器による置換だけを即座にオンライン状態へ戻す。
+   */
+  function installOnlineDeckIntegrity(){
+    const stage=$('.stage');
+    if(!stage||onlineDeckObserver)return;
+    onlineDeckObserver=new MutationObserver(()=>{
+      if(!net||!document.body.classList.contains('online-mode')||deckRepairScheduled)return;
+      const deck=$('#cBattle');
+      if(!deck)return;
+      const blueChoosing=net.phase==='pick'&&net.side==='c'&&!net.picked&&chooser;
+      const overwritten=deck.querySelector('b')||(!blueChoosing&&!deck.querySelector('img.battle-back'))||(blueChoosing&&!deck.querySelector('.picks'));
+      if(!overwritten)return;
+      deckRepairScheduled=true;
+      queueMicrotask(()=>{
+        deckRepairScheduled=false;
+        if(net&&document.body.classList.contains('online-mode'))forceBlueBattleDeck();
+      });
+    });
+    onlineDeckObserver.observe(stage,{childList:true,subtree:true});
+  }
+
+  function holdOnlineSpell(center,source,side){
+    const host=$(center); if(!host)return;
+    const card=document.createElement('img');
+    card.src=source; card.className=`spell-center-overlay online-spell-overlay ${side==='p'?'p-side':'c-side'}`;
+    host.append(card); setTimeout(()=>card.remove(),1420);
+  }
+
+  function showOnlineSpellMessage(use){
+    const stage=$('.stage');
+    if(!stage.querySelector('.spell-effect-backdrop')){
+      const backdrop=document.createElement('div');
+      backdrop.className='spell-effect-backdrop';
+      stage.append(backdrop);
+    }
+    const message=document.createElement('div');
+    message.className=`spell-effect-message ${use.side==='p'?'p-side':'c-side'}`;
+    const [headline,...detail]=spellResult(use.k,use.x).split('\n');
+    message.innerHTML=`<strong>${headline}</strong><span>${detail.join(' ')}</span>`;
+    stage.append(message); setTimeout(()=>{
+      message.remove();
+      if(!stage.querySelector('.spell-effect-message'))stage.querySelector('.spell-effect-backdrop')?.remove();
+    },3500);
+  }
+
+  function playOnlineSpell(use){
+    const source=A+spells[use.k].i, center=use.side==='p'?'#pPlayed':'#cPlayed';
+    spellInTransit[use.side]=true;
+    const target=$(center);
+    target?.classList.add('spell-display-top');
+    setTimeout(()=>target?.classList.remove('spell-display-top'),3500);
+    slideCard(chargeSpell(use.side),center,source); playCardFlip();
+    setTimeout(()=>{holdOnlineSpell(center,source,use.side);showOnlineSpellMessage(use)},1240);
+    setTimeout(()=>{slideCard(center,grave(use.side),source);playCardFlip()},2650);
+    setTimeout(()=>{spellInTransit[use.side]=false;renderOnline()},4000);
+  }
+
+  function connect(code){
+    if(joining)return;
+    joining=true;
+    document.body.classList.add('online-mode');
+    installOnlineDeckIntegrity();
+    socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}`);
+    socket.onopen=()=>{socket.send(JSON.stringify({type:'join',room:code,nickname:window.getSpellHeartsNickname?.(),cosmetics:window.getSpellHeartsCosmetics?.()}));heartbeat=setInterval(()=>send('ping'),10000)};
+    socket.onmessage=event=>{
+      let message; try{message=JSON.parse(event.data)}catch{return;}
+      if(message.type==='error'){ $('#roomNote').textContent=message.message; joining=false; return; }
+      if(message.type==='joined'){
+        history.replaceState({},'',location.pathname+'?room='+encodeURIComponent(message.room));
+        window.setBattleBackdrop?.();
+        $('#titleScreen').classList.add('dismiss');
+      }
+      if(message.type==='state'){
+        const previous=net, incoming=message.state;
+        const gameEnded=previous&&previous.phase!=='end'&&incoming.phase==='end';
+        const ownKey=incoming.side==='p'?'red':'blue';
+        const drew=previous&&!previous[ownKey].spell&&!!incoming[ownKey].spell;
+        const opponentSet=previous&&previous.phase==='pick'&&!previous.opponentPicked&&incoming.opponentPicked;
+        const flipped=previous&&previous.phase==='reveal'&&incoming.phase==='spell';
+        const previousUses=previous?.battle?.uses||{}, incomingUses=incoming.battle?.uses||{};
+        const newSpellUses=['p','c'].map(side=>incomingUses[side]&&!previousUses[side]?{...incomingUses[side],side}:null).filter(Boolean);
+        const damaged=previous&&previous.phase==='spell'&&incoming.phase==='damage';
+        if(incoming.phase!=='pick'){chooser=false;localSet=false;remoteSet=false}
+        if(incoming.phase==='opening')spellInTransit={p:false,c:false};
+        if(opponentSet){const opponent=incoming.side==='p'?'c':'p';battleArriving[opponent]=true;$(opponent==='p'?'#pPlayed':'#cPlayed')?.classList.add('flight-target');}
+        const charging=flipped?['p','c'].filter(side=>(side==='p'?incoming.battle?.a:incoming.battle?.b)==='amplify'):[];
+        if(flipped)for(const side of charging)ampArriving[side]=true;
+        newSpellUses.forEach(playOnlineSpell);
+        net=incoming;
+        try{ renderOnline(); }
+        catch(error){ $('#roomNote').textContent='対戦画面エラー：'+error.message; console.error(error); }
+        if(previous?.phase==='opening'&&incoming.phase==='pick')reinforceInitialBlueBattleDeck();
+        if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
+        if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
+        if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),amplifyFace(side));playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
+        newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
+        if(damaged)runOnlineDamage(previous,incoming);
+        if(gameEnded){
+          const winner=incoming.red.hp===incoming.blue.hp?null:(incoming.red.hp>incoming.blue.hp?'p':'c');
+          window.recordSpellHeartsResult?.(winner===null?'draw':winner===incoming.side?'win':'loss',incoming.matchId);
+          window.awardSpellHeartsTokens?.(winner===incoming.side?2:1,incoming.matchId);
+        }
+      }
+    };
+    socket.onclose=()=>{clearInterval(heartbeat);if(net&&net.phase!=='end')$('#message').textContent='接続が切れました。再読み込みして再入室してください。'; };
+  }
+
+  let controlsActive=false;
+  function activateOnlineControls(){
+    if(controlsActive)return;
+    controlsActive=true;
+    window.drawInitial=()=>send('draw');
+    window.openBattle=()=>{if(net?.phase==='pick'&&!net.picked){chooser=true;playCardFlip();renderOnline();}};
+    window.pick=card=>{if(net?.phase!=='pick'||net.picked)return;const mine=net.side,target=$(mine==='p'?'#pPlayed':'#cPlayed');chooser=false;battleArriving[mine]=true;target?.classList.add('flight-target');renderOnline();slideCard(sideSlot(mine),mine==='p'?'#pPlayed':'#cPlayed',A+(mine==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();send('pick',card);setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[mine]=false;localSet=true;renderOnline()},1320)};
+    window.use=()=>send('use');
+    window.confirmPlayerOk=()=>send('ok');
+    window.endRound=()=>send('ok');
+    window.requestRematch=()=>{if(net?.phase==='end'&&!net.rematchReady)send('rematch')};
+  }
+  window.beginOnlineMatch=async code=>{
+    if(location.protocol==='file:'){
+      location.href='http://localhost:8787/?room='+encodeURIComponent(code);
+      return;
+    }
+    // 入室パケットを送る前に、ログイン済みの着せ替え情報を読み切る。
+    // これで接続後に通常カード→選択カードへ差し替わることを防ぐ。
+    await Promise.resolve(window.waitForSpellHeartsCosmetics?.());
+    activateOnlineControls();
+    connect(code);
+  };
+  if(query.get('room')){
+    const code=query.get('room');
+    // 直接リンクで再入室した場合も、認証側の初期化が終わってから接続する。
+    setTimeout(()=>window.beginOnlineMatch?.(code),0);
+  }
+  // 対戦中の見た目は入室時に確定する。アカウント同期の遅延で途中から
+  // 通常カードへ差し替わったり、相手側の見た目が揺れたりしないようにする。
+})();
