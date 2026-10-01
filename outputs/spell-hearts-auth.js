@@ -2196,6 +2196,7 @@ function startCpuBattleFromTitle(){
   /* Firebase / 着せ替えの同期を待つとユーザー操作の有効期限が切れ、ブラウザが
      BGM と SE をまとめて拒否する。クリックの瞬間に音声を一度だけ許可する。 */
   window.primeSpellHeartsAudio?.();
+  window.startSpellHeartsBgm?.();
   const begin=()=>window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
   const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
