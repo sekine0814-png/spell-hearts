@@ -821,7 +821,7 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#enhancedBlockHealSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
@@ -2172,7 +2172,7 @@ function openTutorial(){
 window.primeSpellHeartsAudio=()=>{
   if(window.__spellHeartsAudioPrimed)return;
   window.__spellHeartsAudioPrimed=true;
-  for(const id of ['battleBgm','cardFlipSfx','pursuitSfx','blockSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
+  for(const id of ['cardFlipSfx','pursuitSfx','blockSfx','enhancedBlockHealSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
     const sound=document.querySelector('#'+id);
     if(!sound)continue;
     const previousVolume=sound.volume;
@@ -2202,6 +2202,25 @@ function startCpuBattleFromTitle(){
   const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
   if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();});else beginWithCosmetics();
 }
+// CPU戦のボタンを押した同じ操作内で曲をロード・再生する。非同期の認証完了後まで
+// 待つと、ブラウザから自動再生として拒否されるため、ここでは battleBgm を prime しない。
+window.startSpellHeartsBgm=()=>{
+  const music=document.querySelector('#battleBgm');
+  if(!music)return;
+  const tracks=['assets/forgotten-city.mp3','assets/memoria.mp3','assets/ice-chain.mp3','assets/melancholy.mp3'];
+  music.pause();
+  music.src=tracks[Math.floor(Math.random()*tracks.length)];
+  music.load();
+  music.volume=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)))/100;
+  music.play().catch(()=>{});
+};
+// 復帰時に旧実装が BGM を一度停止してから非同期再生し直すのを防ぐ。
+window.restartCpuMatch=()=>{
+  window.start?.();
+  document.querySelector('#titleScreen')?.classList.add('dismiss');
+  const music=document.querySelector('#battleBgm');
+  if(!music||music.paused)window.startSpellHeartsBgm?.();
+};
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
   if(!menu)return;
