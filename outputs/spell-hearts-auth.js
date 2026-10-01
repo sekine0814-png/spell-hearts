@@ -805,9 +805,10 @@ function makeModal(){
         }else{
           await createUserWithEmailAndPassword(auth,email,password);
         }
-        await updateProfile(auth.currentUser,{displayName:nickname});
         currentUser=auth.currentUser;
         await markNicknameConfigured();
+        await updateProfile(currentUser,{displayName:nickname});
+        currentUser=auth.currentUser;
         updateLoginButton();
       }else{
         if(auth.currentUser?.isAnonymous)await signOut(auth);
@@ -912,8 +913,9 @@ async function changeNickname(){
   const safeName=nickname.trim().replace(/[<>]/g,'').slice(0,16);
   if(!safeName){alert('ニックネームを入力してください。');return;}
   try{
-    await updateProfile(currentUser,{displayName:safeName});
     await markNicknameConfigured();
+    await updateProfile(currentUser,{displayName:safeName});
+    currentUser=auth.currentUser;
     updateLoginButton();
   }catch(error){alert(authMessage(error));}
 }
