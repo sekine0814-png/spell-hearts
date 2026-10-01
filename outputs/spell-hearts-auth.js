@@ -2207,6 +2207,7 @@ function startCpuBattleFromTitle(){
 window.startSpellHeartsBgm=()=>{
   const music=document.querySelector('#battleBgm');
   if(!music)return;
+  stopTitleBgm();
   const tracks=['assets/forgotten-city.mp3','assets/memoria.mp3','assets/ice-chain.mp3','assets/melancholy.mp3'];
   music.pause();
   music.src=tracks[Math.floor(Math.random()*tracks.length)];
