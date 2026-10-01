@@ -2428,7 +2428,7 @@ document.head.append(mobileDressupStyle);
  */
 const battlePresentationRepairStyle=document.createElement('style');
 battlePresentationRepairStyle.textContent=`
-#titleScreen:not(.dismiss)~main{visibility:hidden!important}
+#titleScreen:not(.dismiss)~main{display:none!important}
 #cBattle>.ok-label{
   position:absolute!important;
   inset:0!important;
