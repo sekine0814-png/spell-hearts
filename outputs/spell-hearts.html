@@ -13,9 +13,10 @@ function sideUI(k){
   const localSide=document.body.dataset.me||g.me||'r', s=g[k], me=k===localSide, chosen=k==='r'?g.rp:g.bp, who=document.body.dataset.online?(s.name||(me?'あなた':'相手')):(me?'あなた':'CPU');
   const choices=g.online?(g.hand||[]):Object.keys(C);
   const hand=g.phase==='pick'&&me&&!chosen?`<div class="hand">${choices.map(x=>`<button onclick="SH.pick('${x}')">${im(C[x][1])}<small>${C[x][0]}</small></button>`).join('')}</div>`:'';
+  if(hand)return `<h2 class="name">${who}</h2>${hand}`;
   const battle=slot(k==='r'?'red-battle-back.webp':'blue-battle-back.webp','BATTLE CARD',g.phase==='spell'&&me?'SH.ok()':'',g.phase==='spell'&&me);
-  const draw=slot(k==='r'?'red-spell-back.webp':'blue-spell-back.webp',s.spell?S[s.spell][0]:'SPELL CARD',g.phase==='open'&&me?'SH.draw()':'');
-  return `<h2 class="name">${who}</h2>${hand}${draw}${s.spell?`<div class="slot">${im(S[s.spell][1])}<small>${S[s.spell][0]}</small></div>`:'<div class="slot"><small>EMPTY</small></div>'}${battle}`;
+  const spell=s.spell?`<div class="slot">${im(S[s.spell][1])}<small>${S[s.spell][0]}</small></div>`:slot(k==='r'?'red-spell-back.webp':'blue-spell-back.webp','SPELL CARD',g.phase==='open'&&me?'SH.draw()':'');
+  return `<h2 class="name">${who}</h2>${spell}${battle}`;
 }
 function render(){
   if(!g)return; $('rh').textContent=`HP ${g.r.hp} / 10`; $('bh').textContent=`HP ${g.b.hp} / 10`;
@@ -30,4 +31,4 @@ function ok(){if(g.online)return window.SHOnline.controller.ok();const w=judge(g
 window.SHRender=render;
 window.SH={cpu(){window.SHOnlineController?.close();window.SHOnlineController=null;window.SHOnlineSide=null;delete document.body.dataset.me;delete document.body.dataset.online;init();$('title').classList.add('hide');$('app').classList.remove('hide');$('overlay').classList.add('hide');render();},draw,pick,spell,ok,title(){window.SHOnlineController?.close();window.SHOnlineController=null;window.SHOnlineSide=null;delete document.body.dataset.me;delete document.body.dataset.online;$('app').classList.add('hide');$('overlay').classList.add('hide');$('dialogue').classList.add('hide');$('title').classList.remove('hide');},online(){window.SHOnline?.open();},story(){window.SHStory?.open()}};
 </script><script src="spell-hearts-auth.js?v=rebuild-v7"></script><script src="spell-hearts-online-client.js?v=rebuild-v7"></script>
-</body><div id="codex-browser-sidebar-comments-root" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483647;"></div></html>
+</body></html>
