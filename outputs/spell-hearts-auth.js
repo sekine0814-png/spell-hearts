@@ -64,16 +64,18 @@ function authMessage(error){
 function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
-  if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';return;}
+  if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';updateNicknameChangeButton();return;}
   const isGoogleAccount=currentUser.providerData?.some(provider=>provider.providerId==='google.com');
   const privacyReady=localStorage.getItem(`spellHeartsNicknamePrivacy:${currentUser.uid}`)==='ready';
   if(isGoogleAccount&&!privacyReady&&currentUser.displayName!=='ゲスト'){
     button.textContent='ゲスト';
     button.title='アカウント設定・ログアウト';
+    updateNicknameChangeButton();
     return;
   }
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
+  updateNicknameChangeButton();
 }
 
 // Google のプロフィール名は本名を含むことがあるため、初回の Google ログインでは
@@ -884,19 +886,36 @@ function makeSettings(){
   const panel=document.createElement('section');
   panel.className='settings-panel';panel.hidden=true;
   const levels=applySoundLevels();
-  panel.innerHTML=`<div class="settings-heading">SETTINGS</div><label>ニックネーム<input class="settings-name" maxlength="16" value="${window.getSpellHeartsNickname()}"></label><button class="settings-save" type="button">名前を保存</button><label>BGM <output class="bgm-value">${levels.bgm}</output><input class="bgm-range" type="range" min="0" max="100" value="${levels.bgm}"></label><label>SE <output class="sfx-value">${levels.sfx}</output><input class="sfx-range" type="range" min="0" max="100" value="${levels.sfx}"></label>`;
+  panel.innerHTML=`<div class="settings-heading">SETTINGS</div><label>BGM <output class="bgm-value">${levels.bgm}</output><input class="bgm-range" type="range" min="0" max="100" value="${levels.bgm}"></label><label>SE <output class="sfx-value">${levels.sfx}</output><input class="sfx-range" type="range" min="0" max="100" value="${levels.sfx}"></label>`;
+  const nicknameButton=document.createElement('button');
+  nicknameButton.id='nicknameChangeButton';nicknameButton.className='nickname-change-button';nicknameButton.type='button';nicknameButton.textContent='ニックネームを変更';nicknameButton.hidden=true;
   title.append(gear,panel);
+  title.append(nicknameButton);
   gear.onclick=()=>{panel.hidden=!panel.hidden;gear.classList.toggle('open',!panel.hidden);};
-  panel.querySelector('.settings-save').onclick=async()=>{
-    const input=panel.querySelector('.settings-name'),nickname=input.value.trim().replace(/[<>]/g,'');
-    if(!nickname){input.focus();return;}
-    try{if(currentUser&&!currentUser.isAnonymous){await updateProfile(currentUser,{displayName:nickname});await markNicknameConfigured();}else localStorage.setItem('spellHeartsGuestNickname',nickname);input.value=nickname;updateLoginButton();}
-    catch(error){alert(authMessage(error));}
-  };
+  nicknameButton.onclick=changeNickname;
   for(const [kind,key] of [['bgm','spellHeartsBgmVolume'],['sfx','spellHeartsSfxVolume']]){
     const range=panel.querySelector(`.${kind}-range`),output=panel.querySelector(`.${kind}-value`);
     range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
   }
+  updateNicknameChangeButton();
+}
+
+function updateNicknameChangeButton(){
+  const button=document.querySelector('#nicknameChangeButton');
+  if(button)button.hidden=!currentUser||currentUser.isAnonymous;
+}
+
+async function changeNickname(){
+  if(!currentUser||currentUser.isAnonymous)return;
+  const nickname=prompt('ニックネームを入力してください',window.getSpellHeartsNickname?.()||'ゲスト');
+  if(nickname===null)return;
+  const safeName=nickname.trim().replace(/[<>]/g,'').slice(0,16);
+  if(!safeName){alert('ニックネームを入力してください。');return;}
+  try{
+    await updateProfile(currentUser,{displayName:safeName});
+    await markNicknameConfigured();
+    updateLoginButton();
+  }catch(error){alert(authMessage(error));}
 }
 
 function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
@@ -2371,7 +2390,7 @@ style.textContent=`
 .auth-modal{position:fixed;inset:0;z-index:240;display:grid;place-items:center;padding:20px;background:rgba(1,4,9,.78);backdrop-filter:blur(5px);animation:auth-fade .2s ease-out both}.auth-panel{position:relative;width:min(92vw,410px);padding:30px 34px 26px;border:1px solid #d8af4b;border-radius:8px;background:linear-gradient(145deg,rgba(27,28,41,.98),rgba(9,9,16,.99));box-shadow:inset 0 0 32px rgba(226,169,52,.16),0 18px 60px #000;color:#fff0bc;text-align:center}.auth-panel:before{content:'';position:absolute;inset:7px;border:1px solid rgba(219,181,84,.35);border-radius:4px;pointer-events:none}.auth-crown{position:relative;color:#ffe28a;font-size:29px;text-shadow:0 0 18px #e1a126}.auth-panel h2{position:relative;margin:3px 0 1px;font:27px Georgia,"Yu Mincho",serif;letter-spacing:.1em;text-shadow:0 0 12px #d99b27}.auth-subtitle{position:relative;margin:0 0 20px;color:#cbb879;font:13px Georgia,"Yu Mincho",serif;letter-spacing:.22em}.auth-close{position:absolute;z-index:1;right:14px;top:10px;border:0;background:transparent;color:#d9c27f;font:28px/1 Georgia,serif;cursor:pointer}.auth-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;margin-bottom:16px;border-bottom:1px solid #735d2b}.auth-tab{border:0;background:transparent;color:#b8a66b;padding:9px;font:15px Georgia,"Yu Mincho",serif;cursor:pointer}.auth-tab.active{color:#fff3b2;border-bottom:2px solid #f0c85c;text-shadow:0 0 8px #e6ac2b}.auth-form{position:relative;display:grid;gap:12px;text-align:left}.auth-form label{display:grid;gap:5px;color:#e5d29a;font:13px "Yu Gothic",sans-serif}.auth-form input{width:100%;padding:11px;border:1px solid #80652d;border-radius:3px;outline:0;background:#080911;color:#fff2c6;font:15px Georgia,"Yu Mincho",serif}.auth-form input:focus{border-color:#ffe287;box-shadow:0 0 13px rgba(255,205,77,.35)}.auth-status{min-height:2.6em;margin:0;color:#ffe59a;font:12px "Yu Gothic",sans-serif;line-height:1.35}.auth-submit{padding:11px;border:1px solid #e5b64a;border-radius:3px;background:linear-gradient(#75541a,#291806);color:#fff2b0;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em;cursor:pointer}.auth-submit:disabled{opacity:.55;cursor:wait}.auth-reset{position:relative;margin-top:13px;border:0;background:transparent;color:#d6c184;font:12px "Yu Gothic",sans-serif;text-decoration:underline;cursor:pointer}.auth-guest-note{position:relative;margin:14px 0 0;color:#a5adbc;font:11px "Yu Gothic",sans-serif}@keyframes auth-fade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}`;
 document.head.append(style);
 const settingsTweaks=document.createElement('style');
-settingsTweaks.textContent='.title-settings{top:58px;left:34px;width:84px;height:84px;padding:0;display:grid;place-items:center;border:2px solid #d8ae4e;border-radius:6px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 14px rgba(255,225,135,.13),0 2px 14px #0009;color:#ffe9a0;font:50px/1 serif;text-shadow:0 1px 3px #000;transition:filter .2s}.title-settings.open{transform:none}.settings-panel{top:158px}.push-screen{margin-bottom:42px}@media(max-width:600px){.title-settings{top:50px;left:16px;width:64px;height:64px;font-size:39px}.settings-panel{top:122px}.push-screen{margin-bottom:24px}}';
+settingsTweaks.textContent='.title-settings{top:58px;left:34px;width:84px;height:84px;padding:0;display:grid;place-items:center;border:2px solid #d8ae4e;border-radius:6px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 14px rgba(255,225,135,.13),0 2px 14px #0009;color:#ffe9a0;font:50px/1 serif;text-shadow:0 1px 3px #000;transition:filter .2s}.title-settings.open{transform:none}.settings-panel{top:158px}.nickname-change-button{position:absolute;z-index:3;top:132px;right:34px;padding:9px 16px;border:1px solid #d8ae4e;border-radius:4px;background:rgba(3,5,8,.78);box-shadow:inset 0 0 12px rgba(255,225,135,.12),0 2px 12px #0009;color:#ffe9a0;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.08em;text-shadow:0 1px 3px #000;cursor:pointer}.nickname-change-button:hover{filter:brightness(1.28)}.push-screen{margin-bottom:42px}@media(max-width:600px){.title-settings{top:50px;left:16px;width:64px;height:64px;font-size:39px}.settings-panel{top:122px}.nickname-change-button{top:100px;right:16px;padding:7px 11px;font-size:12px}.push-screen{margin-bottom:24px}}';
 document.head.append(settingsTweaks);
 const tokenStyle=document.createElement('style');
 tokenStyle.textContent='.token-balance{position:absolute;z-index:3;right:34px;bottom:3.5vh;display:inline-flex;align-items:center;gap:14px;background:transparent;color:#fff0ad;font:bold 34px Georgia,"Yu Mincho",serif;text-shadow:0 2px 5px #000}.token-coin{display:block;width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}.token-balance .token-coin{width:81px;height:81px}.token-count{min-width:2ch;text-align:right}.result-token-reward{display:inline-flex;align-items:center;gap:12px;margin-top:20px;padding:8px 15px;border:1px solid rgba(225,184,77,.8);border-radius:5px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 13px rgba(255,225,135,.12),0 2px 12px #0009;color:#fff0ad;font:bold clamp(20px,2.7vw,32px) Georgia,"Yu Mincho",serif;text-shadow:0 1px 3px #000}.result-token-reward .token-coin{width:50px;height:50px}@media(max-width:600px){.token-balance{right:16px;bottom:3vh;gap:8px;font-size:25px}.token-balance .token-coin{width:58px;height:58px}.result-token-reward{margin-top:14px;padding:7px 12px}.result-token-reward .token-coin{width:43px;height:43px}}';
