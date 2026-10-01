@@ -64,18 +64,16 @@ function authMessage(error){
 function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
-  if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';updateNicknameChangeButton();return;}
+  if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';return;}
   const isGoogleAccount=currentUser.providerData?.some(provider=>provider.providerId==='google.com');
   const privacyReady=localStorage.getItem(`spellHeartsNicknamePrivacy:${currentUser.uid}`)==='ready';
   if(isGoogleAccount&&!privacyReady&&currentUser.displayName!=='ゲスト'){
     button.textContent='ゲスト';
     button.title='アカウント設定・ログアウト';
-    updateNicknameChangeButton();
     return;
   }
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
-  updateNicknameChangeButton();
 }
 
 // Google のプロフィール名は本名を含むことがあるため、初回の Google ログインでは
@@ -900,37 +898,26 @@ function makeSettings(){
   const panel=document.createElement('section');
   panel.className='settings-panel';panel.hidden=true;
   const levels=applySoundLevels();
-  panel.innerHTML=`<div class="settings-heading">SETTINGS</div><label>BGM <output class="bgm-value">${levels.bgm}</output><input class="bgm-range" type="range" min="0" max="100" value="${levels.bgm}"></label><label>SE <output class="sfx-value">${levels.sfx}</output><input class="sfx-range" type="range" min="0" max="100" value="${levels.sfx}"></label>`;
-  const nicknameButton=document.createElement('button');
-  nicknameButton.id='nicknameChangeButton';nicknameButton.className='nickname-change-button';nicknameButton.type='button';nicknameButton.textContent='ニックネームを変更';nicknameButton.hidden=true;
+  panel.innerHTML=`<div class="settings-heading">SETTINGS</div><label>ニックネーム<input class="settings-name" maxlength="16" value="${window.getSpellHeartsNickname()}"></label><button class="settings-save" type="button">名前を保存</button><label>BGM <output class="bgm-value">${levels.bgm}</output><input class="bgm-range" type="range" min="0" max="100" value="${levels.bgm}"></label><label>SE <output class="sfx-value">${levels.sfx}</output><input class="sfx-range" type="range" min="0" max="100" value="${levels.sfx}"></label>`;
   title.append(gear,panel);
-  title.append(nicknameButton);
   gear.onclick=()=>{panel.hidden=!panel.hidden;gear.classList.toggle('open',!panel.hidden);};
-  nicknameButton.onclick=changeNickname;
+  panel.querySelector('.settings-save').onclick=async()=>{
+    const input=panel.querySelector('.settings-name'),nickname=input.value.trim().replace(/[<>]/g,'').slice(0,16);
+    if(!nickname){input.focus();return;}
+    try{
+      if(currentUser&&!currentUser.isAnonymous){
+        await markNicknameConfigured(nickname);
+        await updateProfile(currentUser,{displayName:nickname});
+        currentUser=auth.currentUser;
+      }else localStorage.setItem('spellHeartsGuestNickname',nickname);
+      input.value=nickname;
+      updateLoginButton();
+    }catch(error){alert(authMessage(error));}
+  };
   for(const [kind,key] of [['bgm','spellHeartsBgmVolume'],['sfx','spellHeartsSfxVolume']]){
     const range=panel.querySelector(`.${kind}-range`),output=panel.querySelector(`.${kind}-value`);
     range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
   }
-  updateNicknameChangeButton();
-}
-
-function updateNicknameChangeButton(){
-  const button=document.querySelector('#nicknameChangeButton');
-  if(button)button.hidden=!currentUser||currentUser.isAnonymous;
-}
-
-async function changeNickname(){
-  if(!currentUser||currentUser.isAnonymous)return;
-  const nickname=prompt('ニックネームを入力してください',window.getSpellHeartsNickname?.()||'ゲスト');
-  if(nickname===null)return;
-  const safeName=nickname.trim().replace(/[<>]/g,'').slice(0,16);
-  if(!safeName){alert('ニックネームを入力してください。');return;}
-  try{
-    await markNicknameConfigured(safeName);
-    await updateProfile(currentUser,{displayName:safeName});
-    currentUser=auth.currentUser;
-    updateLoginButton();
-  }catch(error){alert(authMessage(error));}
 }
 
 function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
