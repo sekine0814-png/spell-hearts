@@ -116,12 +116,8 @@ async function loadAccountCosmetics(){
     catch(error){console.warn('Cosmetics sync failed',error);}
   }
   announceCosmetics();
-  /*
-   * オンライン対戦中に通常対戦用の render を呼ぶと、通信側の renderOnline と
-   * 同じ盤面を交互に描画してしまう。着せ替えの高速なちらつきとカード消失の
-   * 原因になるため、通常盤面だけをここで描き直す。
-   */
-  if(!document.body.classList.contains('online-mode'))window.render?.();
+  /* 端末間同期が終わった後にも、既に開いている CPU / ストーリー盤面を描き直す。 */
+  window.render?.();
 }
 async function saveCosmetics(){
   writeLocalCosmetics();announceCosmetics();
@@ -152,8 +148,7 @@ function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getIte
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
-  // タイトルは最初の操作で確実に鳴らせるよう、曲本体を先に準備しておく。
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='none';music.volume=0;
   document.body.append(music);return music;
 }
 function stopTitleBgm(){
@@ -200,33 +195,6 @@ function startTavernBgm(){
     const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)tavernBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
     tavernBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
-}
-function ensureSparringClashSfx(){
-  let sound=document.querySelector('#sparringClashSfx');
-  if(sound)return sound;
-  sound=document.createElement('audio');sound.id='sparringClashSfx';sound.src='assets/story-sparring-clash.mp3';sound.preload='auto';sound.volume=0;
-  document.body.append(sound);return sound;
-}
-function playSparringClashSfx(){
-  const sound=ensureSparringClashSfx();
-  sound.pause();sound.currentTime=0;sound.loop=false;
-  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
-  sound.play().catch(()=>{});
-}
-function ensureAirAftermathBgm(){
-  let music=document.querySelector('#airAftermathBgm');
-  if(music)return music;
-  music=document.createElement('audio');music.id='airAftermathBgm';music.src='assets/story-air-aftermath-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
-  document.body.append(music);return music;
-}
-function startAirAftermathBgm(){
-  const music=ensureAirAftermathBgm();
-  music.pause();music.currentTime=0;music.loop=true;music.dataset.keepPlaying='1';music.volume=titleBgmLevel();
-  music.play().catch(()=>{});
-}
-function stopAirAftermathBgm(){
-  const music=document.querySelector('#airAftermathBgm');
-  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;}
 }
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
@@ -352,7 +320,7 @@ function resumeStoryMedia(){
   if(document.visibilityState==='hidden')return;
   document.querySelectorAll('audio[data-keep-playing="1"]').forEach(music=>{if(music.paused||music.ended)music.play().catch(()=>{});});
   const battle=document.querySelector('#battleBgm');
-  if((window.storyWolfBattleActive||window.storyAirBattleActive)&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
+  if(window.storyWolfBattleActive&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
 }
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
@@ -375,30 +343,10 @@ function preloadStoryVisuals(sources=storyVisualAssets){
   return preloadVisuals(sources.filter(src=>storyVisualAssets.includes(src)));
 }
 function preloadVisualsWhenIdle(sources,delay=0){
-  // 物語中は表示に必要な一枚だけを読ませる。裏で多数の高解像度画像を
-  // デコードすると、場面転換と入力まで止まる端末がある。
-  if(document.body.classList.contains('story-active'))return Promise.resolve();
   setTimeout(()=>{
     const load=()=>preloadVisuals(sources);
     if('requestIdleCallback' in window)window.requestIdleCallback(load,{timeout:2500});
     else load();
-  },delay);
-}
-function preloadVisualsSequentiallyWhenIdle(sources,delay=0){
-  // Chapter 2 は会話を優先するため、先読みキューを作らない。
-  if(document.body.classList.contains('story-active'))return;
-  const queue=[...new Set(sources.filter(Boolean))];
-  const begin=()=>{
-    const next=()=>{
-      const source=queue.shift();
-      if(!source)return;
-      preloadVisuals([source]).finally(()=>setTimeout(next,180));
-    };
-    next();
-  };
-  setTimeout(()=>{
-    if('requestIdleCallback' in window)window.requestIdleCallback(begin,{timeout:3500});
-    else begin();
   },delay);
 }
 function preloadChapterTwoBattleAssets(){
@@ -406,13 +354,13 @@ function preloadChapterTwoBattleAssets(){
   const equipped=Object.keys(battleArt).map(card=>battleArtFor(publicCosmetics(),card));
   // 酒場を開く瞬間にカード画像を同時取得しない。会話中のアイドル時間で温める。
   const sources=[...new Set([...core,...equipped])].filter(Boolean).map(source=>'assets/'+source);
-  preloadVisualsSequentiallyWhenIdle(sources,2600);
+  preloadVisualsWhenIdle(sources,900);
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
-  if(title?.classList.contains('dismiss')||(!music.paused&&!music.ended))return;
+  if(titleBgmStarted||title?.classList.contains('dismiss'))return;
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;
-  titleBgmStarted=true;music.muted=false;music.volume=titleBgmLevel();music.dataset.fading='';
+  titleBgmStarted=true;music.volume=titleBgmLevel();music.dataset.fading='';
   music.play().catch(()=>{titleBgmStarted=false;});
 }
 function installTitleBgm(){
@@ -420,7 +368,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -681,30 +629,15 @@ window.awardSpellHeartsTokens=(amount,matchId)=>{
 function claimStoryChapterReward(chapter,amount){
   if(!currentUser||currentUser.isAnonymous)return false;
   const rewardKey=`spellHeartsStoryReward:${currentUser.uid}:${chapter}`;
-  const creditKey=`spellHeartsStoryTokenCredit:v2:${currentUser.uid}:${chapter}`;
-  // Chapter 2 の旧版では「受取済み」だけ記録され、残高へ加算されない場合があった。
-  // v2 の付与記録がない旧データは一度だけ救済し、必ず残高を増やす。
-  const wasClaimed=localStorage.getItem(rewardKey)==='claimed';
-  if(wasClaimed&&(chapter!=='chapter-two'||localStorage.getItem(creditKey)==='credited'))return false;
-  const reward=Math.max(0,Number(amount)||0);
-  if(!reward)return false;
-  if(!isGameOwner())localStorage.setItem(tokenKey(),String(readTokens()+reward));
+  if(localStorage.getItem(rewardKey)==='claimed')return false;
+  window.awardSpellHeartsTokens?.(amount,`story-${chapter}`);
   localStorage.setItem(rewardKey,'claimed');
-  localStorage.setItem(creditKey,'credited');
-  renderTokenBalance();
   return true;
-}
-
-function queueStoryRewardNotice(chapter,amount){
-  const reward=Math.max(0,Number(amount)||0);
-  if(!reward)return;
-  sessionStorage.setItem('spellHeartsStoryRewardNotice',String(reward));
-  if(currentUser&&!currentUser.isAnonymous)localStorage.setItem(`spellHeartsPendingRewardNotice:${currentUser.uid}:${chapter}`,String(reward));
 }
 
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
-onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();setTimeout(()=>showStoryRewardNotice?.(),0);});
+onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
 function closeLogin(){modal?.remove();modal=null;}
 
@@ -836,8 +769,7 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.68:sound.id==='winFanfare'?sfx*.82:sfx)/100);
-  const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
   return {bgm,sfx};
 }
 
@@ -1025,32 +957,6 @@ function installLocalCosmeticSync(){
   };
   const stage=document.querySelector('.stage');if(stage){new MutationObserver(sync).observe(stage,{childList:true,subtree:true});sync();}
 }
-/*
- * 盤面側の旧レンダラーは一度ノーマル画像を置き、次フレームで着せ替え画像へ
- * 差し替えていた。そのため render が続く戦闘中は両方が交互に見えてしまう。
- * 描画完了前に装備画像へ確定させ、通常画像を画面へ出さない。
- */
-function installStableBattleArtRender(tries=0){
-  const original=window.render;
-  if(typeof original!=='function'){
-    if(tries<30)setTimeout(()=>installStableBattleArtRender(tries+1),80);
-    return;
-  }
-  if(original.stableBattleArtInstalled)return;
-  const stable=function(...args){
-    const result=original.apply(this,args);
-    document.querySelectorAll('img[data-battle-art]').forEach(image=>{
-      const file=String(image.dataset.battleArt||'').replace(/^assets\//,'');
-      if(!file)return;
-      const source=`assets/${file}`;
-      if(image.src!==new URL(source,document.baseURI).href)image.src=source;
-    });
-    return result;
-  };
-  stable.stableBattleArtInstalled=true;
-  window.render=stable;
-}
-setTimeout(installStableBattleArtRender,0);
 function tutorialLock(){
   let lock=document.querySelector('#tutorialInputLock');
   if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
@@ -1179,6 +1085,10 @@ function tutorialFinishRound(nextRound,next){
   g.pOk=true;g.cOk=true;g.cpuSpellReady=true;
   window.endRound?.();
   tutorialWaitFor(()=>typeof g!=='undefined'&&g.round>=nextRound&&g.phase==='pick',move);
+  setTimeout(()=>{
+    if(typeof g==='undefined'||g.round>=nextRound)return;
+    g.round=nextRound;g.phase='pick';g.chooser=true;g.now=null;g.damageEffect=null;window.render?.();move();
+  },6000);
 }
 function tutorialRoundOne(){
   // CPU 側の謀略があいこ説明へ割り込まないよう、各ラウンドの伏せ札を固定する。
@@ -1482,7 +1392,7 @@ function showChapterOneEnd(scene){
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
     const received=claimStoryChapterReward('chapter-one',5),unlocked=unlockStoryChapter(2);
-    if(received)queueStoryRewardNotice('chapter-one',5);
+    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
     if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice','2');
     window.returnToTitle?.();
   };
@@ -1624,8 +1534,7 @@ function startChapterOne(){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-training-ground.webp" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    // 暗転・画像読込の途中でも、ここからは確認画面を経由せず必ず復帰できる。
-    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
+    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
   const sceneBackdrop=scene.querySelector('.chapter-scene-backdrop');
   const syncSceneBackdrop=()=>{
@@ -1664,10 +1573,9 @@ function startChapterTwoLegacy(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  // 開始時に大きい人物PNG・戦闘カードを同時に通信／デコードすると、
-  // 会話のクリックまで固まる。酒場を先に表示し、残りは一枚ずつ後読みする。
-  preloadVisualsSequentiallyWhenIdle(['assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],1200);
-  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();startTavernBgm();
+  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
+  preloadChapterTwoBattleAssets();
+  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
     {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
@@ -1694,17 +1602,10 @@ function startChapterTwoLegacy(){
     scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    // Chapter 2 の背景読み込みが失敗・遅延しても、タイトルへ戻る操作は常に有効にする。
-    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
+    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
   }
   const backdrop=scene.querySelector('.chapter-scene-backdrop'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
-  // 背景は専用の img 一枚だけで管理する。CSS背景との二重管理は行わない。
-  scene.classList.remove('chapter-two-css-backdrop');
-  scene.style.removeProperty('--chapter-two-backdrop');
-  backdrop.style.removeProperty('display');
-  backdrop.src='assets/story-tavern.jpg';
-  scene.dataset.chapterTwoBackdrop='assets/story-tavern.jpg';
-  let index=0;
+  backdrop.src='assets/story-tavern.jpg';let index=0;
   const renderLine=()=>{
     const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
     speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
@@ -1712,8 +1613,6 @@ function startChapterTwoLegacy(){
     yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='ユート');
     air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
-    // 「はっ！」が画面に出る操作と同じユーザー操作で、一度だけ剣戟を鳴らす。
-    if(line.sparringSfx===true)playSparringClashSfx();
   };
   dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else chapterTwoHomePrelude(scene);};
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1864,11 +1763,6 @@ function chapterTwoFade(scene,source,done){
   coverStoryCurtain(curtain);
   setTimeout(()=>{
     const backdrop=scene.querySelector('.chapter-scene-backdrop');
-    // 表示背景はこの画像一枚に統一する。CSS背景を併用すると終盤で黒背景が
-    // 優先されるため、必ず解除してから次の画像へ切り替える。
-    scene.classList.remove('chapter-two-css-backdrop');
-    scene.style.removeProperty('--chapter-two-backdrop');
-    backdrop?.style.removeProperty('display');
     const reveal=()=>{
       scene.dataset.chapterTwoBackdrop=source;
       if(done)done();
@@ -1876,46 +1770,18 @@ function chapterTwoFade(scene,source,done){
       setTimeout(()=>curtain.remove(),1250);
     };
     if(!backdrop||backdrop.src.endsWith(source)){reveal();return;}
-    // 表示中の背景を残したまま次の画像だけを裏で確認する。以前は img.src を
-    // 先に差し替えたため、通信・デコード待ちの間に背景が黒くなっていた。
-    const transitionId=String((Number(scene.dataset.chapterTwoTransition||'0')||0)+1);
-    scene.dataset.chapterTwoTransition=transitionId;
-    const candidate=new Image();
-    candidate.decoding='async';
-    let finished=false;
-    const finish=(available)=>{
-      if(finished)return;
-      finished=true;
-      if(available&&scene.dataset.chapterTwoTransition===transitionId){
-        backdrop.onerror=null;
-        backdrop.src=source;
-      }
-      reveal();
-    };
-    candidate.onload=()=>finish(true);
-    candidate.onerror=()=>finish(false);
-    candidate.src=source;
-    // 画像が遅い・壊れている場合も、会話とタイトル復帰を止めない。
-    setTimeout(()=>finish(false),700);
+    let revealed=false;
+    const ready=()=>{if(revealed)return;revealed=true;reveal();};
+    backdrop.onload=ready;
+    backdrop.onerror=ready;
+    backdrop.src=source;
+    // 端末によってはキャッシュ済み画像で load イベントが発火しないことがある。
+    // その場合も暗転したまま止まらないよう、必ず次の進行へ戻す。
+    setTimeout(ready,900);
+    if(backdrop.complete)requestAnimationFrame(ready);
   },1050);
 }
-const chapterTwoFrameStyle=document.createElement('style');
-chapterTwoFrameStyle.textContent=`
-  /* 枠は別レイヤーにせず、画像そのものに付ける。差分の大きさが変わっても切れない。 */
-  .chapter-two-scene .chapter-two-air,.chapter-two-scene .chapter-two-yuto{box-sizing:border-box;clip-path:none!important;background:#120d08}
-  .chapter-two-scene .chapter-two-air{border:6px double #e3b94d;outline:2px solid #4b3210;box-shadow:inset 0 0 0 3px #24627a,inset 0 0 0 7px rgba(255,230,130,.75),0 0 13px rgba(197,150,49,.34)}
-  .chapter-two-scene .chapter-two-yuto{border:6px double #9e7645;outline:2px solid #3b2815;box-shadow:inset 0 0 0 3px #d1ac76,inset 0 0 0 7px rgba(55,36,18,.72),0 0 13px rgba(82,54,26,.3)}
-`;
-document.head.append(chapterTwoFrameStyle);
-function setChapterTwoCardImage(card,source,fallback){
-  if(card.dataset.storyCardSource===source)return;
-  card.dataset.storyCardSource=source;
-  card.onerror=()=>{card.onerror=null;card.src=fallback;};
-  card.src=source;
-}
 function chapterTwoPlayLines(scene,lines,done){
-  // 以前の版が作った重ね枠を残さない。カードは常に画像一枚だけで描画する。
-  scene.querySelectorAll('.chapter-card-frame').forEach(frame=>frame.remove());
   const dialogue=scene.querySelector('.chapter-dialogue');
   const speaker=scene.querySelector('.chapter-speaker');
   const copy=dialogue.querySelector('p');
@@ -1924,14 +1790,9 @@ function chapterTwoPlayLines(scene,lines,done){
   let index=0;
   const showLine=()=>{
     const line=lines[index];
-    const backdrop=scene.dataset.chapterTwoBackdrop||'';
-    const sparring=backdrop==='assets/story-training-ground.webp'&&line.sparring===true;
-    const airBattle=sparring||line.airBattle===true;
-    // 酒場以外で会話する二人に、着席中の酒場差分が混ざらないよう場面ごとに固定する。
-    // 手合わせ中のみ戦闘ポーズ、以降の演習場・町の門では通常の立ち絵を使う。
-    const standing=backdrop==='assets/story-training-ground.webp'||backdrop==='assets/story-town-gate.jpg';
-    setChapterTwoCardImage(yuto,sparring?'assets/story-yuto-battle.png':standing?'assets/story-senior-warrior.webp':'assets/story-yuto-tavern-v2.png','assets/story-senior-warrior.webp');
-    setChapterTwoCardImage(air,airBattle?'assets/story-woman-warrior.webp':standing?'assets/story-woman-warrior-smile.webp':'assets/story-air-tavern-v2.png','assets/story-woman-warrior-smile.webp');
+    const trainingScene=scene.dataset.chapterTwoBackdrop==='assets/story-training-ground.webp';
+    yuto.src=trainingScene?'assets/story-yuto-battle.png':'assets/story-yuto-tavern-v2.png';
+    air.src=trainingScene?'assets/story-woman-warrior.webp':'assets/story-air-tavern-v2.png';
     speaker.textContent=storySpeakerName(line.speaker);
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
@@ -1941,8 +1802,6 @@ function chapterTwoPlayLines(scene,lines,done){
     air.classList.toggle('speaker-active',line.speaker==='エア');
     air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
-    // セリフを送って「はっ！」を表示した、その同じクリックで一度だけ鳴らす。
-    if(line.sparringSfx===true)playSparringClashSfx();
   };
   dialogue.hidden=false;
   dialogue.onclick=()=>{
@@ -1956,7 +1815,7 @@ function chapterTwoHomePrelude(scene){
   stopTavernBgm();
   // 直後に必要な背景だけを、酒場の表示後に静かに先読みする。
   // これで開始直後の回線・デコード競合を避けつつ、場面転換は止めない。
-  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],120);
+  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp'],120);
   const yuto=scene.querySelector('.chapter-two-yuto');
   const air=scene.querySelector('.chapter-two-air');
   yuto.hidden=true;air.hidden=true;
@@ -1970,13 +1829,9 @@ function chapterTwoHomePrelude(scene){
     {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
   ];
   const training=[
-    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true,sparring:true},
-    {speaker:'エア',text:'はっ！',yuto:true,air:true,sparring:true,sparringSfx:true},
-    {speaker:'ユート',text:'まだまだ！',yuto:true,air:true,sparring:true},
-    {speaker:'エア',text:'やるね、ユート。',yuto:true,air:true,sparring:true},
-    {speaker:'ユート',text:'そっちこそ、隙がないな！',yuto:true,air:true,sparring:true},
-    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true,sparring:true},
-    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true},
+    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true},
     {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
     {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
     {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
@@ -1985,7 +1840,7 @@ function chapterTwoHomePrelude(scene){
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
     {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
+    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
   ];
   chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
     chapterTwoPlayLines(scene,night,()=>{
@@ -2003,13 +1858,11 @@ function beginChapterTwoAirBattle(scene){
   // 最後の会話クリック内で再生を開始する。フェード後に play() すると、
   // 一部ブラウザでは自動再生扱いになって無音になるため。
   const battleMusic=document.querySelector('#battleBgm');
-  startWolfBattleBgm();
+  window.startBgm?.();
   window.storyAirBattleBgmStarted=!!battleMusic&&!battleMusic.paused;
   chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
     scene.hidden=true;
     document.body.classList.remove('story-cinematic');
-    // 会話パートが盤面を隠していた状態を、戦闘開始前に必ず解除する。
-    document.querySelector('main')?.style.removeProperty('visibility');
     window.storyAirBattleActive=true;
     window.storyAirBattleResolved=false;
     const sfxLevel=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.72));
@@ -2019,28 +1872,16 @@ function beginChapterTwoAirBattle(scene){
     }
     window.start?.();
     window.setBattleBackdrop?.('story-training-ground.webp');
-    // start() 後に盤面を一度だけ描き直し、会話用DOMや前戦の残りを持ち込まない。
-    window.render?.();
     document.body.style.setProperty('background-color','#05070d','important');
     document.body.style.setProperty('background-image','linear-gradient(rgba(2,5,10,.24),rgba(2,5,10,.46)),url("assets/story-training-ground.webp")','important');
     document.body.style.setProperty('background-position','center','important');
     document.body.style.setProperty('background-size','cover','important');
     document.body.style.setProperty('background-attachment','fixed','important');
     document.body.style.setProperty('background-repeat','no-repeat','important');
+    if(!window.storyAirBattleBgmStarted)window.startBgm?.();
     applySoundLevels();
-    // 曲は会話のクリック中に起動済み。再生失敗時だけここで再試行する。
-    if(!window.storyAirBattleBgmStarted||battleMusic?.paused)startWolfBattleBgm();
-    // エア戦でも狼戦と同じく、相手の戦闘用カードを盤面右側に表示する。
-    let opponent=document.querySelector('#storyAirOpponentCard');
-    if(!opponent){
-      opponent=document.createElement('img');
-      opponent.id='storyAirOpponentCard';
-      opponent.className='story-battle-opponent-card';
-      opponent.alt='エア・ノエル';
-      document.body.append(opponent);
-    }
-    opponent.src='assets/story-woman-warrior.webp';
-    opponent.hidden=false;
+    // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
+    document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
   });
 }
 function chapterTwoAfterAirBattle(){
@@ -2052,17 +1893,14 @@ function chapterTwoAfterAirBattle(){
   const opponent=document.querySelector('#storyAirOpponentCard');
   if(opponent)opponent.hidden=true;
   window.stopBgm?.();
-  document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');
-  // エア戦の決着を押した瞬間から、Chapter 2 終了まで KIRI をループする。
-  startAirAftermathBgm();
   const scene=document.querySelector('#chapterTwoScene');
   if(!scene)return;
   const aftermath=[
-    {speaker:'エア',text:'やるね……キミ！',air:true,airBattle:true},
-    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true,airBattle:true},
-    {speaker:'エア',text:'それなら……！',air:true,airBattle:true},
-    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true,airBattle:true},
-    {speaker:'ユート',text:'そこまで！',yuto:true,air:true,airBattle:true},
+    {speaker:'エア',text:'やるね……キミ！',air:true},
+    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true},
+    {speaker:'エア',text:'それなら……！',air:true},
+    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
+    {speaker:'ユート',text:'そこまで！',yuto:true,air:true},
     {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
     {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
     {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
@@ -2109,11 +1947,7 @@ function showChapterTwoEnd(){
   if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;
   requestAnimationFrame(()=>end.classList.add('show'));
-  end.onclick=()=>{
-    const received=claimStoryChapterReward('chapter-two',5);
-    if(received)queueStoryRewardNotice('chapter-two',5);
-    window.returnToTitle?.();
-  };
+  end.onclick=()=>window.returnToTitle?.();
 }
 function installChapterTwoAirResultHandler(){
   const original=window.render;
@@ -2130,8 +1964,7 @@ function installChapterTwoAirResultHandler(){
   window.render=wrapped;
 }
 setTimeout(installChapterTwoAirResultHandler,0);
-/* Chapter 2 の拡張シーンは段階的に実装している。未定義の拡張関数を直接
-   呼んでタイトル初期化を止めないよう、現在動作する導入シーンを入口にする。 */
+// Chapter 2 の拡張演出は、タイトルの起動を妨げないよう安全な導入版に一旦戻す。
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
@@ -2179,30 +2012,6 @@ function openTutorial(){
   next.onclick=()=>{if(page<pages.length-1){page++;renderPage();}else{modal.hidden=true;enterGame();}};
   renderPage();modal.hidden=false;
 }
-/*
- * 音声再生は、非同期ログインや画像待ちの後ではブラウザに自動再生として拒否される。
- * タイトル上の最初のクリックで全トラックを静かに許可し、以後の演出は通常どおり
- * 再生できる状態にしておく。
- */
-window.primeSpellHeartsAudio=()=>{
-  if(window.__spellHeartsAudioPrimed)return;
-  window.__spellHeartsAudioPrimed=true;
-  // BGM はこの準備処理に混ぜない。非同期の pause が最初の対戦 BGM を止めるため、
-  // 開始ボタンを押した瞬間に startBgm で直接再生する。
-  for(const id of ['cardFlipSfx','pursuitSfx','blockSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
-    const sound=document.querySelector('#'+id);
-    if(!sound)continue;
-    const previousVolume=sound.volume;
-    sound.muted=true;
-    const started=sound.play();
-    Promise.resolve(started).catch(()=>{}).finally(()=>{
-      sound.pause();
-      try{sound.currentTime=0;}catch{}
-      sound.muted=false;
-      sound.volume=previousVolume;
-    });
-  }
-};
 function makeTutorialButton(){
   const menu=document.querySelector('.title-menu');
   if(!menu||document.querySelector('#tutorialButton'))return;
@@ -2210,16 +2019,10 @@ function makeTutorialButton(){
   menu.insertBefore(button,menu.querySelector('.push-screen'));
 }
 function startCpuBattleFromTitle(){
-  /* ログインや着せ替え同期を待つと、BGM は自動再生として拒否される。
-     対戦 BGM はクリックの同期中に開始し、盤面初期化だけを後から行う。 */
-  const title=document.querySelector('#titleScreen');
-  title?.classList.add('dismiss');
-  window.startBgm?.();
-  const begin=()=>window.start?.();
-  const restoreTitle=()=>{window.stopBgm?.();title?.classList.remove('dismiss');window.startTitleBgm?.();};
+  const begin=()=>window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
   const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
-  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();else restoreTitle();}).catch(restoreTitle);else beginWithCosmetics();
+  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();});else beginWithCosmetics();
 }
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
@@ -2254,9 +2057,7 @@ function installTitlePressMenu(){
     trigger.hidden=true;trigger.style.display='none';
     menu.classList.add('menu-open');
   };
-  // 開いた直後に title 側の「メニュー外を押したら閉じる」処理へ同じクリックが
-  // 伝わると、PRESS SCREEN が何も起こらないように見えてしまう。
-  trigger.onclick=event=>{event.stopPropagation();startTitleBgm();playTitlePressSfx();openMenu();};
+  trigger.onclick=()=>{playTitlePressSfx();openMenu();};
   menu.addEventListener('click',event=>event.stopPropagation());
   title.addEventListener('click',event=>{
     if(!menu.classList.contains('menu-open'))return;
@@ -2265,7 +2066,7 @@ function installTitlePressMenu(){
   });
   choices.querySelector('[data-title-choice="story"]').onclick=()=>window.openStoryMode?.();
   choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
-  choices.querySelector('[data-title-choice="online"]').onclick=()=>{window.primeSpellHeartsAudio?.();const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
+  choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
   // 旧HTMLのメニューを描画せず、PRESS SCREEN の組み立てが終わってから表示する。
   title.classList.remove('title-shell-loading');
 }
@@ -2380,4 +2181,239 @@ chapterOneStyle.textContent+='#tutorialBattleCurtain,#tutorialBattleCurtain.retu
 chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transition:none!important}#tutorialBattleCurtain.lift{opacity:0!important;transition:opacity 1.1s ease!important}';
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
-chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif[Truncated]
+chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
+chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
+// 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
+chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
+chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
+// 純粋な会話シーンでは、立ち絵を画面の端ではなく会話に寄せて配置する。
+// 会話パートの人物カードは、会話欄と重ならない高さで左右対称に中央へ寄せる。
+chapterOneStyle.textContent+='@media(min-width:601px){.chapter-one-scene .chapter-npc-card{right:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .chapter-two-yuto{right:19vw}.chapter-one-scene .story-wolf-card{right:19vw;bottom:31vh}}@media(max-width:600px){.chapter-one-scene .chapter-npc-card{right:7vw;bottom:27vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:7vw;bottom:27vh}.chapter-one-scene .chapter-two-yuto{right:7vw}.chapter-one-scene .story-wolf-card{right:7vw;bottom:27vh}}';
+function showStoryRewardNotice(){const amount=Number(sessionStorage.getItem('spellHeartsStoryRewardNotice')||0),willUnlock=Boolean(sessionStorage.getItem('spellHeartsChapterUnlockNotice'));if(!amount)return;sessionStorage.removeItem('spellHeartsStoryRewardNotice');const notice=document.createElement('div');notice.className='story-reward-notice';notice.innerHTML=`<b>ストーリークリア報酬！</b><span><img src="assets/spell-hearts-token.webp" alt="金貨">金貨を ${amount} 枚手に入れました</span>`;document.body.append(notice);setTimeout(()=>notice.remove(),willUnlock?2350:5000);}
+function showStoryChapterUnlockNotice(){
+  const chapter=Number(sessionStorage.getItem('spellHeartsChapterUnlockNotice')||0);
+  if(!chapter)return;
+  sessionStorage.removeItem('spellHeartsChapterUnlockNotice');
+  const notice=document.createElement('div');notice.className='story-chapter-unlock-notice';
+  notice.innerHTML=`<span>NEW CHAPTER UNLOCKED</span><b>Chapter ${chapter}</b><i>🔓</i>`;
+  document.body.append(notice);setTimeout(()=>notice.remove(),4200);
+}
+setTimeout(()=>{showStoryRewardNotice();setTimeout(showStoryChapterUnlockNotice,2650);},350);
+chapterOneStyle.textContent+='.story-reward-notice{position:fixed;z-index:300;left:50%;top:50%;width:min(86vw,480px);padding:28px 30px;border:1px solid #d8ae4e;border-radius:7px;background:radial-gradient(ellipse at 50% 0,rgba(95,68,25,.98),rgba(11,9,11,.98) 72%);box-shadow:inset 0 0 30px rgba(255,217,129,.18),0 14px 48px #000;transform:translate(-50%,-50%);color:#fff0ae;text-align:center;animation:story-reward-in .45s ease-out both}.story-reward-notice b{display:block;margin-bottom:12px;font:26px Georgia,"Yu Mincho",serif;letter-spacing:.1em}.story-reward-notice span{display:flex;align-items:center;justify-content:center;gap:10px;font:18px "Yu Gothic",sans-serif}.story-reward-notice img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}@keyframes story-reward-in{from{opacity:0;transform:translate(-50%,-46%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
+chapterOneStyle.textContent+='.story-chapter-unlock-notice{position:fixed;z-index:301;left:50%;top:50%;display:grid;justify-items:center;gap:7px;min-width:min(80vw,410px);padding:23px 34px;border:1px solid #f1ce67;border-radius:7px;background:radial-gradient(ellipse at 50% 0,rgba(69,90,133,.98),rgba(7,10,19,.98) 72%);box-shadow:inset 0 0 33px rgba(148,218,255,.26),0 0 40px rgba(89,190,255,.32),0 16px 48px #000;color:#fff1b1;text-align:center;animation:story-unlock-in .55s cubic-bezier(.15,.85,.24,1) both}.story-chapter-unlock-notice span{font:12px Georgia,serif;letter-spacing:.2em;color:#b8eaff}.story-chapter-unlock-notice b{font:32px Georgia,"Yu Mincho",serif;letter-spacing:.12em;text-shadow:0 0 15px #78cfff}.story-chapter-unlock-notice i{font-style:normal;font-size:25px;filter:drop-shadow(0 0 8px #ffe889);animation:story-unlock-key .7s .35s ease-out both}@keyframes story-unlock-in{from{opacity:0;transform:translate(-50%,-44%) scale(.7);filter:brightness(2)}to{opacity:1;transform:translate(-50%,-50%) scale(1);filter:brightness(1)}}@keyframes story-unlock-key{from{transform:scale(.2) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}';
+chapterOneStyle.textContent+='.story-warrior-card.smile-card{box-sizing:border-box;padding:3px;border:2px solid rgba(229,196,116,.96);border-radius:6px;background:linear-gradient(135deg,#6d5429,#f2dc97,#5f461f);box-shadow:0 0 0 1px rgba(35,24,10,.95),0 0 13px rgba(241,211,129,.46),0 5px 15px #0008}';
+const mobileLandscapeStyle=document.createElement('style');
+mobileLandscapeStyle.textContent=`
+/* 横向きスマホでは、画面の高さを基準に盤面と操作部を一画面へ収める。 */
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  html,body{width:100%;min-height:100%;overflow-x:hidden}
+  body{overscroll-behavior:none}
+  main{width:100%;padding:3px 6px}
+  .top{min-height:25px;margin:0 auto 2px;max-width:min(100%,calc((100vh - 78px)*1.67))}
+  .top h1{font-size:clamp(16px,3vw,25px);line-height:1;letter-spacing:.1em}
+  .top .btn{min-height:24px;padding:4px 8px;border-radius:4px;font-size:10px}
+  .stage-wrap{overflow:visible!important}
+  .stage{min-width:0!important;width:min(100%,calc((100vh - 78px)*1.67));max-width:100%;margin:0 auto}
+  .below{max-width:min(100%,calc((100vh - 78px)*1.67));margin:2px auto;font-size:11px;line-height:1.25}
+  .spell-info{margin:2px 4px;font-size:10px}
+  .actions{margin:2px}.actions .btn{min-height:25px;padding:4px 9px;font-size:10px}
+  .log{display:none}
+  .message{font-size:clamp(8px,1.75vw,13px)}
+  /* 展開した手札だけは十分なタップ領域を確保する。枠は実際の表示座標を追従する。 */
+  .picks{transform:scale(1.04);transform-origin:center}
+  #pBattle .picks{transform:scale(1.75);transform-origin:left top}
+  #cBattle .picks{transform:scale(1.75);transform-origin:right top}
+  .battle-settings{top:8px!important;right:8px!important;left:auto!important;transform:scale(.78);transform-origin:top right}
+  .battle-settings-panel{top:42px!important;right:8px!important;left:auto!important;max-height:calc(100vh - 48px);overflow:auto;transform:scale(.82);transform-origin:top right}
+  .story-active .battle-settings{top:8px!important;left:8px!important;right:auto!important;transform-origin:top left}
+  .story-active .battle-settings-panel{top:42px!important;left:8px!important;right:auto!important;transform-origin:top left}
+
+  #titleScreen{padding-bottom:10px}
+  .title-menu{gap:4px;min-width:min(68vw,390px);transform:none}
+  .push-screen{margin-bottom:3px!important;padding:7px 15px!important;font-size:clamp(14px,2.8vw,23px)!important}
+  .room-form{padding:6px;width:min(66vw,340px);gap:5px}.room-form label{font-size:10px}.room-code{padding:6px 8px;font-size:13px}.room-enter{padding:0 9px;font-size:12px}.room-note{font-size:9px}
+  .title-login{top:10px!important;right:12px!important;padding:7px 12px!important;font-size:14px!important}.title-login::before{font-size:12px!important}
+  .title-settings{top:8px!important;left:12px!important;width:32px!important;height:32px!important;font-size:19px!important}
+  .settings-panel{top:46px!important;left:10px!important;width:218px!important;max-height:calc(100vh - 52px);overflow:auto;padding:10px;font-size:11px}
+  .settings-panel label{margin:6px 0}.settings-heading{margin-bottom:7px;font-size:14px}
+  /* タイトル右端は、アカウント・着せ替え・召喚・通貨を小さな二段構成で並べる。 */
+  .token-balance{right:12px;bottom:8px;gap:5px;font-size:17px}
+  .token-balance .token-coin{width:42px;height:42px}
+  .summon-button{right:14px;bottom:49px;width:62px;height:70px;font-size:10px}
+  .summon-button>span{left:-2px;width:66px}.summon-portal{width:62px;height:70px;transform:none}
+  .dressup-button{right:91px;bottom:49px;width:62px;height:70px;font-size:10px;transform:none}
+  .dressup-button>span{left:-2px;width:66px}.dressup-card{width:58px;height:70px;transform:none}
+
+  .story-mode-panel,.item-exchange-panel,.dressup-panel,.summon-gate-panel{padding:6px}
+  .story-mode-book,.item-exchange-book,.summon-gate-book{width:min(92vw,760px);max-height:94vh;overflow:auto;padding:23px 32px 20px}
+  .story-mode-book h2,.summon-gate-book h2{margin:5px 0;font-size:22px}.story-mode-copy,.summon-gate-copy{margin-bottom:10px;font-size:11px}
+  .story-chapters{gap:9px}.story-chapter{min-height:95px;padding:8px}.story-chapter-number{margin:10px 0 6px;font-size:17px}.story-mode-note{margin-top:9px;font-size:11px}
+  .item-exchange-detail,.item-exchange-confirm-box,.summon-confirm-box,.summon-result-box{max-height:92vh;overflow:auto}
+  .dressup-panel{overflow:auto}.dressup-card{transform:scale(.83);transform-origin:top center}
+
+  .chapter-return-title{top:7px;right:9px;padding:5px 9px;font-size:10px}
+  /* 両端のキャラカードと会話欄が決して重ならないよう、中央の会話領域を確保する。 */
+  .chapter-dialogue{bottom:8px;width:min(60vw,760px);min-height:94px;padding:15px 20px 18px}
+  .chapter-speaker{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}
+  .chapter-dialogue p{margin:9px 6px 0;font-size:clamp(11px,2vh,14px);line-height:1.45;letter-spacing:.035em}
+  .chapter-next-mark{right:13px;bottom:9px;transform:scale(.68)}
+  .chapter-npc-card,.chapter-story-card{bottom:112px;width:min(17vw,150px);max-height:calc(100vh - 148px)}
+  .story-wolf-card{right:1vw}.story-warrior-card{left:1vw}
+  .story-battle-opponent-card{right:0;bottom:112px;width:min(17vw,150px);max-height:calc(100vh - 148px)}
+  #tutorialBattleIntro .chapter-npc-card{right:0;bottom:112px;width:min(17vw,150px);max-height:calc(100vh - 148px)}
+  #villageBattleIntro .chapter-dialogue{width:min(74vw,920px)}
+  #chapterOneEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterOneEndScreen small{top:63%;font-size:10px}
+  .story-reward-notice{width:min(72vw,430px);padding:16px 20px}.story-reward-notice b{margin-bottom:7px;font-size:19px}.story-reward-notice span{font-size:13px}.story-reward-notice img{width:32px;height:32px}
+  #resultScreen{padding-bottom:4vh}.result-word{font-size:clamp(42px,16vh,92px)}.result-actions{margin-top:2vh}.result-retry{padding:6px 10px!important;font-size:14px!important}
+  .title-return-box{padding:16px;transform:scale(.88)}.title-return-box p{margin-bottom:14px;font-size:14px}.title-return-actions button{min-width:82px;padding:7px 10px;font-size:12px}
+  /* 縦に長いログイン内容は、横画面でも必ず下までスクロールして操作できる。 */
+  .auth-modal{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
+  .auth-panel{width:min(86vw,410px);max-height:calc(100vh - 24px);margin:0 auto;padding:18px 22px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .auth-crown{font-size:22px}.auth-panel h2{font-size:21px}.auth-subtitle{margin-bottom:10px;font-size:10px}.auth-tabs{margin-bottom:9px}.auth-tab{padding:6px;font-size:12px}.auth-form{gap:7px}.auth-form label{font-size:11px}.auth-form input{padding:7px;font-size:13px}.auth-submit{padding:8px;font-size:13px}.auth-status{min-height:1.8em;font-size:10px}.auth-guest-note{margin-top:8px;font-size:9px}
+}
+`;
+document.head.append(mobileLandscapeStyle);
+const tutorialTargetStyle=document.createElement('style');
+tutorialTargetStyle.textContent='#tutorialInputLock.focus{background:rgba(0,0,0,.74)!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}.slot.tutorial-focus-target,.charge.tutorial-focus-target{position:absolute!important}.picks .tutorial-focus-target{position:relative!important}';
+document.head.append(tutorialTargetStyle);
+/* 擬似要素の画像待ちで背景だけ黒くなる端末向けに、場面本体にも同じ背景を持たせる。 */
+chapterOneStyle.textContent+='.chapter-one-scene{background:#020509 url("assets/story-training-ground.webp") center/cover no-repeat!important}.chapter-one-scene.village-scene{background-image:url("assets/story-village.webp")!important}.chapter-one-scene.village-scene.night-village{background-image:url("assets/story-village-night.webp")!important}';
+const touchLandscapeStyle=document.createElement('style');
+touchLandscapeStyle.textContent=`
+/* 一部のスマホが高解像度 desktop 表示を返しても、実機のタッチ領域を優先する。 */
+body.touch-landscape{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body.touch-landscape #pBattle .picks{transform:scale(1.75)!important;transform-origin:left top!important}
+body.touch-landscape #cBattle .picks{transform:scale(1.75)!important;transform-origin:right top!important}
+body.touch-landscape .push-screen{position:relative;z-index:5;touch-action:manipulation}
+body.touch-landscape .push-screen:before{content:"";position:absolute;z-index:-1;inset:-28px -36px}
+body.touch-landscape .title-menu,.touch-landscape .push-screen,.touch-landscape .room-form,.touch-landscape .title-login{transform:none!important}
+`;
+document.head.append(touchLandscapeStyle);
+const titlePressStyle=document.createElement('style');
+titlePressStyle.textContent=`
+#titleScreen .title-menu.press-menu{gap:10px;min-width:min(88vw,430px)}
+#titleScreen .press-screen{margin:0!important;min-width:min(76vw,390px);padding:14px 25px!important}
+#titleScreen .title-choice-list{display:grid;gap:8px;width:min(76vw,390px);animation:title-choice-open .28s ease-out both}
+#titleScreen .title-choice{width:100%;padding:12px 18px;border:1px solid #dfb64e;border-radius:5px;background:rgba(3,5,8,.8);box-shadow:inset 0 0 14px rgba(255,223,128,.13),0 2px 13px #0009;color:#fff4b0;font:clamp(16px,2.4vw,28px) Georgia,"Yu Mincho",serif;letter-spacing:.15em;text-shadow:0 0 6px #573300,0 0 15px #e5a82e;cursor:pointer;transition:filter .18s ease,transform .18s ease}
+#titleScreen .title-choice:hover{filter:brightness(1.3);transform:translateY(-2px)}
+#titleScreen .press-menu .room-form{margin-top:2px}
+#titleScreen .press-menu .room-note{max-width:min(76vw,390px);text-align:center}
+@keyframes title-choice-open{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  #titleScreen .title-menu.press-menu{gap:4px;min-width:min(64vw,390px)}
+  #titleScreen .press-screen,#titleScreen .title-choice-list{width:min(58vw,340px);min-width:0}
+  #titleScreen .press-screen{padding:6px 12px!important;font-size:clamp(13px,2.5vw,21px)!important}
+  #titleScreen .title-choice{padding:6px 11px;font-size:clamp(12px,2.2vw,18px)}
+  #titleScreen .press-menu .room-form{width:min(58vw,340px)}
+}
+`;
+document.head.append(titlePressStyle);
+const titlePressLayoutStyle=document.createElement('style');
+titlePressLayoutStyle.textContent=`
+#titleScreen .title-menu.press-menu{position:absolute;left:50%;top:72%;bottom:auto;padding:0;transform:translateX(-50%);justify-items:center}
+#titleScreen .title-menu.press-menu.menu-open{top:60%}
+#titleScreen .title-choice-list[hidden],#titleScreen .press-menu .room-form[hidden],#titleScreen .press-menu .room-note[hidden]{display:none!important}
+#titleScreen .press-screen{min-width:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#fff4b0;font:clamp(18px,3vw,39px) Georgia,"Yu Mincho",serif!important;letter-spacing:.18em;text-shadow:0 0 6px #573300,0 0 20px #e5a82e!important;animation:push-screen-glow 1.5s ease-in-out infinite}
+#titleScreen .press-screen:hover{filter:brightness(1.35)}
+#titleScreen .title-choice-list{gap:0;padding:6px;border:1px solid rgba(223,182,78,.95);border-radius:5px;background:rgba(3,5,8,.8);box-shadow:inset 0 0 18px rgba(255,223,128,.15),0 4px 18px #000b}
+#titleScreen .title-choice{padding:10px 18px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#fff4b0;font:clamp(16px,2.35vw,27px) Georgia,"Yu Mincho",serif;letter-spacing:.15em;text-shadow:0 0 6px #573300,0 0 15px #e5a82e}
+#titleScreen .title-choice+.title-choice{border-top:1px solid rgba(223,182,78,.65)}
+#titleScreen .title-choice:hover{background:rgba(225,177,61,.14);filter:brightness(1.22);transform:none}
+#titleScreen .press-menu .room-form{width:min(76vw,390px);padding:8px;border-color:rgba(223,182,78,.82);background:rgba(3,5,8,.84)}
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  #titleScreen .title-menu.press-menu{top:62%}
+  #titleScreen .title-menu.press-menu.menu-open{top:48%}
+  #titleScreen .press-screen{font-size:clamp(13px,2.5vw,21px)!important}
+  #titleScreen .title-choice-list{padding:4px}
+  #titleScreen .title-choice{padding:5px 11px;font-size:clamp(12px,2.2vw,18px)}
+}
+body.touch-landscape #titleScreen .title-menu.press-menu{transform:translateX(-50%)!important}
+`;
+document.head.append(titlePressLayoutStyle);
+const onlineRoomLayoutStyle=document.createElement('style');
+onlineRoomLayoutStyle.textContent=`
+/* 合言葉欄を開いた時だけ上へ寄せ、低いブラウザ画面でも入力欄を画面内に固定する。 */
+#titleScreen .title-menu.press-menu.menu-open.online-open{top:42%!important}
+@media (max-height:760px){
+  #titleScreen .title-menu.press-menu.menu-open{top:46%!important}
+  #titleScreen .title-menu.press-menu.menu-open.online-open{top:27%!important}
+  #titleScreen .press-menu .room-form{margin-top:0!important}
+}
+`;
+document.head.append(onlineRoomLayoutStyle);
+// 展開メニューは各項目を同じセルに固定し、文字数によって枠の比率が変わらないようにする。
+titlePressLayoutStyle.textContent+=`
+#titleScreen .title-choice-list{grid-template-rows:repeat(3,64px);box-sizing:border-box}
+#titleScreen .title-choice{height:64px;padding:0!important;display:grid;place-items:center;box-sizing:border-box;line-height:1}
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  #titleScreen .title-choice-list{grid-template-rows:repeat(3,39px)}
+  #titleScreen .title-choice{height:39px;padding:0!important}
+}
+`;
+/*
+ * 横向きスマホでは、中央寄せ用の translate が Safari / Chrome の visual viewport と
+ * 別の座標系で扱われることがあり、見た目とタップ判定だけがずれる場合がある。
+ * タイトルの操作群だけは変形を使わず、画面幅いっぱいの実レイアウトで中央寄せする。
+ */
+const mobileTitleHitAreaStyle=document.createElement('style');
+mobileTitleHitAreaStyle.textContent=`
+body.touch-landscape.title-screen-active{height:100dvh!important;overflow:hidden!important}
+body.touch-landscape.title-screen-active #titleScreen{
+  position:absolute!important;
+  top:0!important;
+  right:0!important;
+  bottom:auto!important;
+  left:0!important;
+  width:100%!important;
+  height:100vh!important;
+  height:100dvh!important;
+  transform:none!important;
+}
+body.touch-landscape #titleScreen .title-menu.press-menu{
+    left:0!important;
+    right:0!important;
+    width:100vw!important;
+    max-width:100vw!important;
+    min-width:0!important;
+    transform:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+  }
+body.touch-landscape #titleScreen .title-menu.press-menu.menu-open{top:48%!important}
+body.touch-landscape #titleScreen .title-login,
+body.touch-landscape #titleScreen .title-settings,
+body.touch-landscape #titleScreen .summon-button,
+body.touch-landscape #titleScreen .dressup-button,
+body.touch-landscape #titleScreen .token-balance,
+body.touch-landscape #titleScreen .press-screen,
+body.touch-landscape #titleScreen .title-choice,
+body.touch-landscape #titleScreen .room-form,
+body.touch-landscape #titleScreen .room-code,
+body.touch-landscape #titleScreen .room-enter{touch-action:manipulation}
+`;
+document.head.append(mobileTitleHitAreaStyle);
+const mobileDressupStyle=document.createElement('style');
+mobileDressupStyle.textContent=`
+@media (orientation:landscape) and (pointer:coarse){
+  .dressup-panel.item-exchange-panel{display:grid!important;align-items:start!important;padding:8px!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+  .dressup-panel .item-exchange-book{width:min(94vw,680px)!important;min-height:0!important;max-height:calc(100dvh - 16px)!important;margin:auto!important;padding:16px 25px 13px!important;overflow-y:auto!important}
+  .dressup-panel .item-exchange-book:before{inset:6px}
+  .dressup-panel .item-exchange-kicker{font-size:9px}
+  .dressup-panel .item-exchange-book h2{margin:4px 0 5px;font-size:22px}
+  .dressup-panel .item-exchange-copy{margin:0 0 8px;font-size:11px}
+  .dressup-panel .item-exchange-categories{gap:7px}
+  .dressup-panel .item-exchange-categories button{min-height:118px;padding:6px 3px;font-size:11px}
+  .dressup-panel .item-exchange-categories img{width:66px;height:84px;margin-bottom:5px}
+  .dressup-panel .item-exchange-detail{min-height:150px;padding:22px 4px 4px}
+  .dressup-panel .item-exchange-detail-content{min-height:120px;padding:8px}
+  .dressup-panel .dressup-series-list{gap:6px}
+  .dressup-panel .dressup-series{width:128px;margin:0;padding:5px;gap:3px}
+  .dressup-panel .dressup-series img{width:76px;height:91px}
+  .dressup-panel .dressup-series span{font-size:12px}
+  .dressup-panel .dressup-series small{font-size:9px}
+  .dressup-panel .item-exchange-return{margin-top:8px;padding:6px 12px;font-size:12px}
+  .dressup-panel .item-exchange-close{right:10px;top:7px;font-size:24px}
+}
+`;
+document.head.append(mobileDressupStyle);
