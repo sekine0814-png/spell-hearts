@@ -116,8 +116,12 @@ async function loadAccountCosmetics(){
     catch(error){console.warn('Cosmetics sync failed',error);}
   }
   announceCosmetics();
-  /* 端末間同期が終わった後にも、既に開いている CPU / ストーリー盤面を描き直す。 */
-  window.render?.();
+  /*
+   * オンライン対戦中に通常対戦用の render を呼ぶと、通信側の renderOnline と
+   * 同じ盤面を交互に描画してしまう。着せ替えの高速なちらつきとカード消失の
+   * 原因になるため、通常盤面だけをここで描き直す。
+   */
+  if(!document.body.classList.contains('online-mode'))window.render?.();
 }
 async function saveCosmetics(){
   writeLocalCosmetics();announceCosmetics();
@@ -148,7 +152,8 @@ function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getIte
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='none';music.volume=0;
+  // タイトルは最初の操作で確実に鳴らせるよう、曲本体を先に準備しておく。
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.volume=0;
   document.body.append(music);return music;
 }
 function stopTitleBgm(){
@@ -195,6 +200,33 @@ function startTavernBgm(){
     const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*progress;if(progress<1)tavernBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
     tavernBgmFadeFrame=requestAnimationFrame(fade);
   }).catch(()=>{music.dataset.fading='';});
+}
+function ensureSparringClashSfx(){
+  let sound=document.querySelector('#sparringClashSfx');
+  if(sound)return sound;
+  sound=document.createElement('audio');sound.id='sparringClashSfx';sound.src='assets/story-sparring-clash.mp3';sound.preload='auto';sound.volume=0;
+  document.body.append(sound);return sound;
+}
+function playSparringClashSfx(){
+  const sound=ensureSparringClashSfx();
+  sound.pause();sound.currentTime=0;sound.loop=false;
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.play().catch(()=>{});
+}
+function ensureAirAftermathBgm(){
+  let music=document.querySelector('#airAftermathBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='airAftermathBgm';music.src='assets/story-air-aftermath-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function startAirAftermathBgm(){
+  const music=ensureAirAftermathBgm();
+  music.pause();music.currentTime=0;music.loop=true;music.dataset.keepPlaying='1';music.volume=titleBgmLevel();
+  music.play().catch(()=>{});
+}
+function stopAirAftermathBgm(){
+  const music=document.querySelector('#airAftermathBgm');
+  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;}
 }
 function ensureTutorialBattleBgm(){
   let music=document.querySelector('#tutorialBattleBgm');
@@ -320,7 +352,7 @@ function resumeStoryMedia(){
   if(document.visibilityState==='hidden')return;
   document.querySelectorAll('audio[data-keep-playing="1"]').forEach(music=>{if(music.paused||music.ended)music.play().catch(()=>{});});
   const battle=document.querySelector('#battleBgm');
-  if(window.storyWolfBattleActive&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
+  if((window.storyWolfBattleActive||window.storyAirBattleActive)&&battle?.dataset.storyKeepPlaying==='1'&&(battle.paused||battle.ended))battle.play().catch(()=>{});
 }
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
@@ -343,10 +375,30 @@ function preloadStoryVisuals(sources=storyVisualAssets){
   return preloadVisuals(sources.filter(src=>storyVisualAssets.includes(src)));
 }
 function preloadVisualsWhenIdle(sources,delay=0){
+  // 物語中は表示に必要な一枚だけを読ませる。裏で多数の高解像度画像を
+  // デコードすると、場面転換と入力まで止まる端末がある。
+  if(document.body.classList.contains('story-active'))return Promise.resolve();
   setTimeout(()=>{
     const load=()=>preloadVisuals(sources);
     if('requestIdleCallback' in window)window.requestIdleCallback(load,{timeout:2500});
     else load();
+  },delay);
+}
+function preloadVisualsSequentiallyWhenIdle(sources,delay=0){
+  // Chapter 2 は会話を優先するため、先読みキューを作らない。
+  if(document.body.classList.contains('story-active'))return;
+  const queue=[...new Set(sources.filter(Boolean))];
+  const begin=()=>{
+    const next=()=>{
+      const source=queue.shift();
+      if(!source)return;
+      preloadVisuals([source]).finally(()=>setTimeout(next,180));
+    };
+    next();
+  };
+  setTimeout(()=>{
+    if('requestIdleCallback' in window)window.requestIdleCallback(begin,{timeout:3500});
+    else begin();
   },delay);
 }
 function preloadChapterTwoBattleAssets(){
@@ -354,13 +406,13 @@ function preloadChapterTwoBattleAssets(){
   const equipped=Object.keys(battleArt).map(card=>battleArtFor(publicCosmetics(),card));
   // 酒場を開く瞬間にカード画像を同時取得しない。会話中のアイドル時間で温める。
   const sources=[...new Set([...core,...equipped])].filter(Boolean).map(source=>'assets/'+source);
-  preloadVisualsWhenIdle(sources,900);
+  preloadVisualsSequentiallyWhenIdle(sources,2600);
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
-  if(titleBgmStarted||title?.classList.contains('dismiss'))return;
+  if(title?.classList.contains('dismiss')||(!music.paused&&!music.ended))return;
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;
-  titleBgmStarted=true;music.volume=titleBgmLevel();music.dataset.fading='';
+  titleBgmStarted=true;music.muted=false;music.volume=titleBgmLevel();music.dataset.fading='';
   music.play().catch(()=>{titleBgmStarted=false;});
 }
 function installTitleBgm(){
@@ -368,7 +420,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -769,7 +821,8 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
 
@@ -957,6 +1010,32 @@ function installLocalCosmeticSync(){
   };
   const stage=document.querySelector('.stage');if(stage){new MutationObserver(sync).observe(stage,{childList:true,subtree:true});sync();}
 }
+/*
+ * 盤面側の旧レンダラーは一度ノーマル画像を置き、次フレームで着せ替え画像へ
+ * 差し替えていた。そのため render が続く戦闘中は両方が交互に見えてしまう。
+ * 描画完了前に装備画像へ確定させ、通常画像を画面へ出さない。
+ */
+function installStableBattleArtRender(tries=0){
+  const original=window.render;
+  if(typeof original!=='function'){
+    if(tries<30)setTimeout(()=>installStableBattleArtRender(tries+1),80);
+    return;
+  }
+  if(original.stableBattleArtInstalled)return;
+  const stable=function(...args){
+    const result=original.apply(this,args);
+    document.querySelectorAll('img[data-battle-art]').forEach(image=>{
+      const file=String(image.dataset.battleArt||'').replace(/^assets\//,'');
+      if(!file)return;
+      const source=`assets/${file}`;
+      if(image.src!==new URL(source,document.baseURI).href)image.src=source;
+    });
+    return result;
+  };
+  stable.stableBattleArtInstalled=true;
+  window.render=stable;
+}
+setTimeout(installStableBattleArtRender,0);
 function tutorialLock(){
   let lock=document.querySelector('#tutorialInputLock');
   if(!lock){lock=document.createElement('div');lock.id='tutorialInputLock';document.body.append(lock);}
@@ -1085,10 +1164,6 @@ function tutorialFinishRound(nextRound,next){
   g.pOk=true;g.cOk=true;g.cpuSpellReady=true;
   window.endRound?.();
   tutorialWaitFor(()=>typeof g!=='undefined'&&g.round>=nextRound&&g.phase==='pick',move);
-  setTimeout(()=>{
-    if(typeof g==='undefined'||g.round>=nextRound)return;
-    g.round=nextRound;g.phase='pick';g.chooser=true;g.now=null;g.damageEffect=null;window.render?.();move();
-  },6000);
 }
 function tutorialRoundOne(){
   // CPU 側の謀略があいこ説明へ割り込まないよう、各ラウンドの伏せ札を固定する。
@@ -1534,7 +1609,8 @@ function startChapterOne(){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-training-ground.webp" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
+    // 暗転・画像読込の途中でも、ここからは確認画面を経由せず必ず復帰できる。
+    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
   }
   const sceneBackdrop=scene.querySelector('.chapter-scene-backdrop');
   const syncSceneBackdrop=()=>{
@@ -1573,9 +1649,10 @@ function startChapterTwoLegacy(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
-  preloadChapterTwoBattleAssets();
-  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
+  // 開始時に大きい人物PNG・戦闘カードを同時に通信／デコードすると、
+  // 会話のクリックまで固まる。酒場を先に表示し、残りは一枚ずつ後読みする。
+  preloadVisualsSequentiallyWhenIdle(['assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],1200);
+  stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();startTavernBgm();
   const lines=[
     {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
     {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
@@ -1602,10 +1679,17 @@ function startChapterTwoLegacy(){
     scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    scene.querySelector('.chapter-return-title').onclick=()=>{if(window.confirmReturnToTitle)window.confirmReturnToTitle();else location.href=location.pathname;};
+    // Chapter 2 の背景読み込みが失敗・遅延しても、タイトルへ戻る操作は常に有効にする。
+    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
   }
   const backdrop=scene.querySelector('.chapter-scene-backdrop'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
-  backdrop.src='assets/story-tavern.jpg';let index=0;
+  // 背景は専用の img 一枚だけで管理する。CSS背景との二重管理は行わない。
+  scene.classList.remove('chapter-two-css-backdrop');
+  scene.style.removeProperty('--chapter-two-backdrop');
+  backdrop.style.removeProperty('display');
+  backdrop.src='assets/story-tavern.jpg';
+  scene.dataset.chapterTwoBackdrop='assets/story-tavern.jpg';
+  let index=0;
   const renderLine=()=>{
     const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
     speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
@@ -1613,6 +1697,8 @@ function startChapterTwoLegacy(){
     yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='ユート');
     air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
+    // 「はっ！」が画面に出る操作と同じユーザー操作で、一度だけ剣戟を鳴らす。
+    if(line.sparringSfx===true)playSparringClashSfx();
   };
   dialogue.onclick=()=>{if(index<lines.length-1){index+=1;renderLine();}else chapterTwoHomePrelude(scene);};
   let curtain=document.querySelector('#tutorialBattleCurtain');
@@ -1763,6 +1849,11 @@ function chapterTwoFade(scene,source,done){
   coverStoryCurtain(curtain);
   setTimeout(()=>{
     const backdrop=scene.querySelector('.chapter-scene-backdrop');
+    // 表示背景はこの画像一枚に統一する。CSS背景を併用すると終盤で黒背景が
+    // 優先されるため、必ず解除してから次の画像へ切り替える。
+    scene.classList.remove('chapter-two-css-backdrop');
+    scene.style.removeProperty('--chapter-two-backdrop');
+    backdrop?.style.removeProperty('display');
     const reveal=()=>{
       scene.dataset.chapterTwoBackdrop=source;
       if(done)done();
@@ -1770,18 +1861,46 @@ function chapterTwoFade(scene,source,done){
       setTimeout(()=>curtain.remove(),1250);
     };
     if(!backdrop||backdrop.src.endsWith(source)){reveal();return;}
-    let revealed=false;
-    const ready=()=>{if(revealed)return;revealed=true;reveal();};
-    backdrop.onload=ready;
-    backdrop.onerror=ready;
-    backdrop.src=source;
-    // 端末によってはキャッシュ済み画像で load イベントが発火しないことがある。
-    // その場合も暗転したまま止まらないよう、必ず次の進行へ戻す。
-    setTimeout(ready,900);
-    if(backdrop.complete)requestAnimationFrame(ready);
+    // 表示中の背景を残したまま次の画像だけを裏で確認する。以前は img.src を
+    // 先に差し替えたため、通信・デコード待ちの間に背景が黒くなっていた。
+    const transitionId=String((Number(scene.dataset.chapterTwoTransition||'0')||0)+1);
+    scene.dataset.chapterTwoTransition=transitionId;
+    const candidate=new Image();
+    candidate.decoding='async';
+    let finished=false;
+    const finish=(available)=>{
+      if(finished)return;
+      finished=true;
+      if(available&&scene.dataset.chapterTwoTransition===transitionId){
+        backdrop.onerror=null;
+        backdrop.src=source;
+      }
+      reveal();
+    };
+    candidate.onload=()=>finish(true);
+    candidate.onerror=()=>finish(false);
+    candidate.src=source;
+    // 画像が遅い・壊れている場合も、会話とタイトル復帰を止めない。
+    setTimeout(()=>finish(false),700);
   },1050);
 }
+const chapterTwoFrameStyle=document.createElement('style');
+chapterTwoFrameStyle.textContent=`
+  /* 枠は別レイヤーにせず、画像そのものに付ける。差分の大きさが変わっても切れない。 */
+  .chapter-two-scene .chapter-two-air,.chapter-two-scene .chapter-two-yuto{box-sizing:border-box;clip-path:none!important;background:#120d08}
+  .chapter-two-scene .chapter-two-air{border:6px double #e3b94d;outline:2px solid #4b3210;box-shadow:inset 0 0 0 3px #24627a,inset 0 0 0 7px rgba(255,230,130,.75),0 0 13px rgba(197,150,49,.34)}
+  .chapter-two-scene .chapter-two-yuto{border:6px double #9e7645;outline:2px solid #3b2815;box-shadow:inset 0 0 0 3px #d1ac76,inset 0 0 0 7px rgba(55,36,18,.72),0 0 13px rgba(82,54,26,.3)}
+`;
+document.head.append(chapterTwoFrameStyle);
+function setChapterTwoCardImage(card,source,fallback){
+  if(card.dataset.storyCardSource===source)return;
+  card.dataset.storyCardSource=source;
+  card.onerror=()=>{card.onerror=null;card.src=fallback;};
+  card.src=source;
+}
 function chapterTwoPlayLines(scene,lines,done){
+  // 以前の版が作った重ね枠を残さない。カードは常に画像一枚だけで描画する。
+  scene.querySelectorAll('.chapter-card-frame').forEach(frame=>frame.remove());
   const dialogue=scene.querySelector('.chapter-dialogue');
   const speaker=scene.querySelector('.chapter-speaker');
   const copy=dialogue.querySelector('p');
@@ -1790,9 +1909,14 @@ function chapterTwoPlayLines(scene,lines,done){
   let index=0;
   const showLine=()=>{
     const line=lines[index];
-    const trainingScene=scene.dataset.chapterTwoBackdrop==='assets/story-training-ground.webp';
-    yuto.src=trainingScene?'assets/story-yuto-battle.png':'assets/story-yuto-tavern-v2.png';
-    air.src=trainingScene?'assets/story-woman-warrior.webp':'assets/story-air-tavern-v2.png';
+    const backdrop=scene.dataset.chapterTwoBackdrop||'';
+    const sparring=backdrop==='assets/story-training-ground.webp'&&line.sparring===true;
+    const airBattle=sparring||line.airBattle===true;
+    // 酒場以外で会話する二人に、着席中の酒場差分が混ざらないよう場面ごとに固定する。
+    // 手合わせ中のみ戦闘ポーズ、以降の演習場・町の門では通常の立ち絵を使う。
+    const standing=backdrop==='assets/story-training-ground.webp'||backdrop==='assets/story-town-gate.jpg';
+    setChapterTwoCardImage(yuto,sparring?'assets/story-yuto-battle.png':standing?'assets/story-senior-warrior.webp':'assets/story-yuto-tavern-v2.png','assets/story-senior-warrior.webp');
+    setChapterTwoCardImage(air,airBattle?'assets/story-woman-warrior.webp':standing?'assets/story-woman-warrior-smile.webp':'assets/story-air-tavern-v2.png','assets/story-woman-warrior-smile.webp');
     speaker.textContent=storySpeakerName(line.speaker);
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
@@ -1802,6 +1926,8 @@ function chapterTwoPlayLines(scene,lines,done){
     air.classList.toggle('speaker-active',line.speaker==='エア');
     air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
     dialogue.dataset.ended=String(index===lines.length-1);
+    // セリフを送って「はっ！」を表示した、その同じクリックで一度だけ鳴らす。
+    if(line.sparringSfx===true)playSparringClashSfx();
   };
   dialogue.hidden=false;
   dialogue.onclick=()=>{
@@ -1815,7 +1941,7 @@ function chapterTwoHomePrelude(scene){
   stopTavernBgm();
   // 直後に必要な背景だけを、酒場の表示後に静かに先読みする。
   // これで開始直後の回線・デコード競合を避けつつ、場面転換は止めない。
-  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp'],120);
+  preloadVisualsWhenIdle(['assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],120);
   const yuto=scene.querySelector('.chapter-two-yuto');
   const air=scene.querySelector('.chapter-two-air');
   yuto.hidden=true;air.hidden=true;
@@ -1829,9 +1955,13 @@ function chapterTwoHomePrelude(scene){
     {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
   ];
   const training=[
-    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true},
-    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true},
-    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true},
+    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true,sparring:true},
+    {speaker:'エア',text:'はっ！',yuto:true,air:true,sparring:true,sparringSfx:true},
+    {speaker:'ユート',text:'まだまだ！',yuto:true,air:true,sparring:true},
+    {speaker:'エア',text:'やるね、ユート。',yuto:true,air:true,sparring:true},
+    {speaker:'ユート',text:'そっちこそ、隙がないな！',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true,sparring:true},
     {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
     {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
     {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
@@ -1840,7 +1970,7 @@ function chapterTwoHomePrelude(scene){
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
     {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
+    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
   ];
   chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
     chapterTwoPlayLines(scene,night,()=>{
@@ -1858,11 +1988,13 @@ function beginChapterTwoAirBattle(scene){
   // 最後の会話クリック内で再生を開始する。フェード後に play() すると、
   // 一部ブラウザでは自動再生扱いになって無音になるため。
   const battleMusic=document.querySelector('#battleBgm');
-  window.startBgm?.();
+  startWolfBattleBgm();
   window.storyAirBattleBgmStarted=!!battleMusic&&!battleMusic.paused;
   chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
     scene.hidden=true;
     document.body.classList.remove('story-cinematic');
+    // 会話パートが盤面を隠していた状態を、戦闘開始前に必ず解除する。
+    document.querySelector('main')?.style.removeProperty('visibility');
     window.storyAirBattleActive=true;
     window.storyAirBattleResolved=false;
     const sfxLevel=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.72));
@@ -1872,16 +2004,28 @@ function beginChapterTwoAirBattle(scene){
     }
     window.start?.();
     window.setBattleBackdrop?.('story-training-ground.webp');
+    // start() 後に盤面を一度だけ描き直し、会話用DOMや前戦の残りを持ち込まない。
+    window.render?.();
     document.body.style.setProperty('background-color','#05070d','important');
     document.body.style.setProperty('background-image','linear-gradient(rgba(2,5,10,.24),rgba(2,5,10,.46)),url("assets/story-training-ground.webp")','important');
     document.body.style.setProperty('background-position','center','important');
     document.body.style.setProperty('background-size','cover','important');
     document.body.style.setProperty('background-attachment','fixed','important');
     document.body.style.setProperty('background-repeat','no-repeat','important');
-    if(!window.storyAirBattleBgmStarted)window.startBgm?.();
     applySoundLevels();
-    // 対戦盤面では相手の立ち絵を出さず、CPU側のカード表示を覆わないようにする。
-    document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
+    // 曲は会話のクリック中に起動済み。再生失敗時だけここで再試行する。
+    if(!window.storyAirBattleBgmStarted||battleMusic?.paused)startWolfBattleBgm();
+    // エア戦でも狼戦と同じく、相手の戦闘用カードを盤面右側に表示する。
+    let opponent=document.querySelector('#storyAirOpponentCard');
+    if(!opponent){
+      opponent=document.createElement('img');
+      opponent.id='storyAirOpponentCard';
+      opponent.className='story-battle-opponent-card';
+      opponent.alt='エア・ノエル';
+      document.body.append(opponent);
+    }
+    opponent.src='assets/story-woman-warrior.webp';
+    opponent.hidden=false;
   });
 }
 function chapterTwoAfterAirBattle(){
@@ -1893,14 +2037,17 @@ function chapterTwoAfterAirBattle(){
   const opponent=document.querySelector('#storyAirOpponentCard');
   if(opponent)opponent.hidden=true;
   window.stopBgm?.();
+  document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');
+  // エア戦の決着を押した瞬間から、Chapter 2 終了まで KIRI をループする。
+  startAirAftermathBgm();
   const scene=document.querySelector('#chapterTwoScene');
   if(!scene)return;
   const aftermath=[
-    {speaker:'エア',text:'やるね……キミ！',air:true},
-    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true},
-    {speaker:'エア',text:'それなら……！',air:true},
-    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
-    {speaker:'ユート',text:'そこまで！',yuto:true,air:true},
+    {speaker:'エア',text:'やるね……キミ！',air:true,airBattle:true},
+    {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true,airBattle:true},
+    {speaker:'エア',text:'それなら……！',air:true,airBattle:true},
+    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true,airBattle:true},
+    {speaker:'ユート',text:'そこまで！',yuto:true,air:true,airBattle:true},
     {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
     {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
     {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
@@ -1947,7 +2094,11 @@ function showChapterTwoEnd(){
   if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;
   requestAnimationFrame(()=>end.classList.add('show'));
-  end.onclick=()=>window.returnToTitle?.();
+  end.onclick=()=>{
+    const received=claimStoryChapterReward('chapter-two',5);
+    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+    window.returnToTitle?.();
+  };
 }
 function installChapterTwoAirResultHandler(){
   const original=window.render;
@@ -1964,7 +2115,8 @@ function installChapterTwoAirResultHandler(){
   window.render=wrapped;
 }
 setTimeout(installChapterTwoAirResultHandler,0);
-// Chapter 2 の拡張演出は、タイトルの起動を妨げないよう安全な導入版に一旦戻す。
+/* Chapter 2 の拡張シーンは段階的に実装している。未定義の拡張関数を直接
+   呼んでタイトル初期化を止めないよう、現在動作する導入シーンを入口にする。 */
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 function openStoryMode(){
@@ -2012,6 +2164,28 @@ function openTutorial(){
   next.onclick=()=>{if(page<pages.length-1){page++;renderPage();}else{modal.hidden=true;enterGame();}};
   renderPage();modal.hidden=false;
 }
+/*
+ * 音声再生は、非同期ログインや画像待ちの後ではブラウザに自動再生として拒否される。
+ * タイトル上の最初のクリックで全トラックを静かに許可し、以後の演出は通常どおり
+ * 再生できる状態にしておく。
+ */
+window.primeSpellHeartsAudio=()=>{
+  if(window.__spellHeartsAudioPrimed)return;
+  window.__spellHeartsAudioPrimed=true;
+  for(const id of ['battleBgm','cardFlipSfx','pursuitSfx','blockSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
+    const sound=document.querySelector('#'+id);
+    if(!sound)continue;
+    const previousVolume=sound.volume;
+    sound.muted=true;
+    const started=sound.play();
+    Promise.resolve(started).catch(()=>{}).finally(()=>{
+      sound.pause();
+      try{sound.currentTime=0;}catch{}
+      sound.muted=false;
+      sound.volume=previousVolume;
+    });
+  }
+};
 function makeTutorialButton(){
   const menu=document.querySelector('.title-menu');
   if(!menu||document.querySelector('#tutorialButton'))return;
@@ -2019,6 +2193,9 @@ function makeTutorialButton(){
   menu.insertBefore(button,menu.querySelector('.push-screen'));
 }
 function startCpuBattleFromTitle(){
+  /* Firebase / 着せ替えの同期を待つとユーザー操作の有効期限が切れ、ブラウザが
+     BGM と SE をまとめて拒否する。クリックの瞬間に音声を一度だけ許可する。 */
+  window.primeSpellHeartsAudio?.();
   const begin=()=>window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
   const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
@@ -2057,7 +2234,9 @@ function installTitlePressMenu(){
     trigger.hidden=true;trigger.style.display='none';
     menu.classList.add('menu-open');
   };
-  trigger.onclick=()=>{playTitlePressSfx();openMenu();};
+  // 開いた直後に title 側の「メニュー外を押したら閉じる」処理へ同じクリックが
+  // 伝わると、PRESS SCREEN が何も起こらないように見えてしまう。
+  trigger.onclick=event=>{event.stopPropagation();startTitleBgm();playTitlePressSfx();openMenu();};
   menu.addEventListener('click',event=>event.stopPropagation());
   title.addEventListener('click',event=>{
     if(!menu.classList.contains('menu-open'))return;
@@ -2066,7 +2245,7 @@ function installTitlePressMenu(){
   });
   choices.querySelector('[data-title-choice="story"]').onclick=()=>window.openStoryMode?.();
   choices.querySelector('[data-title-choice="cpu"]').onclick=startCpuBattleFromTitle;
-  choices.querySelector('[data-title-choice="online"]').onclick=()=>{const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
+  choices.querySelector('[data-title-choice="online"]').onclick=()=>{window.primeSpellHeartsAudio?.();const show=form.hidden;setOnlineVisible(show);menu.classList.toggle('online-open',show);};
   // 旧HTMLのメニューを描画せず、PRESS SCREEN の組み立てが終わってから表示する。
   title.classList.remove('title-shell-loading');
 }
@@ -2185,7 +2364,7 @@ chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background
 chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
-chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
+chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-scene.chapter-two-css-backdrop{background:#120b05 var(--chapter-two-backdrop) center/cover no-repeat!important}.chapter-two-scene.chapter-two-css-backdrop .chapter-scene-backdrop{display:none!important}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
 // 純粋な会話シーンでは、立ち絵を画面の端ではなく会話に寄せて配置する。
 // 会話パートの人物カードは、会話欄と重ならない高さで左右対称に中央へ寄せる。
 chapterOneStyle.textContent+='@media(min-width:601px){.chapter-one-scene .chapter-npc-card{right:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:19vw;bottom:31vh;width:min(23vw,300px);max-height:58vh}.chapter-one-scene .chapter-two-yuto{right:19vw}.chapter-one-scene .story-wolf-card{right:19vw;bottom:31vh}}@media(max-width:600px){.chapter-one-scene .chapter-npc-card{right:7vw;bottom:27vh}.chapter-one-scene .story-warrior-card,.chapter-one-scene .chapter-two-air{left:7vw;bottom:27vh}.chapter-one-scene .chapter-two-yuto{right:7vw}.chapter-one-scene .story-wolf-card{right:7vw;bottom:27vh}}';
@@ -2417,24 +2596,3 @@ mobileDressupStyle.textContent=`
 }
 `;
 document.head.append(mobileDressupStyle);
-
-/*
- * 盤面はタイトルやストーリーの暗転中に一切見せない。opacity だけに頼らず、
- * タイトルが前面にある間は盤面ツリーそのものを非表示にする。
- *
- * #cBattle の通常の子要素用ルールは OK 表示にも当たり、relative に戻して
- * バトルカードの後ろへ押し下げていた。OK 表示だけは盤面スロットを基準に
- * 絶対配置に固定する。
- */
-const battlePresentationRepairStyle=document.createElement('style');
-battlePresentationRepairStyle.textContent=`
-#titleScreen:not(.dismiss)~main{display:none!important}
-#cBattle>.ok-label{
-  position:absolute!important;
-  inset:0!important;
-  z-index:3!important;
-  display:grid!important;
-  place-items:center!important;
-}
-`;
-document.head.append(battlePresentationRepairStyle);
