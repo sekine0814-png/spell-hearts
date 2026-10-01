@@ -2417,3 +2417,24 @@ mobileDressupStyle.textContent=`
 }
 `;
 document.head.append(mobileDressupStyle);
+
+/*
+ * 盤面はタイトルやストーリーの暗転中に一切見せない。opacity だけに頼らず、
+ * タイトルが前面にある間は盤面ツリーそのものを非表示にする。
+ *
+ * #cBattle の通常の子要素用ルールは OK 表示にも当たり、relative に戻して
+ * バトルカードの後ろへ押し下げていた。OK 表示だけは盤面スロットを基準に
+ * 絶対配置に固定する。
+ */
+const battlePresentationRepairStyle=document.createElement('style');
+battlePresentationRepairStyle.textContent=`
+#titleScreen:not(.dismiss)~main{visibility:hidden!important}
+#cBattle>.ok-label{
+  position:absolute!important;
+  inset:0!important;
+  z-index:3!important;
+  display:grid!important;
+  place-items:center!important;
+}
+`;
+document.head.append(battlePresentationRepairStyle);
