@@ -84,16 +84,29 @@ async function applySafeGoogleNickname(user){
   if(!user||user.isAnonymous)return;
   const profileRef=doc(db,'profiles',user.uid);
   try{
-    const profile=await getDoc(profileRef);
-    if(profile.data()?.nicknamePrivacyInitialized){
+    let needsGuestName=false;
+    let configuredName='';
+    await runTransaction(db,async transaction=>{
+      const profile=await transaction.get(profileRef);
+      const data=profile.exists()?profile.data():{};
+      if(data.nicknamePrivacyInitialized){
+        configuredName=typeof data.nickname==='string'?data.nickname:'';
+        return;
+      }
+      needsGuestName=true;
+      transaction.set(profileRef,{nicknamePrivacyInitialized:true,nickname:'ゲスト',updatedAt:Date.now()},{merge:true});
+    });
+    if(!needsGuestName){
       localStorage.setItem(`spellHeartsNicknamePrivacy:${user.uid}`,'ready');
+      if(configuredName&&user.displayName!==configuredName)await updateProfile(user,{displayName:configuredName});
       updateLoginButton();
       return;
     }
     await updateProfile(user,{displayName:'ゲスト'});
-    await runTransaction(db,async transaction=>{
-      transaction.set(profileRef,{nicknamePrivacyInitialized:true,updatedAt:Date.now()},{merge:true});
-    });
+    // 自動初期化中にユーザーが名前を保存した場合は、保存された名前を必ず優先する。
+    const confirmed=await getDoc(profileRef);
+    const savedName=confirmed.data()?.nickname;
+    if(typeof savedName==='string'&&savedName&&savedName!=='ゲスト')await updateProfile(user,{displayName:savedName});
     localStorage.setItem(`spellHeartsNicknamePrivacy:${user.uid}`,'ready');
     currentUser=auth.currentUser;
     updateLoginButton();
@@ -102,11 +115,11 @@ async function applySafeGoogleNickname(user){
   }
 }
 
-async function markNicknameConfigured(){
+async function markNicknameConfigured(nickname){
   if(!currentUser||currentUser.isAnonymous)return;
   try{
     await runTransaction(db,async transaction=>{
-      transaction.set(doc(db,'profiles',currentUser.uid),{nicknamePrivacyInitialized:true,updatedAt:Date.now()},{merge:true});
+      transaction.set(doc(db,'profiles',currentUser.uid),{nicknamePrivacyInitialized:true,nickname,updatedAt:Date.now()},{merge:true});
     });
     localStorage.setItem(`spellHeartsNicknamePrivacy:${currentUser.uid}`,'ready');
   }catch(error){console.warn('Nickname preference save failed',error);}
@@ -806,7 +819,7 @@ function makeModal(){
           await createUserWithEmailAndPassword(auth,email,password);
         }
         currentUser=auth.currentUser;
-        await markNicknameConfigured();
+        await markNicknameConfigured(nickname);
         await updateProfile(currentUser,{displayName:nickname});
         currentUser=auth.currentUser;
         updateLoginButton();
@@ -913,7 +926,7 @@ async function changeNickname(){
   const safeName=nickname.trim().replace(/[<>]/g,'').slice(0,16);
   if(!safeName){alert('ニックネームを入力してください。');return;}
   try{
-    await markNicknameConfigured();
+    await markNicknameConfigured(safeName);
     await updateProfile(currentUser,{displayName:safeName});
     currentUser=auth.currentUser;
     updateLoginButton();
