@@ -935,7 +935,7 @@ function makeRecordButton(){
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
 function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
-function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
+function unlockedStoryChapter(){return Math.max(1,Math.min(3,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
 function unlockStoryChapter(chapter){
   const before=unlockedStoryChapter(),next=Math.max(before,Math.min(2,Number(chapter)||1));
   localStorage.setItem(storyProgressKey(),String(next));
@@ -2152,6 +2152,7 @@ function showChapterTwoEnd(){
   requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
     const received=claimStoryChapterReward('chapter-two',5);
+    unlockStoryChapter(3);
     if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
     window.returnToTitle?.();
   };
@@ -2175,6 +2176,71 @@ setTimeout(installChapterTwoAirResultHandler,0);
    呼んでタイトル初期化を止めないよう、現在動作する導入シーンを入口にする。 */
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
+function startChapterThree(){
+  const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
+  if(panel)panel.hidden=true;
+  document.body.classList.add('story-active','story-cinematic');
+  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp']);
+  stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
+  const dayLines=[
+    {speaker:'主人公',text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'},
+    {speaker:'主人公',text:'街を出て半日ほど経っただろうか、辺りは気持ちの良い風が吹く草原が広がっている。'},
+    {speaker:'エア',text:'夜になると魔物が出るからね。夕方にはキャンプを設営して、火を炊くよ。',air:true},
+    {speaker:'主人公',text:'エアさんは言う。流石に冒険者、知識も経験も豊富だ。',air:true},
+    {speaker:'主人公',text:'・・・あの、聞きたいことがあるんですけど',air:true,spoken:true},
+    {speaker:'エア',text:'なに？なんでも聞いてよ',air:true},
+    {speaker:'主人公',text:'夜になると魔物が活発になるのは訓練所でも習いましたし、事実、街の近くをうろついていたのを何度か見たこともあります',air:true,spoken:true},
+    {speaker:'主人公',text:'でも、昼間に魔物が人を襲うようなことってあるんでしょうか。',air:true,spoken:true},
+    {speaker:'主人公',text:'俺は思い出していた。そう、昨日の騒ぎのことだ。',air:true},
+    {speaker:'エア',text:'無くはないね。魔物の種類にもよるけど',air:true},
+    {speaker:'主人公',text:'エアさんは表情を緩めず言う。',air:true},
+    {speaker:'エア',text:'昨日のこと、気になってるんだね。',air:true},
+    {speaker:'主人公',text:'俺は頷く。',air:true},
+    {speaker:'エア',text:'昨日の魔物、覚えてる？狼のような見た目で、体は痩せ細っていた。長い間食料にありつけていなかった証拠だよ',air:true},
+    {speaker:'エア',text:'魔物が食糧難で姿を見せるのは珍しいんだ。弱っているところを別の魔物に食べられてしまうからね',air:true},
+    {speaker:'エア',text:'つまりあの魔物の出現は、あの街の周辺で少し前から、野生における食物連鎖が完全に停止していたことの裏返しなんだ',air:true},
+    {speaker:'主人公',text:'食物連鎖の・・・停止',air:true,spoken:true},
+    {speaker:'エア',text:'そう。そして、この食物連鎖の停止なんだけど、私も何度か見た経験がある。',air:true},
+    {speaker:'エア',text:'その全てが、たったひとつの理由で起こっているんだ',air:true},
+    {speaker:'主人公',text:'たったひとつ、ですか',air:true,spoken:true},
+    {speaker:'エア',text:'そう。なんだと思う？',air:true},
+    {speaker:'主人公',text:'・・・見当もつきません',air:true,spoken:true},
+    {speaker:'エア',text:'人間だよ',air:true},
+    {speaker:'主人公',text:'一瞬、息が止まる。',air:true},
+    {speaker:'主人公',text:'・・・人間？',air:true,spoken:true},
+    {speaker:'エア',text:'そう。魔物を含む食物連鎖の停止は、人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。',air:true},
+    {speaker:'主人公',text:'どうしてそんなこと、わかるんですか？',air:true,spoken:true},
+    {speaker:'エア',text:'さっきも言ったけど、私の経験でもそうだし、現象としては珍しいんだけど報告は複数あるんだ',air:true},
+    {speaker:'主人公',text:'・・・そうなんですか',air:true,spoken:true},
+    {speaker:'エア',text:'よく違和感を持ったね。冒険者に向いてるかもね',air:true},
+    {speaker:'主人公',text:'少し微笑んでエアさんは言う。しかし、その笑顔の奥に何か思うものがあるようにも感じた。',air:true},
+    {speaker:'主人公',text:'人間・・・か',air:true,spoken:true}
+  ];
+  const duskLines=[
+    {speaker:'エア',text:'そろそろキャンプを張るよ',air:true},
+    {speaker:'主人公',text:'頷いて荷物を取り出す。訓練所で野営の授業はあったので設営はスムーズだ。',air:true},
+    {speaker:'エア',text:'へえ、やるじゃん！',air:true},
+    {speaker:'主人公',text:'いえ・・・',air:true,spoken:true},
+    {speaker:'主人公',text:'少し照れくさい。',air:true},
+    {speaker:'主人公',text:'最後の杭に手をかけた、そのときだった。',air:true}
+  ];
+  let scene=document.querySelector('#chapterThreeScene');
+  if(!scene){
+    scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-one-scene chapter-three-scene';
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-chapter-three-grassland-day.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-story-card chapter-three-air" src="assets/story-woman-warrior-smile.webp" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
+  }
+  const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),air=scene.querySelector('.chapter-three-air');
+  const playLines=(lines,done)=>{
+    let index=0;
+    const showLine=()=>{const line=lines[index];speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);air.hidden=!line.air;air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');dialogue.dataset.ended=String(index===lines.length-1);};
+    dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;showLine();}else{dialogue.onclick=null;if(done)done();}};showLine();
+  };
+  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
+  setTimeout(()=>{const backdrop=scene.querySelector('.chapter-scene-backdrop');backdrop.src='assets/story-chapter-three-grassland-day.jpg';scene.hidden=false;scene.classList.add('preparing','show');playLines(dayLines,()=>chapterTwoFade(scene,'assets/story-chapter-three-grassland-dusk.jpg',()=>playLines(duskLines)));requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1250);},1050);
+}
+window.startChapterThree=startChapterThree;
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
     window.openSpellHeartsLogin?.();
@@ -2191,12 +2257,13 @@ function openStoryMode(){
     panel.onclick=event=>{if(event.target===panel)panel.hidden=true;};
   }
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
-  chapters.innerHTML=[1,2].map(chapter=>{
+  chapters.innerHTML=[1,2,3].map(chapter=>{
     const available=chapter<=unlocked;
-    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'始まりの日':'邂逅'):'🔒 LOCKED'}</small></button>`;
+    const title=chapter===1?'始まりの日':chapter===2?'邂逅':'草原の旅路';
+    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?title:'🔒 LOCKED'}</small></button>`;
   }).join('');
-  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else startChapterTwoExpanded();});
+  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':unlocked<3?'Chapter 2 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else if(button.dataset.storyChapter==='2')startChapterTwoExpanded();else startChapterThree();});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
@@ -2442,6 +2509,7 @@ chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transit
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
 chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
+chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-air{right:5vw;bottom:20vh;width:min(27vw,340px);max-height:65vh}.chapter-three-scene .chapter-scene-backdrop{transition:filter .5s ease}.story-chapters .story-chapter:nth-child(3){grid-column:1/-1;min-height:122px}.story-chapters .story-chapter:nth-child(3) .story-chapter-number{margin:12px 0 9px}@media(max-width:600px){.chapter-three-scene .chapter-three-air{right:0;bottom:19vh;width:34vw;max-height:50vh}.story-chapters .story-chapter:nth-child(3){min-height:108px}}';
 chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
