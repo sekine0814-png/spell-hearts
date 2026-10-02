@@ -16,6 +16,7 @@
     return `<img class="spell-back" src="${A+(selected||fallback)}" alt="">`;
   };
   const battleFallback={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
+  const battleCardName={rock:'グー',scissors:'チョキ',paper:'パー',amplify:'アンプリファイア'};
   const battleFace=(w,key)=>{
     const fallback=battleFallback[key]||'rock.webp';
     try{const selected=window.getSpellHeartsBattleArt?.((w==='p'?net?.red:net?.blue)?.cosmetics,key);return A+(typeof selected==='string'&&selected?selected:fallback);}
@@ -43,7 +44,7 @@
   onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
 
   function hand(){
-    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}</button>`).join('')}</div>`;
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick battle-art-button" data-battle-card="${k}" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}<span class="battle-card-name">${battleCardName[k]||''}</span></button>`).join('')}</div>`;
   }
 
   function showResult(){
