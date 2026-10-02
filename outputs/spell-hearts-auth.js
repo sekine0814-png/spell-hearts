@@ -954,7 +954,7 @@ function playTitlePressSfx(){
   sound.currentTime=0;sound.play().catch(()=>{});
 }
 function playPcCursorMoveSfx(){
-  if(matchMedia('(hover:none) and (pointer:coarse)').matches)return;
+  if(matchMedia('(max-width:600px)').matches)return;
   let sound=document.querySelector('#cursorMoveSfx');
   if(!sound){sound=document.createElement('audio');sound.id='cursorMoveSfx';sound.src='assets/cursor-move-2.mp3';sound.preload='auto';document.body.append(sound);}
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
@@ -962,7 +962,7 @@ function playPcCursorMoveSfx(){
 }
 function installPcCursorMoveSfx(){
   document.addEventListener('click',event=>{
-    if(matchMedia('(hover:none) and (pointer:coarse)').matches)return;
+    if(matchMedia('(max-width:600px)').matches)return;
     const target=event.target.closest('.top .btn,.result-actions button[onclick="returnToTitle()"],.chapter-return-title,#chapterOneEndScreen,#chapterTwoEndScreen,#titleReturnConfirm [data-answer],#titleSettings,#battleSettings');
     if(target)playPcCursorMoveSfx();
   });
