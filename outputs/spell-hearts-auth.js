@@ -24,6 +24,48 @@ let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
 
+// 表示名は認証プロバイダーのプロフィール（Google名・メール）から一切取らない。
+// 着せ替えと同じ profiles/{uid} に、ゲーム内ニックネームだけを保存する。
+let accountNickname='ゲスト';
+function sanitizeNickname(value){return String(value||'').trim().replace(/[<>]/g,'').slice(0,16);}
+function guestNickname(){
+  let name=localStorage.getItem('spellHeartsGuestNickname');
+  if(!name){name=`ゲスト${Math.floor(1000+Math.random()*9000)}`;localStorage.setItem('spellHeartsGuestNickname',name);}
+  return name;
+}
+function nicknameKey(){return `spellHeartsNickname:${currentUser?.uid||'guest'}`;}
+function readLocalAccountNickname(){return sanitizeNickname(localStorage.getItem(nicknameKey()))||'ゲスト';}
+function writeLocalAccountNickname(name){localStorage.setItem(nicknameKey(),name);}
+function currentNickname(){return !currentUser||currentUser.isAnonymous?guestNickname():accountNickname;}
+async function loadAccountNickname(){
+  const user=currentUser;
+  accountNickname=readLocalAccountNickname();
+  updateLoginButton();
+  if(!user||user.isAnonymous)return;
+  try{
+    const snapshot=await getDoc(doc(db,'profiles',user.uid));
+    const saved=sanitizeNickname(snapshot.data()?.nickname);
+    if(currentUser?.uid!==user.uid)return;
+    if(saved){accountNickname=saved;writeLocalAccountNickname(saved);}
+    updateLoginButton();
+  }catch(error){console.warn('Nickname sync failed',error);}
+}
+async function saveAccountNickname(name){
+  const nickname=sanitizeNickname(name);
+  if(!nickname)return false;
+  if(!currentUser||currentUser.isAnonymous){localStorage.setItem('spellHeartsGuestNickname',nickname);return true;}
+  const uid=currentUser.uid;
+  accountNickname=nickname;
+  writeLocalAccountNickname(nickname);
+  updateLoginButton();
+  try{
+    await runTransaction(db,async transaction=>{
+      transaction.set(doc(db,'profiles',uid),{nickname,updatedAt:Date.now()},{merge:true});
+    });
+    return true;
+  }catch(error){console.warn('Nickname save failed',error);return false;}
+}
+
 // 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
 function syncTouchLandscapeLayout(){
   const touch=navigator.maxTouchPoints>0||'ontouchstart' in window;
@@ -65,7 +107,7 @@ function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
   if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';return;}
-  button.textContent=currentUser.displayName||'冒険者';
+  button.textContent=currentNickname();
   button.title='アカウント設定・ログアウト';
 }
 
@@ -689,7 +731,7 @@ function claimStoryChapterReward(chapter,amount){
 
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
-onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
+onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();void loadAccountNickname();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
 function closeLogin(){modal?.remove();modal=null;}
 
@@ -754,8 +796,8 @@ function makeModal(){
         }else{
           await createUserWithEmailAndPassword(auth,email,password);
         }
-        await updateProfile(auth.currentUser,{displayName:nickname});
         currentUser=auth.currentUser;
+        if(!(await saveAccountNickname(nickname)))throw new Error('nickname-save-failed');
         updateLoginButton();
       }else{
         if(auth.currentUser?.isAnonymous)await signOut(auth);
@@ -777,7 +819,7 @@ function makeModal(){
 
 window.openSpellHeartsLogin=()=>{
   if(currentUser&&!currentUser.isAnonymous){
-    if(confirm(`${currentUser.email} でログイン中です。ログアウトしますか？`))signOut(auth);
+    if(confirm('ログアウトしますか？'))signOut(auth);
     return;
   }
   makeModal();
@@ -798,10 +840,7 @@ window.ensureSpellHeartsGuest=async()=>{
 };
 
 window.getSpellHeartsNickname=()=>{
-  if(currentUser?.displayName)return currentUser.displayName;
-  let guest=localStorage.getItem('spellHeartsGuestNickname');
-  if(!guest){guest=`ゲスト${Math.floor(1000+Math.random()*9000)}`;localStorage.setItem('spellHeartsGuestNickname',guest);}
-  return guest;
+  return currentNickname();
 };
 function storySpeakerName(name){return name==='主人公'?(window.getSpellHeartsNickname?.()||'主人公'):name;}
 function storyLineText(line){
@@ -841,7 +880,7 @@ function makeSettings(){
     const input=panel.querySelector('.settings-name'),nickname=input.value.trim().replace(/[<>]/g,'').slice(0,16);
     if(!nickname){input.focus();return;}
     try{
-      if(currentUser&&!currentUser.isAnonymous)await updateProfile(currentUser,{displayName:nickname});else localStorage.setItem('spellHeartsGuestNickname',nickname);
+      if(!(await saveAccountNickname(nickname)))throw new Error('nickname-save-failed');
       input.value=nickname;
       updateLoginButton();
     }catch(error){alert(authMessage(error));}
