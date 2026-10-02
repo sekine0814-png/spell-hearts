@@ -189,7 +189,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,chapterThreeBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -233,6 +233,26 @@ function stopTavernBgm(){
   cancelAnimationFrame(tavernBgmFadeFrame);tavernBgmFadeFrame=0;
   const music=document.querySelector('#tavernBgm');
   if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function ensureChapterThreeBgm(){
+  let music=document.querySelector('#chapterThreeBgm');
+  if(music)return music;
+  music=document.createElement('audio');music.id='chapterThreeBgm';music.src='assets/story-chapter-three-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  document.body.append(music);return music;
+}
+function stopChapterThreeBgm(){
+  cancelAnimationFrame(chapterThreeBgmFadeFrame);chapterThreeBgmFadeFrame=0;
+  const music=document.querySelector('#chapterThreeBgm');
+  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
+}
+function startChapterThreeBgm(){
+  const music=ensureChapterThreeBgm();
+  cancelAnimationFrame(chapterThreeBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
+  music.play().then(()=>{
+    const began=performance.now(),duration=1200;
+    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*.72*progress;if(progress<1)chapterThreeBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
+    chapterThreeBgmFadeFrame=requestAnimationFrame(fade);
+  }).catch(()=>{music.dataset.fading='';});
 }
 function startTavernBgm(){
   const music=ensureTavernBgm();
@@ -462,7 +482,7 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();
@@ -2205,7 +2225,7 @@ function startChapterThree(){
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
   preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp']);
-  stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
+  stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
   const dayLines=[
     {speaker:'主人公',text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'},
     {speaker:'主人公',text:'街を出て半日ほど経っただろうか、辺りは気持ちの良い風が吹く草原が広がっている。'},
@@ -2262,7 +2282,7 @@ function startChapterThree(){
   };
   let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
-  setTimeout(()=>{const backdrop=scene.querySelector('.chapter-scene-backdrop');backdrop.src='assets/story-chapter-three-grassland-day.jpg';scene.hidden=false;scene.classList.add('preparing','show');playLines(dayLines,()=>chapterThreeFade(scene,'assets/story-chapter-three-grassland-dusk.jpg',()=>playLines(duskLines)));requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1250);},1050);
+  setTimeout(()=>{const backdrop=scene.querySelector('.chapter-scene-backdrop');backdrop.src='assets/story-chapter-three-grassland-day.jpg';scene.hidden=false;scene.classList.add('preparing','show');startChapterThreeBgm();playLines(dayLines,()=>chapterThreeFade(scene,'assets/story-chapter-three-grassland-dusk.jpg',()=>playLines(duskLines)));requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1250);},1050);
 }
 window.startChapterThree=startChapterThree;
 function openStoryMode(){
