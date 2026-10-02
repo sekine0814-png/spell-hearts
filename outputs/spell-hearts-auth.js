@@ -2214,6 +2214,10 @@ function openTutorial(){
 window.primeSpellHeartsAudio=()=>{
   if(window.__spellHeartsAudioPrimed)return;
   window.__spellHeartsAudioPrimed=true;
+  // タッチ端末では無音化した複数の audio.play() が競合し、メニュー選択時に
+  // SE が同時に漏れることがある。以後のカード操作はユーザー操作なので、ここで
+  // 全SEを並列再生して解除する必要はない。
+  if(matchMedia('(hover:none) and (pointer:coarse)').matches)return;
   for(const id of ['cardFlipSfx','pursuitSfx','blockSfx','enhancedBlockHealSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
     const sound=document.querySelector('#'+id);
     if(!sound)continue;
