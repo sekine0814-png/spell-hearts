@@ -1860,7 +1860,7 @@ function startChapterTwoExpanded(){
     {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
-    {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
+    {speaker:'主人公',text:'じゃあ・・・お願いします！',yuto:true,air:true,spoken:true},
     {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
   ];
   const aftermath=[
@@ -2025,7 +2025,7 @@ function chapterTwoHomePrelude(scene){
     {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
-    {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
+    {speaker:'主人公',text:'じゃあ・・・お願いします！',yuto:true,air:true,spoken:true},
     {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
   ];
   chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
