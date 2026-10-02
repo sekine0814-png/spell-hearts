@@ -75,6 +75,7 @@ main{width:min(1520px,100%)}.top,.stage{max-width:1360px}
 /* 手札は画像要素で描画する。着せ替え画像が読めない場合は onerror で通常絵柄へ戻る。 */
 #pBattle .battle-art-button{background-image:none!important}
 #pBattle .battle-art-button .battle-card-face{position:absolute!important;inset:0!important;z-index:1!important;display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;background:#111!important}
+@media (hover:none) and (pointer:coarse){.battle-art-button .battle-card-name{display:none!important}}
 </style>
 </head>
 <body><section id="titleScreen" class="title-shell-loading"><button class="title-login" type="button" onclick="showLoginNotice()">ログイン</button><div class="title-menu"><button class="push-screen" type="button" onclick="openStoryMode()">STORY MODE</button><form class="room-form" onsubmit="enterRoomPreview(event)"><label for="roomCode">合言葉を入力して対戦部屋へ</label><input id="roomCode" class="room-code" type="text" maxlength="10" autocomplete="off" placeholder="合言葉" aria-label="対戦用の合言葉"><button class="room-enter" type="submit">入 室</button></form><div id="roomNote" class="room-note">同じ合言葉を入力した相手と対戦します</div></div></section><main><header class="top"><h1>SPELL HEART</h1><button class="btn" onclick="confirmReturnToTitle()">タイトルに戻る</button></header><div class="stage-wrap"><section class="stage">
