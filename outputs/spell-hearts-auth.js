@@ -189,7 +189,7 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,chapterThreeBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,chapterThreeBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0,mobileBattleBgmWatch=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
@@ -446,6 +446,39 @@ function preloadVisualsWhenIdle(sources,delay=0){
     else load();
   },delay);
 }
+const regularBattleBgmTracks=['assets/forgotten-city.mp3','assets/memoria.mp3','assets/ice-chain.mp3','assets/melancholy.mp3'];
+function isTouchBattleDevice(){return matchMedia('(hover:none) and (pointer:coarse)').matches;}
+function isRegularBattleActive(){
+  const title=document.querySelector('#titleScreen');
+  return !!title?.classList.contains('dismiss')&&!document.body.classList.contains('story-cinematic');
+}
+function pickNextBattleBgmTrack(music){
+  const current=regularBattleBgmTracks.find(track=>music.src.endsWith('/'+track));
+  const options=regularBattleBgmTracks.filter(track=>track!==current);
+  return options[Math.floor(Math.random()*options.length)]||regularBattleBgmTracks[0];
+}
+function resumeMobileBattleBgm(){
+  if(!isTouchBattleDevice()||document.visibilityState==='hidden'||!isRegularBattleActive())return;
+  const music=document.querySelector('#battleBgm');
+  if(!music||music.dataset.storyKeepPlaying==='1'||music.ended)return;
+  if(music.paused)music.play().catch(()=>{});
+}
+function configureMobileBattleBgm(){
+  const music=document.querySelector('#battleBgm');
+  if(!music||!isTouchBattleDevice())return;
+  // 曲素材にループ用の継ぎ目が無いので、スマホでは native loop を使わない。
+  // 終端では別の対戦曲を選ぶことで、唐突に同じ曲の冒頭へ戻る症状をなくす。
+  music.loop=false;
+  if(music.dataset.mobileBattleContinuityInstalled==='1')return;
+  music.dataset.mobileBattleContinuityInstalled='1';
+  music.addEventListener('ended',()=>{
+    if(music.dataset.storyKeepPlaying==='1'||!isRegularBattleActive())return;
+    music.src=pickNextBattleBgmTrack(music);music.load();music.loop=false;
+    music.play().catch(()=>{});
+  });
+  clearInterval(mobileBattleBgmWatch);
+  mobileBattleBgmWatch=setInterval(resumeMobileBattleBgm,1800);
+}
 function preloadVisualsSequentiallyWhenIdle(sources,delay=0){
   // Chapter 2 は会話を優先するため、先読みキューを作らない。
   if(document.body.classList.contains('story-active'))return;
@@ -480,7 +513,7 @@ function startTitleBgm(){
 function installTitleBgm(){
   ensureTitleBgm();
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
-  if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
+  if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();const result=originalStartBgm();configureMobileBattleBgm();return result;};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
   if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
@@ -2385,6 +2418,8 @@ window.startSpellHeartsBgm=()=>{
   music.pause();
   music.src=tracks[Math.floor(Math.random()*tracks.length)];
   music.load();
+  configureMobileBattleBgm();
+  if(isTouchBattleDevice())music.loop=false;
   music.volume=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)))/100;
   music.play().catch(()=>{});
 };
