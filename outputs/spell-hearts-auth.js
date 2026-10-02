@@ -860,7 +860,7 @@ function applySoundLevels(){
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#enhancedBlockHealSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#enhancedBlockHealSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx,#cursorMoveSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
@@ -952,6 +952,20 @@ function playTitlePressSfx(){
   if(!sound){sound=document.createElement('audio');sound.id='titlePressSfx';sound.src='assets/title-press-sfx.mp3';sound.preload='auto';document.body.append(sound);}
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
+}
+function playPcCursorMoveSfx(){
+  if(matchMedia('(hover:none) and (pointer:coarse)').matches)return;
+  let sound=document.querySelector('#cursorMoveSfx');
+  if(!sound){sound=document.createElement('audio');sound.id='cursorMoveSfx';sound.src='assets/cursor-move-2.mp3';sound.preload='auto';document.body.append(sound);}
+  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
+  sound.currentTime=0;sound.play().catch(()=>{});
+}
+function installPcCursorMoveSfx(){
+  document.addEventListener('click',event=>{
+    if(matchMedia('(hover:none) and (pointer:coarse)').matches)return;
+    const target=event.target.closest('.top .btn,.result-actions button[onclick="returnToTitle()"],.chapter-return-title,#chapterOneEndScreen,#chapterTwoEndScreen,#titleReturnConfirm [data-answer],#titleSettings,#battleSettings');
+    if(target)playPcCursorMoveSfx();
+  });
 }
 function playChapterOneSelectSfx(){
   let sound=document.querySelector('#chapterOneSelectSfx');
@@ -2350,7 +2364,7 @@ function makeBattleSettings(){
 
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 // タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
-for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
+for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installPcCursorMoveSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
   try{initialize();}catch(error){console.error('Spell Hearts initialization warning:',error);}
 }
 // 装飾の生成が想定外に失敗しても、タイトルの選択肢を隠したままにしない。
