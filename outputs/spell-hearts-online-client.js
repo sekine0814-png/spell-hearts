@@ -112,6 +112,8 @@
       amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
       const held=$(chargeSpell(w));
       held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
+      if(own&&s.hasSpell)held.dataset.spellName=spells[s.spell].n;
+      else delete held.dataset.spellName;
       held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
