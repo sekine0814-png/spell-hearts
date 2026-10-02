@@ -65,62 +65,8 @@ function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
   if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';return;}
-  const isGoogleAccount=currentUser.providerData?.some(provider=>provider.providerId==='google.com');
-  const privacyReady=localStorage.getItem(`spellHeartsNicknamePrivacy:${currentUser.uid}`)==='ready';
-  if(isGoogleAccount&&!privacyReady&&currentUser.displayName!=='ゲスト'){
-    button.textContent='ゲスト';
-    button.title='アカウント設定・ログアウト';
-    return;
-  }
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
-}
-
-// Google のプロフィール名は本名を含むことがあるため、初回の Google ログインでは
-// 画面名として使用しない。ユーザーが設定画面で保存した名前だけを表示名にする。
-async function applySafeGoogleNickname(user){
-  if(!user||user.isAnonymous)return;
-  const profileRef=doc(db,'profiles',user.uid);
-  try{
-    let needsGuestName=false;
-    let configuredName='';
-    await runTransaction(db,async transaction=>{
-      const profile=await transaction.get(profileRef);
-      const data=profile.exists()?profile.data():{};
-      if(data.nicknamePrivacyInitialized){
-        configuredName=typeof data.nickname==='string'?data.nickname:'';
-        return;
-      }
-      needsGuestName=true;
-      transaction.set(profileRef,{nicknamePrivacyInitialized:true,nickname:'ゲスト',updatedAt:Date.now()},{merge:true});
-    });
-    if(!needsGuestName){
-      localStorage.setItem(`spellHeartsNicknamePrivacy:${user.uid}`,'ready');
-      if(configuredName&&user.displayName!==configuredName)await updateProfile(user,{displayName:configuredName});
-      updateLoginButton();
-      return;
-    }
-    await updateProfile(user,{displayName:'ゲスト'});
-    // 自動初期化中にユーザーが名前を保存した場合は、保存された名前を必ず優先する。
-    const confirmed=await getDoc(profileRef);
-    const savedName=confirmed.data()?.nickname;
-    if(typeof savedName==='string'&&savedName&&savedName!=='ゲスト')await updateProfile(user,{displayName:savedName});
-    localStorage.setItem(`spellHeartsNicknamePrivacy:${user.uid}`,'ready');
-    currentUser=auth.currentUser;
-    updateLoginButton();
-  }catch(error){
-    console.warn('Nickname privacy initialization failed',error);
-  }
-}
-
-async function markNicknameConfigured(nickname){
-  if(!currentUser||currentUser.isAnonymous)return;
-  try{
-    await runTransaction(db,async transaction=>{
-      transaction.set(doc(db,'profiles',currentUser.uid),{nicknamePrivacyInitialized:true,nickname,updatedAt:Date.now()},{merge:true});
-    });
-    localStorage.setItem(`spellHeartsNicknamePrivacy:${currentUser.uid}`,'ready');
-  }catch(error){console.warn('Nickname preference save failed',error);}
 }
 
 function tokenKey(){return `spellHeartsTokens:${currentUser?.uid||'guest'}`;}
@@ -743,14 +689,7 @@ function claimStoryChapterReward(chapter,amount){
 
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
-onAuthStateChanged(auth,user=>{
-  currentUser=user;
-  cosmeticProfile=readLocalCosmetics();
-  updateLoginButton();
-  renderTokenBalance();
-  accountCosmeticsLoad=loadAccountCosmetics();
-  if(user?.providerData?.some(provider=>provider.providerId==='google.com'))applySafeGoogleNickname(user);
-});
+onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
 function closeLogin(){modal?.remove();modal=null;}
 
@@ -797,7 +736,6 @@ function makeModal(){
       const provider=new GoogleAuthProvider();
       if(auth.currentUser?.isAnonymous)await linkWithPopup(auth.currentUser,provider);
       else await signInWithPopup(auth,provider);
-      await applySafeGoogleNickname(auth.currentUser);
       status.textContent='Googleでログインしました。';
       setTimeout(closeLogin,550);
     }catch(error){status.textContent=authMessage(error);}
@@ -816,9 +754,7 @@ function makeModal(){
         }else{
           await createUserWithEmailAndPassword(auth,email,password);
         }
-        currentUser=auth.currentUser;
-        await markNicknameConfigured(nickname);
-        await updateProfile(currentUser,{displayName:nickname});
+        await updateProfile(auth.currentUser,{displayName:nickname});
         currentUser=auth.currentUser;
         updateLoginButton();
       }else{
@@ -905,11 +841,7 @@ function makeSettings(){
     const input=panel.querySelector('.settings-name'),nickname=input.value.trim().replace(/[<>]/g,'').slice(0,16);
     if(!nickname){input.focus();return;}
     try{
-      if(currentUser&&!currentUser.isAnonymous){
-        await markNicknameConfigured(nickname);
-        await updateProfile(currentUser,{displayName:nickname});
-        currentUser=auth.currentUser;
-      }else localStorage.setItem('spellHeartsGuestNickname',nickname);
+      if(currentUser&&!currentUser.isAnonymous)await updateProfile(currentUser,{displayName:nickname});else localStorage.setItem('spellHeartsGuestNickname',nickname);
       input.value=nickname;
       updateLoginButton();
     }catch(error){alert(authMessage(error));}
