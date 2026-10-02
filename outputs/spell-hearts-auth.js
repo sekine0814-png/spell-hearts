@@ -447,6 +447,42 @@ function preloadVisualsWhenIdle(sources,delay=0){
   },delay);
 }
 function isTouchBattleDevice(){return matchMedia('(hover:none) and (pointer:coarse)').matches;}
+function enableTouchPerformanceMode(){
+  if(!isTouchBattleDevice()||document.documentElement.classList.contains('touch-performance'))return;
+  document.documentElement.classList.add('touch-performance');
+  const style=document.createElement('style');
+  style.textContent=`
+    /* タッチ端末は描画合成を減らし、操作中のフレーム落ちを防ぐ。PC表示には一切適用しない。 */
+    html.touch-performance #titleScreen::after,
+    html.touch-performance .story-mode-panel,
+    html.touch-performance .battle-settings-panel,
+    html.touch-performance .auth-modal{backdrop-filter:none!important}
+    html.touch-performance .stage,
+    html.touch-performance .chapter-one-scene{contain:paint}
+    html.touch-performance .damage-aura,
+    html.touch-performance .aura-paper{box-shadow:none!important;filter:none!important}
+    html.touch-performance .damage-aura:before,
+    html.touch-performance .damage-aura:after,
+    html.touch-performance .aura-paper:before,
+    html.touch-performance .aura-paper:after{filter:none!important;mix-blend-mode:normal!important}
+    html.touch-performance .spell-ready,
+    html.touch-performance .deck-button.ok-ready,
+    html.touch-performance .slot.cpu-ready,
+    html.touch-performance .cpu-thinking,
+    html.touch-performance .opening-draw,
+    html.touch-performance .opening-spell-deck,
+    html.touch-performance .battle-select-prompt,
+    html.touch-performance .push-screen,
+    html.touch-performance .chapter-next-mark{animation:none!important;filter:none!important;box-shadow:none!important}
+    html.touch-performance .battle-select-prompt{background-size:100% 100%!important;color:#f2c958!important;-webkit-text-fill-color:#f2c958!important}
+    html.touch-performance .picks,
+    html.touch-performance .picks .pick{animation:none!important}
+    html.touch-performance .board-flight{transition-duration:.42s!important;box-shadow:none!important}
+    html.touch-performance .spell-flight-glow{box-shadow:none!important;filter:brightness(1.2)!important}
+  `;
+  document.head.append(style);
+}
+enableTouchPerformanceMode();
 function isRegularBattleActive(){
   const title=document.querySelector('#titleScreen');
   return !!title?.classList.contains('dismiss')&&!document.body.classList.contains('story-cinematic');
