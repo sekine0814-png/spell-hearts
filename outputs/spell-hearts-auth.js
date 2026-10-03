@@ -2508,6 +2508,29 @@ function installChapterThreeDelyukeResultHandler(){
   wrapped.chapterThreeDelyukeResultHandlerInstalled=true;window.render=wrapped;
 }
 setTimeout(installChapterThreeDelyukeResultHandler,0);
+function installStoryOwnerForceWin(){
+  const original=window.render;
+  if(typeof original!=='function'||original.storyOwnerForceWinInstalled)return;
+  const storyBattleActive=()=>!!(window.storyWolfBattleActive||window.storyAirBattleActive||window.storyDelyukeBattleActive);
+  const sync=()=>{
+    let button=document.querySelector('#storyOwnerForceWin');
+    const permitted=isGameOwner()&&storyBattleActive()&&typeof g!=='undefined'&&g?.phase!=='end';
+    if(!permitted){button?.remove();return;}
+    if(!button){
+      button=document.createElement('button');button.id='storyOwnerForceWin';button.type='button';button.textContent='強制勝利';button.title='ストーリー戦を即時勝利にします';
+      button.onclick=()=>{
+        if(!isGameOwner()||!storyBattleActive()||typeof g==='undefined'||g.phase==='end')return;
+        g.p.hp=Math.max(1,g.p.hp||10);g.c.hp=0;g.visualHp=null;g.damageEffect=null;g.phase='end';g.logs?.unshift('管理者操作：ストーリー戦を勝利にしました。');window.render?.();
+      };
+      document.body.append(button);
+    }
+  };
+  const wrapped=function(...args){const rendered=original.apply(this,args);sync();return rendered;};
+  wrapped.storyOwnerForceWinInstalled=true;window.render=wrapped;
+  const style=document.createElement('style');style.textContent='#storyOwnerForceWin{position:fixed;z-index:190;top:12vh;left:50%;transform:translateX(-50%);padding:9px 18px;border:1px solid #f0c65b;border-radius:4px;background:linear-gradient(145deg,#6d4216,#211006);box-shadow:inset 0 0 15px rgba(255,220,117,.24),0 3px 13px #000b;color:#fff0b2;font:bold 15px Georgia,"Yu Mincho",serif;letter-spacing:.12em;text-shadow:0 1px 3px #000;cursor:pointer}#storyOwnerForceWin:hover{filter:brightness(1.22)}@media(max-width:600px){#storyOwnerForceWin{top:9vh;padding:7px 12px;font-size:12px}}';document.head.append(style);
+  sync();
+}
+setTimeout(installStoryOwnerForceWin,0);
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
     window.openSpellHeartsLogin?.();
