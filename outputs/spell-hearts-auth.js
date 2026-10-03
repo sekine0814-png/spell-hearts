@@ -390,8 +390,9 @@ function startDelyukeBattleBgm(){
   music.loop=true;
   if(!music.src.endsWith('/story-delyuke-battle-bgm.mp3')){music.src='story-delyuke-battle-bgm.mp3';music.load();}
   music.dataset.storyKeepPlaying='1';
-  if(takePrimedStoryTrack(music,titleBgmLevel()))return;
-  music.pause();music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
+  const level=titleBgmLevel()*.68;
+  if(takePrimedStoryTrack(music,level))return;
+  music.pause();music.currentTime=0;music.volume=level;music.play().catch(()=>{});
 }
 /*
  * スマホのブラウザでは、setTimeout 後の audio.play() が「ユーザー操作外」と見なされる。
@@ -2385,7 +2386,7 @@ function startChapterThree(){
     {speaker:'デリューク',text:'ここ最近、この周辺でサイクル・ハルトが発生している'},
     {speaker:'主人公',text:'サイクル・・・？',spoken:true},
     {speaker:'主人公',text:'言いかけて、フラッシュバックする。',spoken:false},
-    {speaker:'主人公',text:'（食物連鎖のーー停止）',spoken:false},
+    {speaker:'主人公',text:'（食物連鎖の――停止）',spoken:false},
     {speaker:'主人公',text:'なるほど・・・',spoken:false},
     {speaker:'エア',text:'それは私たちも観測したよ。\n街中に飢餓状態の魔物が入り込んで来た。',air:true},
     {speaker:'主人公',text:'・・・',air:true,spoken:true},
@@ -2435,7 +2436,7 @@ function chapterThreeBattleCards(){
   let air=document.querySelector('#chapterThreeBattleAirCard'),delyuke=document.querySelector('#chapterThreeBattleDelyukeCard');
   if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
   if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
-  air.src='assets/story-air-travel-card-v1.png';delyuke.src='story-delyuke-card-v1.png';air.hidden=false;delyuke.hidden=false;
+  air.src='assets/story-woman-warrior.webp';delyuke.src='story-delyuke-card-v1.png';air.hidden=false;delyuke.hidden=false;
   return {air,delyuke};
 }
 function hideChapterThreeBattleCards(){
