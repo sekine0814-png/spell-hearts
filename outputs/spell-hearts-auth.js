@@ -2437,7 +2437,7 @@ function chapterThreeBattleCards(){
   let air=document.querySelector('#chapterThreeBattleAirCard'),delyuke=document.querySelector('#chapterThreeBattleDelyukeCard');
   if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
   if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
-  air.src='assets/story-woman-warrior.webp';delyuke.src='assets/story-delyuke-battle-card-v1.png';air.hidden=false;delyuke.hidden=false;
+  air.src='assets/story-woman-warrior.webp';delyuke.src='story-delyuke-battle-card-v1.png';air.hidden=false;delyuke.hidden=false;
   return {air,delyuke};
 }
 function hideChapterThreeBattleCards(){
