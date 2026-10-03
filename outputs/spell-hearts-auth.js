@@ -2439,7 +2439,7 @@ function chapterThreeBattleCards(){
   let air=document.querySelector('#chapterThreeBattleAirCard'),delyuke=document.querySelector('#chapterThreeBattleDelyukeCard');
   if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
   if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
-  document.body.append(air,delyuke);
+  air.classList.remove('chapter-three-victory-card');delyuke.classList.remove('chapter-three-victory-card');document.body.append(air,delyuke);
   air.src='assets/story-woman-warrior.webp';delyuke.src='assets/story-delyuke-battle-card-v1.png';air.hidden=false;delyuke.hidden=false;
   return {air,delyuke};
 }
@@ -2474,7 +2474,7 @@ function chapterThreeAfterDelyukeVictory(){
   const music=document.querySelector('#battleBgm');if(music){music.dataset.storyKeepPlaying='';music.pause();music.currentTime=0;}
   const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';}
   const scene=document.querySelector('#chapterThreeScene');if(!scene)return;
-  const battleCards=chapterThreeBattleCards();battleCards.delyuke.hidden=true;scene.append(battleCards.air);battleCards.air.hidden=false;scene.querySelector('.chapter-three-air').hidden=true;
+  const battleCards=chapterThreeBattleCards();battleCards.air.classList.add('chapter-three-victory-card');battleCards.delyuke.classList.add('chapter-three-victory-card');scene.append(battleCards.air,battleCards.delyuke);battleCards.air.hidden=false;battleCards.delyuke.hidden=false;scene.querySelector('.chapter-three-air').hidden=true;scene.querySelector('.chapter-three-delyuke').hidden=true;
   let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   coverStoryCurtain(curtain);
   setTimeout(()=>{
@@ -2784,6 +2784,7 @@ chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-air{box-sizing
 chapterOneStyle.textContent+='.chapter-three-battle-card{position:fixed;z-index:140;bottom:21vh;width:auto;height:min(58vh,620px);max-width:28vw;object-fit:contain;pointer-events:none;filter:brightness(1.03) saturate(.88) drop-shadow(0 0 12px rgba(202,165,84,.36));transition:transform .35s ease,filter .35s ease,opacity .35s ease}.chapter-three-battle-card[hidden]{display:none}.chapter-three-battle-air{left:.5vw}.chapter-three-battle-delyuke{right:0;transform:scaleX(-1) scale(.88)}@media(max-width:600px){.chapter-three-battle-card{bottom:21vh;height:43vh;max-width:31vw}.chapter-three-battle-air{left:.5vw}.chapter-three-battle-delyuke{right:0}}';
 chapterOneStyle.textContent+='.chapter-three-scene .chapter-dialogue p{line-break:strict;overflow-wrap:normal;text-wrap:pretty}';
 chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-battle-air{z-index:2}.chapter-three-scene .chapter-dialogue{z-index:3}';
+chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{position:absolute;z-index:2;bottom:auto;width:min(23vw,300px);height:auto;max-width:none;max-height:58vh}.chapter-three-scene .chapter-three-battle-air.chapter-three-victory-card{left:15vw;right:auto;top:17vh}.chapter-three-scene .chapter-three-battle-delyuke.chapter-three-victory-card{left:68vw;right:auto;top:16vh}@media(max-width:600px){.chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{bottom:31vh;top:auto;width:34vw;max-height:43vh}.chapter-three-scene .chapter-three-battle-air.chapter-three-victory-card{left:0}.chapter-three-scene .chapter-three-battle-delyuke.chapter-three-victory-card{left:auto;right:0}}';
 chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
