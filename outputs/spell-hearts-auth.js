@@ -378,6 +378,7 @@ function stopAirSmileBgm(){
 function startWolfBattleBgm(){
   const music=document.querySelector('#battleBgm');
   if(!music)return;
+  delete music.dataset.delyukeBattle;
   music.loop=true;
   if(!music.src.endsWith('/assets/story-wolf-battle-bgm.mp3')){music.src='assets/story-wolf-battle-bgm.mp3';music.load();}
   music.dataset.storyKeepPlaying='1';
@@ -390,6 +391,7 @@ function startDelyukeBattleBgm(){
   music.loop=true;
   if(!music.src.endsWith('/story-delyuke-battle-bgm.mp3')){music.src='story-delyuke-battle-bgm.mp3';music.load();}
   music.dataset.storyKeepPlaying='1';
+  music.dataset.delyukeBattle='1';
   const level=titleBgmLevel()*.30;
   if(takePrimedStoryTrack(music,level))return;
   music.pause();music.currentTime=0;music.volume=level;music.play().catch(()=>{});
@@ -985,7 +987,7 @@ function storyLineText(line){
 function applySoundLevels(){
   const bgm=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)));
   const sfx=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsSfxVolume')??70)));
-  const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
+  const music=document.querySelector('#battleBgm'); if(music)music.volume=music.dataset.delyukeBattle==='1'?bgm/100*.22:bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
   const tavernMusic=document.querySelector('#tavernBgm'); if(tavernMusic&&!tavernMusic.dataset.fading)tavernMusic.volume=bgm/100;
@@ -2424,7 +2426,7 @@ function startChapterThree(){
   let chapterThreeConfrontation=false;
   const playLines=(lines,done)=>{
     let index=0;
-    const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア';if(isDelyuke)chapterThreeConfrontation=true;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation;air.hidden=!(line.air||showBoth);delyuke.hidden=!showBoth;air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
+    const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア',useBattleAir=!!line.battleAir;if(isDelyuke&&!useBattleAir)chapterThreeConfrontation=true;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation&&!useBattleAir;air.hidden=useBattleAir||!(line.air||showBoth);delyuke.hidden=useBattleAir||!showBoth;const battleAir=document.querySelector('#chapterThreeBattleAirCard');if(battleAir&&useBattleAir)battleAir.hidden=false;air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
     dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;showLine();}else{dialogue.onclick=null;if(done)done();}};showLine();
   };
   window.chapterThreePlayLines=playLines;
@@ -2478,8 +2480,8 @@ function chapterThreeAfterDelyukeVictory(){
     document.body.classList.add('story-cinematic');scene.hidden=false;scene.classList.add('preparing','show');
     scene.querySelector('.chapter-scene-backdrop').src='assets/story-chapter-three-grassland-dusk.jpg';
     window.chapterThreePlayLines?.([
-      {speaker:'デリューク',text:'ほう、やるな'},
-      {speaker:'エア',text:'だから言ったでしょ、私のほうが強いって！',air:true}
+      {speaker:'デリューク',text:'ほう、やるな',battleAir:true},
+      {speaker:'エア',text:'だから言ったでしょ、私のほうが強いって！',battleAir:true}
     ]);
     requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
   },950);
