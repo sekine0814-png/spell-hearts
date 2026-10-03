@@ -420,7 +420,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp','story-delyuke-card-v1.png'];
 const visualPreloads=new Set();
 function preloadVisuals(sources=[]){
   const selected=[...new Set(sources.filter(Boolean))].filter(src=>!visualPreloads.has(src));
@@ -2326,7 +2326,7 @@ function startChapterThree(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp','assets/story-delyuke-card-v1.png']);
+  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp','story-delyuke-card-v1.png']);
   stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
   const dayLines=[
     {speaker:'主人公',text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'},
@@ -2406,7 +2406,7 @@ function startChapterThree(){
   let scene=document.querySelector('#chapterThreeScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-one-scene chapter-three-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-chapter-three-grassland-day.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-story-card chapter-three-air" src="assets/story-air-travel-card-v1.png" alt="旅装のエア・ノエル" hidden><img class="chapter-story-card chapter-three-delyuke" src="assets/story-delyuke-card-v1.png" alt="王都騎士団のデリューク・ロイアルト" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-chapter-three-grassland-day.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-story-card chapter-three-air" src="assets/story-air-travel-card-v1.png" alt="旅装のエア・ノエル" hidden><img class="chapter-story-card chapter-three-delyuke" src="story-delyuke-card-v1.png" alt="王都騎士団のデリューク・ロイアルト" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
   }
   const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),air=scene.querySelector('.chapter-three-air'),delyuke=scene.querySelector('.chapter-three-delyuke');
