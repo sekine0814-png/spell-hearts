@@ -2462,11 +2462,20 @@ function chapterThreeBattleCards(){
   air.style.cssText=`position:fixed!important;z-index:1000!important;left:.5vw!important;right:auto!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;`;
   delyuke.style.cssText=`position:fixed!important;z-index:1000!important;left:auto!important;right:0!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;`;
   air.src='assets/story-woman-warrior.webp';delyuke.loading='eager';delyuke.decoding='sync';preloadDelyukeBattleCard();delyuke.onerror=()=>{delyuke.onerror=null;delyuke.src='assets/story-delyuke-card-v1.png';};delyuke.src='assets/story-delyuke-battle-card-mobile.jpg';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
+  // 既存のカード用 img は場面遷移時の hidden 属性・スタイルを引き継ぐことがある。
+  // 対戦中だけは別レイヤーで描画し、盤面レンダラーの再構築から完全に切り離す。
+  let display=document.querySelector('#chapterThreeBattleDelyukeDisplay');
+  if(!display){display=document.createElement('div');display.id='chapterThreeBattleDelyukeDisplay';display.setAttribute('role','img');display.setAttribute('aria-label','デリューク・ロイアルト');document.body.append(display);}
+  if(window.storyDelyukeBattleActive){
+    display.style.cssText=`position:fixed!important;z-index:10001!important;left:auto!important;right:0!important;bottom:21vh!important;width:auto!important;height:${height}!important;aspect-ratio:2/3!important;max-width:${maxWidth}!important;background:url("assets/story-delyuke-battle-card-mobile.jpg") center/contain no-repeat!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;`;
+    display.removeAttribute('hidden');
+  }else display.setAttribute('hidden','');
   return {air,delyuke};
 }
 function hideChapterThreeBattleCards(){
   document.querySelector('#chapterThreeBattleAirCard')?.setAttribute('hidden','');
   document.querySelector('#chapterThreeBattleDelyukeCard')?.setAttribute('hidden','');
+  document.querySelector('#chapterThreeBattleDelyukeDisplay')?.setAttribute('hidden','');
 }
 function retryChapterThreeDelyukeBattle(){
   const result=document.querySelector('#resultScreen');
