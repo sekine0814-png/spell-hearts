@@ -6,12 +6,12 @@
  * becoming an extra card in a battle or surviving a fade to the title screen.
  */
 (()=>{
-  const battleKinds=new Set(['tutorial','wolf','air']);
+  const battleKinds=new Set(['tutorial','wolf','air','delyuke']);
   let activeKind=null;
 
   function removeLegacyBattleVisuals(){
     document.querySelectorAll(
-      '#storyBattleOpponentCard,#storyAirOpponentCard,.story-battle-opponent-card,.board-flight'
+      '#storyBattleOpponentCard,#storyAirOpponentCard,#chapterThreeDelyukeDirectCard,.story-battle-opponent-card,.board-flight'
     ).forEach(node=>node.remove());
   }
 
@@ -26,8 +26,20 @@
   function begin(config){
     if(!battleKinds.has(config?.kind))return;
     activeKind=config.kind;
+    if(activeKind==='delyuke'){
+      let card=document.getElementById('chapterThreeDelyukeDirectCard');
+      if(!card){card=document.createElement('img');card.id='chapterThreeDelyukeDirectCard';card.alt='デリューク';document.body.append(card);}
+      card.src='story-delyuke-battle-card-mobile.jpg';
+      card.style.cssText='position:fixed!important;z-index:1005!important;right:1vw!important;bottom:21vh!important;height:min(58vh,620px)!important;width:auto!important;max-width:28vw!important;display:block!important;visibility:visible!important;opacity:1!important;object-fit:contain!important;pointer-events:none!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;';
+    }
     removeLegacyBattleVisuals();
     resetBoard();
+    if(activeKind==='delyuke'){
+      let card=document.getElementById('chapterThreeDelyukeDirectCard');
+      if(!card){card=document.createElement('img');card.id='chapterThreeDelyukeDirectCard';card.alt='デリューク';document.body.append(card);}
+      card.src='story-delyuke-battle-card-mobile.jpg';
+      card.style.cssText='position:fixed!important;z-index:1005!important;right:1vw!important;bottom:21vh!important;height:min(58vh,620px)!important;width:auto!important;max-width:28vw!important;display:block!important;visibility:visible!important;opacity:1!important;object-fit:contain!important;pointer-events:none!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;';
+    }
     document.body.classList.remove('story-cinematic','story-battle-tutorial','story-battle-wolf','story-battle-air');
     document.body.classList.add('story-active','story-battle-active',`story-battle-${activeKind}`);
 
