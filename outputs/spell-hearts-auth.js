@@ -1097,7 +1097,7 @@ function playPcCursorMoveSfx(){
 function installPcCursorMoveSfx(){
   document.addEventListener('click',event=>{
     if(matchMedia('(max-width:600px)').matches)return;
-    const target=event.target.closest('.top .btn,.result-actions button[onclick="returnToTitle()"],.chapter-return-title,#chapterOneEndScreen,#chapterTwoEndScreen,#titleReturnConfirm [data-answer],#titleSettings,#battleSettings');
+    const target=event.target.closest('.top .btn,.result-actions button[onclick="returnToTitle()"],.chapter-return-title,#chapterOneEndScreen,#chapterTwoEndScreen,#chapterThreeEndScreen,#titleReturnConfirm [data-answer],#titleSettings,#battleSettings');
     if(target)playPcCursorMoveSfx();
   });
 }
@@ -2426,7 +2426,7 @@ function startChapterThree(){
   let chapterThreeConfrontation=false;
   const playLines=(lines,done)=>{
     let index=0;
-    const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア',useBattleAir=!!line.battleAir;if(isDelyuke&&!useBattleAir)chapterThreeConfrontation=true;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation&&!useBattleAir;air.hidden=useBattleAir||!(line.air||showBoth);delyuke.hidden=useBattleAir||!showBoth;const battleAir=document.querySelector('#chapterThreeBattleAirCard');if(battleAir&&useBattleAir)battleAir.hidden=false;air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
+    const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア',useBattleAir=!!line.battleAir;if(isDelyuke&&!useBattleAir)chapterThreeConfrontation=true;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation&&!useBattleAir;air.hidden=useBattleAir||!(line.air||showBoth);delyuke.hidden=useBattleAir||!showBoth;const battleAir=document.querySelector('#chapterThreeBattleAirCard'),battleDelyuke=document.querySelector('#chapterThreeBattleDelyukeCard');if(battleAir&&useBattleAir)battleAir.hidden=false;if(battleDelyuke&&useBattleAir){battleDelyuke.hidden=false;if(line.delyukeStanding){battleDelyuke.src='assets/story-delyuke-card-v1.png';battleDelyuke.classList.add('chapter-three-delyuke-standing');}}air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
     dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;showLine();}else{dialogue.onclick=null;if(done)done();}};showLine();
   };
   window.chapterThreePlayLines=playLines;
@@ -2439,7 +2439,7 @@ function chapterThreeBattleCards(){
   let air=document.querySelector('#chapterThreeBattleAirCard'),delyuke=document.querySelector('#chapterThreeBattleDelyukeCard');
   if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
   if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
-  air.classList.remove('chapter-three-victory-card');delyuke.classList.remove('chapter-three-victory-card');document.body.append(air,delyuke);
+  air.classList.remove('chapter-three-victory-card');delyuke.classList.remove('chapter-three-victory-card','chapter-three-delyuke-standing');document.body.append(air,delyuke);
   air.src='assets/story-woman-warrior.webp';delyuke.src='assets/story-delyuke-battle-card-v1.png';air.hidden=false;delyuke.hidden=false;
   return {air,delyuke};
 }
@@ -2482,9 +2482,58 @@ function chapterThreeAfterDelyukeVictory(){
     scene.querySelector('.chapter-scene-backdrop').src='assets/story-chapter-three-grassland-dusk.jpg';
     window.chapterThreePlayLines?.([
       {speaker:'デリューク',text:'ほう、やるな',battleAir:true},
-      {speaker:'エア',text:'だから言ったでしょ、私のほうが強いって！',battleAir:true}
-    ]);
+      {speaker:'エア',text:'だから言ったでしょ、私のほうが強いって！',battleAir:true},
+      {speaker:'主人公',text:'確かに、一見押しているのはエアさんに見える。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'しかし――目に見えて、息が上がっているのはエアさんの方だ。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'デリュークと名乗った男は全く呼吸が乱れていない。\nそして、エアさんの攻め手を最小限の動きでいなしている。',battleAir:true,spoken:false},
+      {speaker:'エア',text:'ハァ・・・ハァ・・・くっ',battleAir:true},
+      {speaker:'デリューク',text:'大した体感、そして瞬発力だ。',battleAir:true},
+      {speaker:'デリューク',text:'だが――',battleAir:true},
+      {speaker:'主人公',text:'ガキィィィーーーーン・・・・',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'デリュークはエアさんが振りかぶった一振りの根本を捉え、\n剣を弾き飛ばした。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'剣は舞うように吹き飛び、地へと突き刺さる。',battleAir:true,spoken:false},
+      {speaker:'デリューク',text:'惜しいな。エルナ流剣術・・・\nまだその真髄は掴めていないと見える',battleAir:true},
+      {speaker:'エア',text:'なっ・・・！',battleAir:true},
+      {speaker:'主人公',text:'剣を弾き飛ばされたときより険しい表情が、\nエアさんの顔に浮かぶ。',battleAir:true,spoken:false},
+      {speaker:'デリューク',text:'なぜそれを・・・と言いた気な顔だな。',battleAir:true},
+      {speaker:'主人公',text:'眉一つ動かさずデリュークは言う。',battleAir:true,spoken:false},
+      {speaker:'デリューク',text:'太刀筋を見れば解る。\nいや、解りやすいと言ったほうがいいか？',battleAir:true},
+      {speaker:'主人公',text:'明らかに地力が違う。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'そして、デリュークは俺の方を見据える。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'一瞬の緊張が走る。\nが、俺を一瞥するとエアさんに向き直る。',battleAir:true,spoken:false},
+      {speaker:'デリューク',text:'西の街、だったな。',battleAir:true},
+      {speaker:'主人公',text:'デリュークは剣を鞘に納めながら、そう言った。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'え・・・',battleAir:true,delyukeStanding:true,spoken:true},
+      {speaker:'デリューク',text:'情報提供、感謝する。',battleAir:true},
+      {speaker:'主人公',text:'俺とエアさんが歩いてきた方角を見つめ、歩き出した。',battleAir:true,spoken:false},
+      {speaker:'エア',text:'ちょ・・・ちょっと待って！',battleAir:true},
+      {speaker:'主人公',text:'エアさんが叫ぶように制止する。',battleAir:true,spoken:false},
+      {speaker:'エア',text:'どういうこと？ 連行とか、前哨基地とか',battleAir:true},
+      {speaker:'デリューク',text:'フ・・・',battleAir:true},
+      {speaker:'主人公',text:'デリュークは如何にもお見通しだ、という笑みを浮かべ告げる。',battleAir:true,spoken:false},
+      {speaker:'デリューク',text:'剣を交えればわかる。\nお前達がどのような人間で、嘘を吐いているかどうかなど、な',battleAir:true},
+      {speaker:'主人公',text:'驚いているとも呆れているとも何とも言えない表情で、\nエアさんがデリュークを見つめている。\n恐らく、俺も全く同じ表情をしていたことだろう。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。',battleAir:true,spoken:false},
+      {speaker:'エア',text:'ぐっ・・・なんで・・・！',battleAir:true},
+      {speaker:'主人公',text:'吐き捨てるほど悔しそうなエアさんの声が聞こえる。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'突き刺さった剣を引き抜くと、\n俺の方は見ずにエアさんが呟く。',battleAir:true,spoken:false},
+      {speaker:'エア',text:'キャンプ・・・張ろっか',battleAir:true},
+      {speaker:'主人公',text:'ハッとした俺は、左手に持ったままだった杭の存在を思い出す。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'その後はキャンプの中で食事を取り、床についた。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'食事を終える頃には笑顔を見せていたが、\n終始エアさんは気落ちしていたように見えた。\nあれだけの実力差を見せられれば、剣士として思うところもあったことだろう。',battleAir:true,spoken:false},
+      {speaker:'主人公',text:'そして明日以降のことを考える。\nこのまま何もなく王都にたどり着けるか・・・\n恐らくそうは行かない気がすると想いながら、目を瞑った。',battleAir:true,spoken:false}
+    ],()=>showChapterThreeEnd(scene));
     requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
+  },950);
+}
+function showChapterThreeEnd(scene){
+  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
+  coverStoryCurtain(curtain);stopChapterThreeBgm();
+  setTimeout(()=>{
+    scene.hidden=true;scene.classList.remove('show','preparing','leaving');hideChapterThreeBattleCards();
+    let end=document.querySelector('#chapterThreeEndScreen');
+    if(!end){end=document.createElement('button');end.id='chapterThreeEndScreen';end.type='button';end.innerHTML='<span>Chapter 3 END</span><small>タイトルに戻る</small>';document.body.append(end);}
+    end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));end.onclick=()=>window.returnToTitle?.();
   },950);
 }
 function installChapterThreeDelyukeResultHandler(){
@@ -2809,6 +2858,7 @@ chapterOneStyle.textContent+='.chapter-three-scene .chapter-dialogue p{line-brea
 chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-battle-air{z-index:2}.chapter-three-scene .chapter-dialogue{z-index:3}';
 chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{position:absolute;z-index:2;bottom:auto;width:auto;height:min(58vh,620px);max-width:none;max-height:none}.chapter-three-scene .chapter-three-battle-air.chapter-three-victory-card{left:15vw;right:auto;top:9vh}.chapter-three-scene .chapter-three-battle-delyuke.chapter-three-victory-card{left:68vw;right:auto;top:16vh;transform:scaleX(-1)}@media(max-width:600px){.chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{bottom:31vh;top:auto;width:auto;height:43vh;max-height:none}.chapter-three-scene .chapter-three-battle-air.chapter-three-victory-card{left:0}.chapter-three-scene .chapter-three-battle-delyuke.chapter-three-victory-card{left:auto;right:0}}';
 chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
+chapterOneStyle.textContent+='#chapterThreeEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.9);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterThreeEndScreen[hidden]{display:none}#chapterThreeEndScreen.show{opacity:1}#chapterThreeEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterThreeEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterThreeEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterThreeEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-scene.chapter-two-css-backdrop{background:#120b05 var(--chapter-two-backdrop) center/cover no-repeat!important}.chapter-two-scene.chapter-two-css-backdrop .chapter-scene-backdrop{display:none!important}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
