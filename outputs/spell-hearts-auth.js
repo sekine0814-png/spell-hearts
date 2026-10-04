@@ -440,7 +440,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.png','assets/story-delyuke-card-v1.png','assets/story-delyuke-battle-card-mobile.jpg'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.jpg','assets/story-delyuke-card-v1.jpg','assets/story-delyuke-battle-card-mobile.jpg'];
 const visualPreloads=new Set();
 function preloadVisuals(sources=[]){
   const selected=[...new Set(sources.filter(Boolean))].filter(src=>!visualPreloads.has(src));
@@ -2355,7 +2355,7 @@ function startChapterThree(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.png','assets/story-delyuke-card-v1.png','assets/story-delyuke-battle-card-mobile.jpg']);preloadDelyukeBattleCard();
+  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.optimized.jpg','assets/story-chapter-three-grassland-dusk.optimized.jpg','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.jpg','assets/story-delyuke-card-v1.jpg','assets/story-delyuke-battle-card-mobile.jpg']);preloadDelyukeBattleCard();
   stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
   const dayLines=[
     {speaker:'主人公',text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'},
@@ -2436,20 +2436,20 @@ function startChapterThree(){
   let scene=document.querySelector('#chapterThreeScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-one-scene chapter-three-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-chapter-three-grassland-day.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-story-card chapter-three-air" src="assets/story-air-travel-card-v1.png" alt="旅装のエア・ノエル" hidden><img class="chapter-story-card chapter-three-delyuke" src="assets/story-delyuke-card-v1.png" alt="王都騎士団のデリューク・ロイアルト" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>'; 
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-chapter-three-grassland-day.optimized.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-story-card chapter-three-air" src="assets/story-air-travel-card-v1.jpg" alt="旅装のエア・ノエル" hidden><img class="chapter-story-card chapter-three-delyuke" src="assets/story-delyuke-card-v1.jpg" alt="王都騎士団のデリューク・ロイアルト" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>'; 
     document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
   }
   const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),air=scene.querySelector('.chapter-three-air'),delyuke=scene.querySelector('.chapter-three-delyuke');
   let chapterThreeConfrontation=false;
   const playLines=(lines,done)=>{
     let index=0;
-    const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア',useBattleAir=!!line.battleAir;if(isDelyuke&&!useBattleAir)chapterThreeConfrontation=true;speaker.hidden=!!line.noName;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation&&!useBattleAir;air.hidden=useBattleAir||!(line.air||showBoth);delyuke.hidden=useBattleAir||!showBoth;const battleAir=document.querySelector('#chapterThreeBattleAirCard'),battleDelyuke=document.querySelector('#chapterThreeBattleDelyukeCard');if(battleAir&&useBattleAir)battleAir.hidden=false;if(battleDelyuke&&useBattleAir){battleDelyuke.hidden=false;if(line.delyukeStanding){battleDelyuke.src='assets/story-delyuke-card-v1.png';battleDelyuke.classList.add('chapter-three-delyuke-standing');}}air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
+const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア',useBattleAir=!!line.battleAir;if(isDelyuke&&!useBattleAir)chapterThreeConfrontation=true;speaker.hidden=!!line.noName;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation&&!useBattleAir;air.hidden=useBattleAir||!(line.air||showBoth);delyuke.hidden=useBattleAir||!showBoth;const battleAir=document.querySelector('#chapterThreeBattleAirCard'),battleDelyuke=document.querySelector('#chapterThreeBattleDelyukeCard');if(battleAir&&useBattleAir)battleAir.hidden=false;if(battleDelyuke&&useBattleAir){battleDelyuke.hidden=false;if(line.delyukeStanding){battleDelyuke.src='assets/story-delyuke-card-v1.jpg';battleDelyuke.classList.add('chapter-three-delyuke-standing');}}air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
     dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;showLine();}else{dialogue.onclick=null;if(done)done();}};showLine();
   };
   window.chapterThreePlayLines=playLines;
   let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
-  setTimeout(()=>{const backdrop=scene.querySelector('.chapter-scene-backdrop');backdrop.src='assets/story-chapter-three-grassland-day.jpg';scene.hidden=false;scene.classList.add('preparing','show');startChapterThreeBgm();playLines(dayLines,()=>chapterThreeFade(scene,'assets/story-chapter-three-grassland-dusk.jpg',()=>playLines(duskLines,()=>beginChapterThreeDelyukeBattle(scene))));requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1250);},1050);
+  setTimeout(()=>{const backdrop=scene.querySelector('.chapter-scene-backdrop');backdrop.src='assets/story-chapter-three-grassland-day.optimized.jpg';scene.hidden=false;scene.classList.add('preparing','show');startChapterThreeBgm();playLines(dayLines,()=>chapterThreeFade(scene,'assets/story-chapter-three-grassland-dusk.optimized.jpg',()=>playLines(duskLines,()=>beginChapterThreeDelyukeBattle(scene))));requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1250);},1050);
 }
 window.startChapterThree=startChapterThree;
 function chapterThreeBattleCards(){
@@ -2461,7 +2461,7 @@ function chapterThreeBattleCards(){
   // 盤面の再描画に左右されず、両方の対戦カードを同じ層へ明示的に再配置する。
   air.style.cssText=`position:fixed!important;z-index:1000!important;left:.5vw!important;right:auto!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;`;
   delyuke.style.cssText=`position:fixed!important;z-index:1000!important;left:auto!important;right:0!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;`;
-  air.src='assets/story-woman-warrior.webp';delyuke.loading='eager';delyuke.decoding='sync';preloadDelyukeBattleCard();delyuke.onerror=()=>{delyuke.onerror=null;delyuke.src='assets/story-delyuke-card-v1.png';};delyuke.src='assets/story-delyuke-battle-card-mobile.jpg';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
+  air.src='assets/story-woman-warrior.webp';delyuke.loading='eager';delyuke.decoding='sync';preloadDelyukeBattleCard();delyuke.onerror=()=>{delyuke.onerror=null;delyuke.src='assets/story-delyuke-card-v1.jpg';};delyuke.src='assets/story-delyuke-battle-card-mobile.jpg';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
   // 既存のカード用 img は場面遷移時の hidden 属性・スタイルを引き継ぐことがある。
   // 対戦中だけは別レイヤーで描画し、盤面レンダラーの再構築から完全に切り離す。
   let display=document.querySelector('#chapterThreeBattleDelyukeDisplay');
@@ -2482,7 +2482,7 @@ function retryChapterThreeDelyukeBattle(){
   if(result){result.classList.remove('show');result.innerHTML='';}
   window.storyDelyukeBattleResolved=false;window.storyDelyukeBattleActive=true;
   document.querySelector('#storyBattleOpponentCard')?.setAttribute('hidden','');document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
-  window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.jpg');startDelyukeBattleBgm();chapterThreeBattleCards();
+  window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.optimized.jpg');startDelyukeBattleBgm();chapterThreeBattleCards();
 }
 function beginChapterThreeDelyukeBattle(scene){
   stopChapterThreeBgm();
@@ -2494,7 +2494,7 @@ function beginChapterThreeDelyukeBattle(scene){
     document.querySelector('main')?.style.removeProperty('visibility');
     window.storyDelyukeBattleActive=true;window.storyDelyukeBattleResolved=false;
     document.querySelector('#storyBattleOpponentCard')?.setAttribute('hidden','');document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
-    window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.jpg');
+    window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.optimized.jpg');
     applySoundLevels();if(battleMusic?.paused||!battleMusic?.src.endsWith('/story-delyuke-battle-bgm.mp3'))startDelyukeBattleBgm();chapterThreeBattleCards();requestAnimationFrame(chapterThreeBattleCards);setTimeout(chapterThreeBattleCards,180);
     requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
   },950);
@@ -2509,7 +2509,7 @@ function chapterThreeAfterDelyukeVictory(){
   coverStoryCurtain(curtain);
   setTimeout(()=>{
     document.body.classList.add('story-cinematic');scene.hidden=false;scene.classList.add('preparing','show');
-    scene.querySelector('.chapter-scene-backdrop').src='assets/story-chapter-three-grassland-dusk.jpg';
+    scene.querySelector('.chapter-scene-backdrop').src='assets/story-chapter-three-grassland-dusk.optimized.jpg';
     window.chapterThreePlayLines?.([
       {speaker:'デリューク',text:'ほう、やるな',battleAir:true},
       {speaker:'エア',text:'だから言ったでしょ、私のほうが強いって！',battleAir:true},
