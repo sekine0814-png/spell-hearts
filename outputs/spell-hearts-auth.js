@@ -3110,3 +3110,5 @@ mobileDressupStyle.textContent=`
 }
 `;
 document.head.append(mobileDressupStyle);
+
+        setInterval(()=>{if(!window.storyDelyukeBattleActive)return;let e=document.querySelector('#chapterThreeDelyukeFreshImage');if(!e){e=document.createElement('img');e.id='chapterThreeDelyukeFreshImage';e.alt='デリューク・ロイアルト';document.body.append(e)}e.src=e.src.endsWith('/assets/story-delyuke-battle-card-chapter3.jpg')?e.src:'assets/story-delyuke-battle-card-chapter3.jpg';e.removeAttribute('hidden');e.style.cssText='position:fixed!important;z-index:1002!important;right:0!important;bottom:21vh!important;height:min(58vh,620px)!important;max-width:28vw!important;width:auto!important;display:block!important;visibility:visible!important;opacity:1!important;object-fit:contain!important;pointer-events:none!important;transform:scaleX(-1)!important;transform-origin:right bottom!important';let old=document.querySelector('#chapterThreeBattleDelyukeCard');if(old)old.style.display='none'},250);
