@@ -195,8 +195,14 @@ function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
   // タイトルは最初の操作で確実に鳴らせるよう、曲本体を先に準備しておく。
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.volume=0;
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.autoplay=true;music.muted=true;music.volume=titleBgmLevel();
   document.body.append(music);return music;
+}
+function primeTitleBgm(){
+  const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
+  if(title?.classList.contains('dismiss'))return;
+  music.muted=true;music.volume=titleBgmLevel();
+  music.play().catch(()=>{});
 }
 function stopTitleBgm(){
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;titleBgmStarted=false;
@@ -585,9 +591,10 @@ function preloadChapterTwoBattleAssets(){
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
-  if(title?.classList.contains('dismiss')||(!music.paused&&!music.ended))return;
+  if(title?.classList.contains('dismiss'))return;
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;
   titleBgmStarted=true;music.muted=false;music.volume=titleBgmLevel();music.dataset.fading='';
+  if(!music.paused&&!music.ended)return;
   music.play().catch(()=>{titleBgmStarted=false;});
 }
 function installTitleBgm(){
@@ -598,7 +605,9 @@ function installTitleBgm(){
   if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopMobileBattleBgmLoop();stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
-  startTitleBgm();
+  // 音を出せない初期表示中はミュートで曲を先読みする。最初のタップで startTitleBgm が
+  // 即座に解除するため、メニュー展開後まで待たせない。
+  primeTitleBgm();
 }
 function renderTokenBalance(){
   const count=document.querySelector('#tokenBalance .token-count');
@@ -2439,7 +2448,11 @@ function chapterThreeBattleCards(){
   if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
   if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
   air.classList.remove('chapter-three-victory-card');delyuke.classList.remove('chapter-three-victory-card','chapter-three-delyuke-standing');document.body.append(air,delyuke);
-  air.src='assets/story-woman-warrior.webp';delyuke.src='assets/story-delyuke-battle-card-v1.png';air.hidden=false;delyuke.hidden=false;
+  const compact=isTouchBattleDevice(),height=compact?'43vh':'min(58vh,620px)',maxWidth=compact?'31vw':'28vw';
+  // 盤面の再描画に左右されず、両方の対戦カードを同じ層へ明示的に再配置する。
+  air.style.cssText=`position:fixed!important;z-index:240!important;left:.5vw!important;right:auto!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;`;
+  delyuke.style.cssText=`position:fixed!important;z-index:240!important;left:auto!important;right:0!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;transform:scaleX(-1) scale(.88)!important;`;
+  air.src='assets/story-woman-warrior.webp';delyuke.src='assets/story-delyuke-battle-card-v1.png';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
   return {air,delyuke};
 }
 function hideChapterThreeBattleCards(){
@@ -2464,7 +2477,7 @@ function beginChapterThreeDelyukeBattle(scene){
     window.storyDelyukeBattleActive=true;window.storyDelyukeBattleResolved=false;
     document.querySelector('#storyBattleOpponentCard')?.setAttribute('hidden','');document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
     window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.jpg');
-    applySoundLevels();if(battleMusic?.paused||!battleMusic?.src.endsWith('/story-delyuke-battle-bgm.mp3'))startDelyukeBattleBgm();chapterThreeBattleCards();
+    applySoundLevels();if(battleMusic?.paused||!battleMusic?.src.endsWith('/story-delyuke-battle-bgm.mp3'))startDelyukeBattleBgm();chapterThreeBattleCards();requestAnimationFrame(chapterThreeBattleCards);setTimeout(chapterThreeBattleCards,180);
     requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
   },950);
 }
@@ -2473,7 +2486,7 @@ function chapterThreeAfterDelyukeVictory(){
   const music=document.querySelector('#battleBgm');if(music){music.dataset.storyKeepPlaying='';music.pause();music.currentTime=0;}
   const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';}
   const scene=document.querySelector('#chapterThreeScene');if(!scene)return;
-  const battleCards=chapterThreeBattleCards();battleCards.air.classList.add('chapter-three-victory-card');battleCards.delyuke.classList.add('chapter-three-victory-card');scene.append(battleCards.air,battleCards.delyuke);battleCards.air.hidden=false;battleCards.delyuke.hidden=false;scene.querySelector('.chapter-three-air').hidden=true;scene.querySelector('.chapter-three-delyuke').hidden=true;
+  const battleCards=chapterThreeBattleCards();battleCards.air.removeAttribute('style');battleCards.delyuke.removeAttribute('style');battleCards.air.classList.add('chapter-three-victory-card');battleCards.delyuke.classList.add('chapter-three-victory-card');scene.append(battleCards.air,battleCards.delyuke);battleCards.air.hidden=false;battleCards.delyuke.hidden=false;scene.querySelector('.chapter-three-air').hidden=true;scene.querySelector('.chapter-three-delyuke').hidden=true;
   let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
   coverStoryCurtain(curtain);
   setTimeout(()=>{
@@ -2952,6 +2965,15 @@ mobileLandscapeStyle.textContent=`
 }
 `;
 document.head.append(mobileLandscapeStyle);
+const chapterThreeMobileLayoutStyle=document.createElement('style');
+chapterThreeMobileLayoutStyle.textContent=`
+/* 横向きスマホは幅が 600px を超えるため、Chapter 3 だけは高さ基準で会話欄との間隔を固定する。 */
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
+  .chapter-three-scene .chapter-three-air,.chapter-three-scene .chapter-three-delyuke{bottom:172px!important;width:min(16vw,145px)!important;max-height:calc(100vh - 208px)!important}
+  .chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{bottom:172px!important;height:min(35vh,260px)!important;max-height:calc(100vh - 208px)!important}
+}
+`;
+document.head.append(chapterThreeMobileLayoutStyle);
 const tutorialTargetStyle=document.createElement('style');
 tutorialTargetStyle.textContent='#tutorialInputLock.focus{background:rgba(0,0,0,.74)!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}.slot.tutorial-focus-target,.charge.tutorial-focus-target{position:absolute!important}.picks .tutorial-focus-target{position:relative!important}';
 document.head.append(tutorialTargetStyle);
