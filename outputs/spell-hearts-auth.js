@@ -201,8 +201,10 @@ function ensureTitleBgm(){
 function primeTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
   if(title?.classList.contains('dismiss'))return;
-  music.muted=true;music.volume=titleBgmLevel();
-  music.play().catch(()=>{});
+  // 起動直後から音を出せる環境では、そのままタイトル曲を開始する。
+  // 自動再生を禁止する端末だけ、初回操作で即時解除できるミュート待機へ退避する。
+  music.muted=false;music.volume=titleBgmLevel();
+  music.play().catch(()=>{music.muted=true;music.play().catch(()=>{});});
 }
 function stopTitleBgm(){
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;titleBgmStarted=false;
