@@ -440,7 +440,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.png','assets/story-delyuke-card-v1.png','assets/story-delyuke-battle-card-v1.png'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.png','assets/story-delyuke-card-v1.png','assets/story-delyuke-battle-card-mobile.jpg'];
 const visualPreloads=new Set();
 function preloadVisuals(sources=[]){
   const selected=[...new Set(sources.filter(Boolean))].filter(src=>!visualPreloads.has(src));
@@ -455,6 +455,13 @@ function preloadVisuals(sources=[]){
 }
 function preloadStoryVisuals(sources=storyVisualAssets){
   return preloadVisuals(sources.filter(src=>storyVisualAssets.includes(src)));
+}
+// 大きな PNG を戦闘開始後に復号すると、スマホでは右側のカードが空白になる。
+// 小型戦闘カードを参照として保持し、Chapter 3 開始時から確実に読み込んでおく。
+function preloadDelyukeBattleCard(){
+  if(window.__delyukeBattleCardPreload)return window.__delyukeBattleCardPreload;
+  const image=new Image();image.decoding='sync';image.src='assets/story-delyuke-battle-card-mobile.jpg';
+  window.__delyukeBattleCardPreload=image;return image;
 }
 function preloadVisualsWhenIdle(sources,delay=0){
   // 物語中は表示に必要な一枚だけを読ませる。裏で多数の高解像度画像を
@@ -2348,7 +2355,7 @@ function startChapterThree(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
   if(panel)panel.hidden=true;
   document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.png','assets/story-delyuke-card-v1.png','assets/story-delyuke-battle-card-v1.png']);
+  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.jpg','assets/story-chapter-three-grassland-dusk.jpg','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.png','assets/story-delyuke-card-v1.png','assets/story-delyuke-battle-card-mobile.jpg']);preloadDelyukeBattleCard();
   stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
   const dayLines=[
     {speaker:'主人公',text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'},
@@ -2450,11 +2457,11 @@ function chapterThreeBattleCards(){
   if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
   if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
   air.classList.remove('chapter-three-victory-card');delyuke.classList.remove('chapter-three-victory-card','chapter-three-delyuke-standing');document.body.append(air,delyuke);
-  const compact=isTouchBattleDevice(),height=compact?'47vh':'min(58vh,620px)',maxWidth=compact?'min(16vw,290px)':'28vw';
+  const compact=isTouchBattleDevice(),height=compact?'43vh':'min(58vh,620px)',maxWidth=compact?'min(16vw,290px)':'28vw';
   // 盤面の再描画に左右されず、両方の対戦カードを同じ層へ明示的に再配置する。
   air.style.cssText=`position:fixed!important;z-index:1000!important;left:.5vw!important;right:auto!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;`;
   delyuke.style.cssText=`position:fixed!important;z-index:1000!important;left:auto!important;right:0!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;`;
-  air.src='assets/story-woman-warrior.webp';delyuke.loading='eager';delyuke.decoding='sync';delyuke.onerror=()=>{delyuke.onerror=null;delyuke.src='assets/story-delyuke-card-v1.png';};delyuke.src='assets/story-delyuke-battle-card-v1.png';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
+  air.src='assets/story-woman-warrior.webp';delyuke.loading='eager';delyuke.decoding='sync';preloadDelyukeBattleCard();delyuke.onerror=()=>{delyuke.onerror=null;delyuke.src='assets/story-delyuke-card-v1.png';};delyuke.src='assets/story-delyuke-battle-card-mobile.jpg';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
   return {air,delyuke};
 }
 function hideChapterThreeBattleCards(){
