@@ -7,6 +7,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
+
 const firebaseConfig={
   apiKey:'AIzaSyCP3E5ojlmFo9cp0sT4GY_MN81bMV4eSSc',
   authDomain:'spellhearts-3579a.firebaseapp.com',
@@ -17,12 +18,14 @@ const firebaseConfig={
   measurementId:'G-XH0X45FXF8'
 };
 
+
 const firebaseApp=initializeApp(firebaseConfig);
 const auth=getAuth(firebaseApp);
 const db=getFirestore(firebaseApp);
 let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
+
 
 // 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
 function syncTouchLandscapeLayout(){
@@ -43,7 +46,9 @@ window.visualViewport?.addEventListener('resize',scheduleTouchLandscapeLayout,{p
 window.screen?.orientation?.addEventListener?.('change',scheduleTouchLandscapeLayout);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTouchLandscapeLayout,{once:true});else syncTouchLandscapeLayout();
 
+
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
+
 
 function authMessage(error){
   const messages={
@@ -61,6 +66,7 @@ function authMessage(error){
   return messages[error?.code]||'ログインに失敗しました。もう一度試してください。';
 }
 
+
 function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
@@ -68,6 +74,7 @@ function updateLoginButton(){
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
 }
+
 
 function tokenKey(){return `spellHeartsTokens:${currentUser?.uid||'guest'}`;}
 function readTokens(){return Math.max(0,Number.parseInt(localStorage.getItem(tokenKey())||'0',10)||0);}
@@ -357,6 +364,7 @@ function resumeStoryMedia(){
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
+
 
 const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 const visualPreloads=new Set();
@@ -687,11 +695,14 @@ function claimStoryChapterReward(chapter,amount){
   return true;
 }
 
+
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
 onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
+
 function closeLogin(){modal?.remove();modal=null;}
+
 
 function makeModal(){
   if(modal)return modal;
@@ -775,6 +786,7 @@ function makeModal(){
   return modal;
 }
 
+
 window.openSpellHeartsLogin=()=>{
   if(currentUser&&!currentUser.isAnonymous){
     if(confirm(`${currentUser.email} でログイン中です。ログアウトしますか？`))signOut(auth);
@@ -782,6 +794,7 @@ window.openSpellHeartsLogin=()=>{
   }
   makeModal();
 };
+
 
 window.ensureSpellHeartsGuest=async()=>{
   if(currentUser)return true;
@@ -797,6 +810,7 @@ window.ensureSpellHeartsGuest=async()=>{
   }
 };
 
+
 window.getSpellHeartsNickname=()=>{
   if(currentUser?.displayName)return currentUser.displayName;
   let guest=localStorage.getItem('spellHeartsGuestNickname');
@@ -810,6 +824,7 @@ function storyLineText(line){
   const spoken=line.spoken===true||(line.spoken!==false&&line.speaker!=='主人公');
   return spoken&&!/[「」]/.test(text)?`「${text}」`:text;
 }
+
 
 function applySoundLevels(){
   const bgm=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)));
@@ -825,6 +840,7 @@ function applySoundLevels(){
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
+
 
 function makeSettings(){
   const title=document.querySelector('#titleScreen');
@@ -848,6 +864,7 @@ function makeSettings(){
     range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
   }
 }
+
 
 function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
 function readRecord(){try{return {...{wins:0,losses:0,draws:0},...JSON.parse(localStorage.getItem(recordKey())||'{}')};}catch{return {wins:0,losses:0,draws:0};}}
@@ -2154,15 +2171,71 @@ function startChapterThree(){
   document.querySelector('#storyModePanel')?.setAttribute('hidden','');
   let scene=document.querySelector('#chapterThreeScene');
   if(!scene){
-    scene=document.createElement('section');scene.id='chapterThreeScene';
-    scene.innerHTML='<div class="chapter-three-start"><p>CHAPTER 3</p><h2>新たな旅路</h2><button type="button">タイトルに戻る</button></div>';
+    scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-three-scene';
+    scene.innerHTML='<img class="chapter-three-backdrop" alt=""><button type="button" class="chapter-three-return">タイトルに戻る</button><img class="chapter-three-air" alt="エア"><section class="chapter-three-dialogue"><b class="chapter-three-speaker"></b><p></p><i>▼</i></section>';
     document.body.append(scene);
-    scene.querySelector('button').onclick=()=>{scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
-    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;display:grid;place-items:center;background:#08090d;color:#fff1bd;text-align:center}#chapterThreeScene[hidden]{display:none}.chapter-three-start{padding:40px;border:1px solid #d8ae4e;background:rgba(8,8,12,.88);box-shadow:0 0 42px #000}.chapter-three-start p{margin:0;color:#e8bf56;letter-spacing:.2em}.chapter-three-start h2{margin:16px 0 28px;font:clamp(28px,5vw,56px) Georgia,"Yu Mincho",serif}.chapter-three-start button{padding:10px 22px;border:1px solid #d8ae4e;border-radius:4px;background:#271a08;color:#fff1bd;font:16px Georgia,"Yu Mincho",serif;cursor:pointer}';document.head.append(style);
+    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;overflow:hidden;background:#101714;color:#fff4cf;font-family:"Yu Mincho",serif}#chapterThreeScene[hidden]{display:none}.chapter-three-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78) saturate(.9)}.chapter-three-air{position:absolute;right:clamp(4vw,12vw,18vw);bottom:20vh;width:min(23vw,300px);max-height:61vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009)}.chapter-three-return{position:absolute;z-index:3;right:2.4vw;top:2.4vh;padding:11px 24px;border:1px solid #e1b948;border-radius:5px;background:#241806e8;color:#fff1bd;font:600 15px "Yu Mincho",serif;cursor:pointer}.chapter-three-dialogue{position:absolute;z-index:3;left:50%;bottom:5.5vh;transform:translateX(-50%);width:min(72vw,1080px);min-height:118px;padding:27px 74px 30px;border:1px solid #c79a31;background:#06080bd9;box-shadow:0 0 24px #0009;font-size:clamp(17px,1.5vw,24px);line-height:1.75}.chapter-three-dialogue b{position:absolute;left:25px;top:-25px;min-width:112px;padding:7px 16px;border:1px solid #c79a31;background:#211604;color:#f7dda0;text-align:center;font-size:15px;font-weight:600}.chapter-three-dialogue b[hidden]{display:none}.chapter-three-dialogue p{margin:0;white-space:pre-line}.chapter-three-dialogue i{position:absolute;right:22px;bottom:13px;color:#e8c352;font-style:normal;font-size:17px;animation:chapterThreeNext 1.1s ease-in-out infinite}@keyframes chapterThreeNext{50%{opacity:.3;transform:translateY(4px)}}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter-three-air{right:5vw;bottom:31vh;width:min(29vw,215px);max-height:48vh}.chapter-three-dialogue{bottom:3.5vh;width:78vw;min-height:72px;padding:18px 42px 18px;font-size:clamp(13px,2.35vw,19px);line-height:1.55}.chapter-three-dialogue b{left:15px;top:-20px;min-width:70px;padding:4px 9px;font-size:12px}.chapter-three-return{right:2vw;top:2vh;padding:7px 13px;font-size:12px}}';document.head.append(style);
+    scene.querySelector('.chapter-three-backdrop').src='assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg';
+    scene.querySelector('.chapter-three-air').src='assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png';
+    scene.querySelector('.chapter-three-return').onclick=()=>{scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
   }
-  document.body.classList.add('story-active','story-cinematic');scene.hidden=false;
+  const lines=[
+    {text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。
+街を出て半日ほど経っただろうか、
+辺りは気持ちの良い風が吹く草原が広がっている。'},
+    {speaker:'エア',text:'夜になると魔物が出るからね。
+夕方にはキャンプを設営して、火を炊くよ。'},
+    {text:'エアさんは言う。流石に冒険者、
+知識も経験も豊富だ。'},
+    {speaker:'主人公',text:'・・・あの、聞きたいことがあるんですけど'},
+    {speaker:'エア',text:'なに？なんでも聞いてよ'},
+    {speaker:'主人公',text:'夜になると魔物が活発になるのは訓練所でも習いましたし、
+事実、街の近くをうろついていたのを何度か見たこともあります'},
+    {speaker:'主人公',text:'でも、昼間に魔物が人を襲うようなことってあるんでしょうか。'},
+    {text:'俺は思い出していた。そう、昨日の騒ぎのことだ。'},
+    {speaker:'エア',text:'無くはないね。魔物の種類にもよるけど'},
+    {text:'エアさんは表情を緩めず言う。'},
+    {speaker:'エア',text:'昨日のこと、気になってるんだね。'},
+    {text:'俺は頷く。'},
+    {speaker:'エア',text:'昨日の魔物、覚えてる？
+狼のような見た目で、体は痩せ細っていた。
+長い間食料にありつけていなかった証拠だよ'},
+    {speaker:'エア',text:'魔物が食糧難で姿を見せるのは珍しいんだ。
+弱っているところを別の魔物に食べられてしまうからね'},
+    {speaker:'エア',text:'つまりあの魔物の出現は、あの街の周辺で少し前から、
+野生における食物連鎖が完全に停止していたことの裏返しなんだ'},
+    {speaker:'主人公',text:'食物連鎖の・・・停止'},
+    {speaker:'エア',text:'そう。そして、この食物連鎖の停止なんだけど、
+私も何度か見た経験がある。'},
+    {speaker:'エア',text:'その全てが、
+たったひとつの理由で起こっているんだ'},
+    {speaker:'主人公',text:'たったひとつ、ですか'},
+    {speaker:'エア',text:'そう。なんだと思う？'},
+    {speaker:'主人公',text:'・・・見当もつきません'},
+    {speaker:'エア',text:'人間だよ'},
+    {text:'一瞬、息が止まる。'},
+    {speaker:'主人公',text:'・・・人間？'},
+    {speaker:'エア',text:'そう。魔物を含む食物連鎖の停止は、
+人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。'},
+    {speaker:'主人公',text:'どうしてそんなこと、わかるんですか？'},
+    {speaker:'エア',text:'現象としてはかなり珍しいよ。
+ただ、いくつか報告事例があるんだ。
+逆に、魔物だけで食物連鎖が崩壊した事例は無い。'},
+    {speaker:'エア',text:'私もいくつか報告書を読んだけど、
+どれも目を覆うような凄惨な事件ばかりだったよ。'},
+    {speaker:'主人公',text:'・・・そうなんですか'},
+    {speaker:'エア',text:'よく違和感を持ったね。冒険者に向いてるかもね'},
+    {text:'少し微笑んでエアさんは言う。
+しかし、その笑顔の奥に何か思うものがあるようにも感じた。'},
+    {speaker:'主人公',text:'人間・・・か'}
+  ];
+  const card=scene.querySelector('.chapter-three-air'),dialogue=scene.querySelector('.chapter-three-dialogue'),speaker=dialogue.querySelector('b'),body=dialogue.querySelector('p'),next=dialogue.querySelector('i');let index=0;
+  const showLine=()=>{const line=lines[index];const talking=line.speaker==='エア';card.style.opacity=talking?'1':'.76';speaker.hidden=!line.speaker;speaker.textContent=line.speaker?(line.speaker==='主人公'?(window.storySpeakerName?.('主人公')||'主人公'):'エア'):'';body.textContent=line.speaker?'「'+line.text+'」':line.text;next.hidden=index===lines.length-1;};
+  dialogue.onclick=()=>{if(index<lines.length-1){index++;showLine();}};
+  document.body.classList.add('story-active','story-cinematic');scene.hidden=false;showLine();
 }
 window.startChapterThree=startChapterThree;
+
 
 function openTutorial(){
   let modal=document.querySelector('#tutorialPanel');
@@ -2270,6 +2343,7 @@ function installTitlePressMenu(){
   title.classList.remove('title-shell-loading');
 }
 
+
 /* 横画面で fixed 要素のタップ座標がずれる端末では、タイトル表示中だけ通常配置にする。 */
 function installMobileTitleViewportLock(){
   const title=document.querySelector('#titleScreen');
@@ -2301,6 +2375,7 @@ function makeBattleSettings(){
   new MutationObserver(syncBattleSettings).observe(title,{attributes:true,attributeFilter:['class']});syncBattleSettings();
 }
 
+
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 // タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
 for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
@@ -2314,6 +2389,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const fanfare=document.querySelector('#winFanfare');
   if(fanfare)fanfare.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.82));
 });
+
 
 const style=document.createElement('style');
 style.textContent=`
