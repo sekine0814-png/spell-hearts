@@ -3227,9 +3227,9 @@ function startChapterThree(){
   let scene=document.querySelector('#chapterThreeScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-three-scene';
-    scene.innerHTML='<audio id="chapterThreeBgm" loop preload="auto" src="assets/藁の記憶.mp3"></audio><img class="chapter-three-backdrop" alt=""><button type="button" class="chapter-three-return">タイトルに戻る</button><img class="chapter-three-air" alt="エア"><section class="chapter-three-dialogue"><b class="chapter-three-speaker"></b><p></p><i>▼</i></section>';
+    scene.innerHTML='<audio id="chapterThreeBgm" loop preload="auto" src="assets/藁の記憶.mp3"></audio><img class="chapter-three-backdrop" alt=""><div class="chapter-three-fade"></div><button type="button" class="chapter-three-return">タイトルに戻る</button><img class="chapter-three-air" alt="エア"><img class="chapter-three-delyuke" alt="デリューク" hidden><section class="chapter-three-dialogue"><b class="chapter-three-speaker"></b><p></p><i>▼</i></section>';
     document.body.append(scene);
-    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;overflow:hidden;background:#101714;color:#fff4cf;font-family:"Yu Mincho",serif;opacity:0;transition:opacity .72s ease}#chapterThreeScene.scene-intro{opacity:1}#chapterThreeScene[hidden]{display:none}.chapter-three-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78) saturate(.9)}.chapter-three-air{position:absolute;left:18.8vw;right:auto;top:20vh;bottom:auto;width:min(20vw,300px);max-height:55vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);opacity:0;transform:scale(.94);transform-origin:center bottom;transition:opacity .42s ease,transform .32s ease}.chapter-three-air.is-speaking{transform:scale(1.045)}.chapter-three-scene.scene-intro .chapter-three-air{opacity:1}.chapter-three-dialogue{opacity:0;pointer-events:none;transition:opacity .35s ease}.chapter-three-scene.scene-dialogue .chapter-three-dialogue{opacity:1;pointer-events:auto}.chapter-three-return{position:absolute;z-index:3;right:2.4vw;top:2.4vh;padding:11px 24px;border:1px solid #e1b948;border-radius:5px;background:#241806e8;color:#fff1bd;font:600 15px "Yu Mincho",serif;cursor:pointer}.chapter-three-dialogue{position:absolute;z-index:3;left:50%;bottom:5.5vh;transform:translateX(-50%);width:min(72vw,1080px);min-height:118px;padding:27px 74px 30px;border:1px solid #c79a31;background:#06080bd9;box-shadow:0 0 24px #0009;font-size:clamp(17px,1.5vw,24px);line-height:1.75}.chapter-three-dialogue b{position:absolute;left:25px;top:-25px;min-width:112px;padding:7px 16px;border:1px solid #c79a31;background:#211604;color:#f7dda0;text-align:center;font-size:15px;font-weight:600}.chapter-three-dialogue b[hidden]{display:none}.chapter-three-dialogue p{margin:0;white-space:pre-line}.chapter-three-dialogue i{position:absolute;right:22px;bottom:13px;color:#e8c352;font-style:normal;font-size:17px;animation:chapterThreeNext 1.1s ease-in-out infinite}@keyframes chapterThreeNext{50%{opacity:.3;transform:translateY(4px)}}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter-three-air{left:5vw;right:auto;top:8vh;bottom:auto;width:min(28vw,210px);max-height:48vh}.chapter-three-dialogue{bottom:3.5vh;width:78vw;min-height:72px;padding:18px 42px 18px;font-size:clamp(13px,2.35vw,19px);line-height:1.55}.chapter-three-dialogue b{left:15px;top:-20px;min-width:70px;padding:4px 9px;font-size:12px}.chapter-three-return{right:2vw;top:2vh;padding:7px 13px;font-size:12px}}';document.head.append(style);
+    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;overflow:hidden;background:#101714;color:#fff4cf;font-family:"Yu Mincho",serif;opacity:0;transition:opacity .72s ease}#chapterThreeScene.scene-intro{opacity:1}#chapterThreeScene[hidden]{display:none}.chapter-three-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78) saturate(.9);transition:filter .35s ease}.chapter-three-fade{position:absolute;z-index:2;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .34s ease}.chapter-three-fade.active{opacity:1}.chapter-three-delyuke{position:absolute;z-index:1;right:11vw;top:16vh;width:min(20vw,310px);max-height:57vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);transition:opacity .3s ease,transform .3s ease}.chapter-three-delyuke[hidden]{display:none}.chapter-three-air{position:absolute;left:18.8vw;right:auto;top:20vh;bottom:auto;width:min(20vw,300px);max-height:55vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);opacity:0;transform:scale(.94);transform-origin:center bottom;transition:opacity .42s ease,transform .32s ease}.chapter-three-air.is-speaking{transform:scale(1.045)}.chapter-three-scene.scene-intro .chapter-three-air{opacity:1}.chapter-three-dialogue{opacity:0;pointer-events:none;transition:opacity .35s ease}.chapter-three-scene.scene-dialogue .chapter-three-dialogue{opacity:1;pointer-events:auto}.chapter-three-return{position:absolute;z-index:3;right:2.4vw;top:2.4vh;padding:11px 24px;border:1px solid #e1b948;border-radius:5px;background:#241806e8;color:#fff1bd;font:600 15px "Yu Mincho",serif;cursor:pointer}.chapter-three-dialogue{position:absolute;z-index:3;left:50%;bottom:5.5vh;transform:translateX(-50%);width:min(72vw,1080px);min-height:118px;padding:27px 74px 30px;border:1px solid #c79a31;background:#06080bd9;box-shadow:0 0 24px #0009;font-size:clamp(17px,1.5vw,24px);line-height:1.75}.chapter-three-dialogue b{position:absolute;left:25px;top:-25px;min-width:112px;padding:7px 16px;border:1px solid #c79a31;background:#211604;color:#f7dda0;text-align:center;font-size:15px;font-weight:600}.chapter-three-dialogue b[hidden]{display:none}.chapter-three-dialogue p{margin:0;white-space:pre-line}.chapter-three-dialogue i{position:absolute;right:22px;bottom:13px;color:#e8c352;font-style:normal;font-size:17px;animation:chapterThreeNext 1.1s ease-in-out infinite}@keyframes chapterThreeNext{50%{opacity:.3;transform:translateY(4px)}}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter-three-air{left:5vw;right:auto;top:8vh;bottom:auto;width:min(28vw,210px);max-height:48vh}.chapter-three-dialogue{bottom:3.5vh;width:78vw;min-height:72px;padding:18px 42px 18px;font-size:clamp(13px,2.35vw,19px);line-height:1.55}.chapter-three-dialogue b{left:15px;top:-20px;min-width:70px;padding:4px 9px;font-size:12px}.chapter-three-return{right:2vw;top:2vh;padding:7px 13px;font-size:12px}}';document.head.append(style);
     scene.querySelector('.chapter-three-backdrop').src='assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg';
     scene.querySelector('.chapter-three-air').src='assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png';
     scene.querySelector('.chapter-three-return').onclick=()=>{const bgm=scene.querySelector('#chapterThreeBgm');bgm?.pause();scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
@@ -3267,10 +3267,50 @@ function startChapterThree(){
     {speaker:'主人公',text:'・・・そうなんですか'},
     {speaker:'エア',text:'よく違和感を持ったね。冒険者に向いてるかもね'},
     {text:n('少し微笑んでエアさんは言う。','しかし、その笑顔の奥に何か思うものがあるようにも感じた。')},
-    {speaker:'主人公',text:'人間・・・か'}
+    {speaker:'主人公',text:'人間・・・か'},
+    {text:'',evening:true},
+    {speaker:'エア',text:'そろそろキャンプを張るよ',evening:true},
+    {text:n('頷いて荷物を取り出す。','訓練所で野営の授業はあったので、設営はスムーズだ。'),evening:true},
+    {speaker:'エア',text:'へえ、やるじゃん！',evening:true},
+    {speaker:'主人公',text:'いえ・・・',evening:true},
+    {text:'少し照れくさい。',evening:true},
+    {text:'最後の杭に手をかけた、そのときだった。',evening:true},
+    {speaker:'？？？',text:'お前ら、ここで何をしている',evening:true,delyuke:'normal'},
+    {text:n('声に振り向くと、そこには如何にも手練れであろう風体の男性が','こちらを怪訝そうな眼差しで睨みつけていた。','かなりこちらを警戒しているようだ。'),evening:true,delyuke:'normal'},
+    {speaker:'エア',text:'私たちは西の村から出てきた旅の者だよ',evening:true,delyuke:'normal'},
+    {text:n('エアさんが言うが、男は表情ひとつ変えず','こちらを見据えている。'),evening:true,delyuke:'normal'},
+    {speaker:'？？？',text:'ここ最近、この周辺でサイクル・ハウトが観測されている。',evening:true,delyuke:'normal'},
+    {speaker:'主人公',text:'サイクル・・・？',evening:true,delyuke:'normal'},
+    {text:'言いかけて、フラッシュバックする。',evening:true,delyuke:'normal'},
+    {text:'（食物連鎖の――停止）',evening:true,delyuke:'normal'},
+    {text:'なるほど・・・そういうことか。',evening:true,delyuke:'normal'},
+    {speaker:'エア',text:n('それは私たちも観測したよ。','街中に飢餓状態の魔物が入り込んで来た。'),evening:true,delyuke:'normal'},
+    {speaker:'主人公',text:'・・・',evening:true,delyuke:'normal'},
+    {text:'こちらを見る男の目は変わらない。',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:n('私は王都騎士団のデリューク・ロイアルト。','旅証を見せてもらおう。'),evening:true,delyuke:'normal'},
+    {speaker:'エア',text:'旅証ね。待って',evening:true,delyuke:'normal'},
+    {text:'エアさんは荷物の中から写真付きの旅証を取り出し見せる。',evening:true,delyuke:'normal'},
+    {speaker:'エア',text:'はい。これでいいでしょ',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:'・・・写真、王都の印はあるな。いいだろう。',evening:true,delyuke:'normal'},
+    {speaker:'エア',text:'じゃあね、お疲れ様',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:'まだだ。貴様もだ',evening:true,delyuke:'normal'},
+    {text:n('当然、俺に向けられた言葉だ。','しかし、街を出てきたばかりの俺に旅証などあるはずもなかった。'),evening:true,delyuke:'normal'},
+    {speaker:'主人公',text:'私は・・・街から出てきたばかりで',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:'・・・怪しいな',evening:true,delyuke:'normal'},
+    {speaker:'エア',text:n('この人は私の連れだよ。','それに、アインクロッズより東のエリア以外では','旅証の提示は義務じゃないはずだけど？'),evening:true,delyuke:'normal'},
+    {text:'デリュークと名乗った男とエアさんが睨み合う。',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:n('取り調べを行う。','騎士団の前哨基地まで来てもらおう。'),evening:true,delyuke:'normal'},
+    {speaker:'エア',text:'はぁ？ 騎士団ごときにそんな権限あるわけないでしょ。',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:'貴様、口答えするのか',evening:true,delyuke:'normal'},
+    {text:'二人のテンションがヒートアップしてきているのが伝わってくる。',evening:true,delyuke:'normal'},
+    {speaker:'デリューク',text:n('今は緊急事態なのだ。','無理やりにでも・・・来てもらうぞ。'),evening:true,delyuke:'normal'},
+    {text:'男は剣を抜いた。',evening:true,delyuke:'sword'},
+    {speaker:'エア',text:n('そんな義理はないって言ってるでしょ。','やるなら相手になるよ。','私の方が強いと思うけど？'),evening:true,delyuke:'sword'},
+    {speaker:'デリューク',text:'抜かせ、小娘。',evening:true,delyuke:'sword'},
+    {text:'振りかざした二人の刃が重なった・・・！',evening:true,delyuke:'sword'}
   ];
-  const card=scene.querySelector('.chapter-three-air'),dialogue=scene.querySelector('.chapter-three-dialogue'),speaker=dialogue.querySelector('b'),body=dialogue.querySelector('p'),next=dialogue.querySelector('i'),bgm=scene.querySelector('#chapterThreeBgm');let index=0;
-  const showLine=()=>{const line=lines[index];const talking=line.speaker==='エア',visible=scene.classList.contains('scene-dialogue');card.style.opacity=visible?(talking?'1':'.76'):'';card.classList.toggle('is-speaking',visible&&talking);speaker.hidden=!line.speaker;speaker.textContent=line.speaker?(line.speaker==='主人公'?(window.storySpeakerName?.('主人公')||'主人公'):'エア'):'';body.textContent=line.speaker?'「'+line.text+'」':line.text;next.hidden=index===lines.length-1;};
+  const card=scene.querySelector('.chapter-three-air'),delyuke=scene.querySelector('.chapter-three-delyuke'),backdrop=scene.querySelector('.chapter-three-backdrop'),fade=scene.querySelector('.chapter-three-fade'),dialogue=scene.querySelector('.chapter-three-dialogue'),speaker=dialogue.querySelector('b'),body=dialogue.querySelector('p'),next=dialogue.querySelector('i'),bgm=scene.querySelector('#chapterThreeBgm');let index=0,eveningApplied=false;
+  const showLine=()=>{const line=lines[index];if(line.evening&&!eveningApplied){eveningApplied=true;fade.classList.add('active');window.setTimeout(()=>{backdrop.src='assets/862dbc28-ef1d-474f-becc-68ab30b979fd.jpg';fade.classList.remove('active');},340);}const talking=line.speaker==='エア',visible=scene.classList.contains('scene-dialogue');card.style.opacity=visible?(talking?'1':'.76'):'';card.classList.toggle('is-speaking',visible&&talking);delyuke.hidden=!line.delyuke;if(line.delyuke)delyuke.src=line.delyuke==='sword'?'assets/exec-de0615d8-6dfe-4ee0-af48-a7ce0210f4e2.png':'assets/exec-ea55e498-d164-4f94-8b07-78a9d38615a8.png';speaker.hidden=!line.speaker;speaker.textContent=line.speaker?(line.speaker==='主人公'?(window.storySpeakerName?.('主人公')||'主人公'):line.speaker):'';body.textContent=line.speaker?'「'+line.text+'」':line.text;next.hidden=index===lines.length-1;};
   dialogue.onclick=()=>{if(index<lines.length-1){index++;showLine();}};
   document.body.classList.add('story-active','story-cinematic');scene.hidden=false;scene.classList.remove('scene-intro','scene-dialogue');bgm.volume=.18;bgm.currentTime=0;bgm.play().catch(()=>{});showLine();requestAnimationFrame(()=>scene.classList.add('scene-intro'));window.setTimeout(()=>{scene.classList.add('scene-dialogue');showLine();},820);
 }
