@@ -24,48 +24,6 @@ let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
 
-// 表示名は認証プロバイダーのプロフィール（Google名・メール）から一切取らない。
-// 着せ替えと同じ profiles/{uid} に、ゲーム内ニックネームだけを保存する。
-let accountNickname='ゲスト';
-function sanitizeNickname(value){return String(value||'').trim().replace(/[<>]/g,'').slice(0,16);}
-function guestNickname(){
-  let name=localStorage.getItem('spellHeartsGuestNickname');
-  if(!name){name=`ゲスト${Math.floor(1000+Math.random()*9000)}`;localStorage.setItem('spellHeartsGuestNickname',name);}
-  return name;
-}
-function nicknameKey(){return `spellHeartsNickname:${currentUser?.uid||'guest'}`;}
-function readLocalAccountNickname(){return sanitizeNickname(localStorage.getItem(nicknameKey()))||'ゲスト';}
-function writeLocalAccountNickname(name){localStorage.setItem(nicknameKey(),name);}
-function currentNickname(){return !currentUser||currentUser.isAnonymous?guestNickname():accountNickname;}
-async function loadAccountNickname(){
-  const user=currentUser;
-  accountNickname=readLocalAccountNickname();
-  updateLoginButton();
-  if(!user||user.isAnonymous)return;
-  try{
-    const snapshot=await getDoc(doc(db,'profiles',user.uid));
-    const saved=sanitizeNickname(snapshot.data()?.nickname);
-    if(currentUser?.uid!==user.uid)return;
-    if(saved){accountNickname=saved;writeLocalAccountNickname(saved);}
-    updateLoginButton();
-  }catch(error){console.warn('Nickname sync failed',error);}
-}
-async function saveAccountNickname(name){
-  const nickname=sanitizeNickname(name);
-  if(!nickname)return false;
-  if(!currentUser||currentUser.isAnonymous){localStorage.setItem('spellHeartsGuestNickname',nickname);return true;}
-  const uid=currentUser.uid;
-  accountNickname=nickname;
-  writeLocalAccountNickname(nickname);
-  updateLoginButton();
-  try{
-    await runTransaction(db,async transaction=>{
-      transaction.set(doc(db,'profiles',uid),{nickname,updatedAt:Date.now()},{merge:true});
-    });
-    return true;
-  }catch(error){console.warn('Nickname save failed',error);return false;}
-}
-
 // 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
 function syncTouchLandscapeLayout(){
   const touch=navigator.maxTouchPoints>0||'ontouchstart' in window;
@@ -107,7 +65,7 @@ function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
   if(!currentUser||currentUser.isAnonymous){button.textContent='ログイン';return;}
-  button.textContent=currentNickname();
+  button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
 }
 
@@ -189,22 +147,14 @@ function equipCosmetic(category,series,item){
 }
 window.getSpellHeartsCosmetics=()=>publicCosmetics();
 window.getSpellHeartsBattleArt=(cosmetics,card)=>battleArtFor(cosmetics,card);
-let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,chapterThreeBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0,mobileBattleBgmWatch=0,mobileBattleBgmFadeFrame=0;
+let titleBgmStarted=false,titleBgmFadeFrame=0,chapterOneBgmFadeFrame=0,tavernBgmFadeFrame=0,tutorialBattleBgmFadeFrame=0,villageAmbienceFadeFrame=0,tutorialBattleBgmWatch=0;
 function titleBgmLevel(){return Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsBgmVolume')??28)/100));}
 function ensureTitleBgm(){
   let music=document.querySelector('#titleBgm');
   if(music)return music;
   // タイトルは最初の操作で確実に鳴らせるよう、曲本体を先に準備しておく。
-  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.autoplay=true;music.muted=true;music.volume=titleBgmLevel();
+  music=document.createElement('audio');music.id='titleBgm';music.src='assets/title-autumn-sorrow.mp3';music.loop=true;music.preload='auto';music.volume=0;
   document.body.append(music);return music;
-}
-function primeTitleBgm(){
-  const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
-  if(title?.classList.contains('dismiss'))return;
-  // 起動直後から音を出せる環境では、そのままタイトル曲を開始する。
-  // 自動再生を禁止する端末だけ、初回操作で即時解除できるミュート待機へ退避する。
-  music.muted=false;music.volume=titleBgmLevel();
-  music.play().catch(()=>{music.muted=true;music.play().catch(()=>{});});
 }
 function stopTitleBgm(){
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;titleBgmStarted=false;
@@ -241,26 +191,6 @@ function stopTavernBgm(){
   cancelAnimationFrame(tavernBgmFadeFrame);tavernBgmFadeFrame=0;
   const music=document.querySelector('#tavernBgm');
   if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
-}
-function ensureChapterThreeBgm(){
-  let music=document.querySelector('#chapterThreeBgm');
-  if(music)return music;
-  music=document.createElement('audio');music.id='chapterThreeBgm';music.src='assets/story-chapter-three-bgm.mp3';music.loop=true;music.preload='auto';music.volume=0;
-  document.body.append(music);return music;
-}
-function stopChapterThreeBgm(){
-  cancelAnimationFrame(chapterThreeBgmFadeFrame);chapterThreeBgmFadeFrame=0;
-  const music=document.querySelector('#chapterThreeBgm');
-  if(music){music.dataset.keepPlaying='';music.pause();music.currentTime=0;music.volume=0;music.dataset.fading='';}
-}
-function startChapterThreeBgm(){
-  const music=ensureChapterThreeBgm();
-  cancelAnimationFrame(chapterThreeBgmFadeFrame);music.pause();music.currentTime=0;music.volume=0;music.dataset.keepPlaying='1';music.dataset.fading='1';
-  music.play().then(()=>{
-    const began=performance.now(),duration=1200;
-    const fade=now=>{const progress=Math.min(1,(now-began)/duration);music.volume=titleBgmLevel()*.72*progress;if(progress<1)chapterThreeBgmFadeFrame=requestAnimationFrame(fade);else music.dataset.fading='';};
-    chapterThreeBgmFadeFrame=requestAnimationFrame(fade);
-  }).catch(()=>{music.dataset.fading='';});
 }
 function startTavernBgm(){
   const music=ensureTavernBgm();
@@ -386,23 +316,11 @@ function stopAirSmileBgm(){
 function startWolfBattleBgm(){
   const music=document.querySelector('#battleBgm');
   if(!music)return;
-  delete music.dataset.delyukeBattle;
   music.loop=true;
   if(!music.src.endsWith('/assets/story-wolf-battle-bgm.mp3')){music.src='assets/story-wolf-battle-bgm.mp3';music.load();}
   music.dataset.storyKeepPlaying='1';
   if(takePrimedStoryTrack(music,titleBgmLevel()))return;
   music.pause();music.currentTime=0;music.volume=titleBgmLevel();music.play().catch(()=>{});
-}
-function startDelyukeBattleBgm(){
-  const music=document.querySelector('#battleBgm');
-  if(!music)return;
-  music.loop=true;
-  if(!music.src.endsWith('/story-delyuke-battle-bgm.mp3')){music.src='story-delyuke-battle-bgm.mp3';music.load();}
-  music.dataset.storyKeepPlaying='1';
-  music.dataset.delyukeBattle='1';
-  const level=titleBgmLevel()*.30;
-  if(takePrimedStoryTrack(music,level))return;
-  music.pause();music.currentTime=0;music.volume=level;music.play().catch(()=>{});
 }
 /*
  * スマホのブラウザでは、setTimeout 後の audio.play() が「ユーザー操作外」と見なされる。
@@ -440,7 +358,7 @@ document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:t
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
 
-const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.jpg','assets/story-delyuke-card-v1.jpg','assets/story-delyuke-battle-card-chapter3.jpg'];
+const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 const visualPreloads=new Set();
 function preloadVisuals(sources=[]){
   const selected=[...new Set(sources.filter(Boolean))].filter(src=>!visualPreloads.has(src));
@@ -456,13 +374,6 @@ function preloadVisuals(sources=[]){
 function preloadStoryVisuals(sources=storyVisualAssets){
   return preloadVisuals(sources.filter(src=>storyVisualAssets.includes(src)));
 }
-// 大きな PNG を戦闘開始後に復号すると、スマホでは右側のカードが空白になる。
-// 小型戦闘カードを参照として保持し、Chapter 3 開始時から確実に読み込んでおく。
-function preloadDelyukeBattleCard(){
-  if(window.__delyukeBattleCardPreload)return window.__delyukeBattleCardPreload;
-  const image=new Image();image.decoding='sync';image.src='assets/story-delyuke-battle-card-chapter3.jpg';
-  window.__delyukeBattleCardPreload=image;return image;
-}
 function preloadVisualsWhenIdle(sources,delay=0){
   // 物語中は表示に必要な一枚だけを読ませる。裏で多数の高解像度画像を
   // デコードすると、場面転換と入力まで止まる端末がある。
@@ -472,107 +383,6 @@ function preloadVisualsWhenIdle(sources,delay=0){
     if('requestIdleCallback' in window)window.requestIdleCallback(load,{timeout:2500});
     else load();
   },delay);
-}
-function isTouchBattleDevice(){return matchMedia('(hover:none) and (pointer:coarse)').matches;}
-function enableTouchPerformanceMode(){
-  if(!isTouchBattleDevice()||document.documentElement.classList.contains('touch-performance'))return;
-  document.documentElement.classList.add('touch-performance');
-  const style=document.createElement('style');
-  style.textContent=`
-    /* タッチ端末は描画合成を減らし、操作中のフレーム落ちを防ぐ。PC表示には一切適用しない。 */
-    html.touch-performance #titleScreen::after,
-    html.touch-performance .story-mode-panel,
-    html.touch-performance .battle-settings-panel,
-    html.touch-performance .auth-modal{backdrop-filter:none!important}
-    html.touch-performance .stage,
-    html.touch-performance .chapter-one-scene{contain:paint}
-    html.touch-performance .damage-aura,
-    html.touch-performance .aura-paper{box-shadow:none!important;filter:none!important}
-    html.touch-performance .damage-aura:before,
-    html.touch-performance .damage-aura:after,
-    html.touch-performance .aura-paper:before,
-    html.touch-performance .aura-paper:after{filter:none!important;mix-blend-mode:normal!important}
-    html.touch-performance .spell-ready,
-    html.touch-performance .deck-button.ok-ready,
-    html.touch-performance .slot.cpu-ready,
-    html.touch-performance .cpu-thinking,
-    html.touch-performance .opening-draw,
-    html.touch-performance .battle-select-prompt,
-    html.touch-performance .push-screen,
-    html.touch-performance .chapter-next-mark{animation:none!important;filter:none!important;box-shadow:none!important}
-    html.touch-performance .battle-select-prompt{background-size:100% 100%!important;color:#f2c958!important;-webkit-text-fill-color:#f2c958!important}
-    html.touch-performance .picks,
-    html.touch-performance .picks .pick{animation:none!important}
-    html.touch-performance .board-flight{transition-duration:.42s!important;box-shadow:none!important}
-    html.touch-performance .spell-flight-glow{box-shadow:none!important;filter:brightness(1.2)!important}
-  `;
-  document.head.append(style);
-}
-enableTouchPerformanceMode();
-function isRegularBattleActive(){
-  const title=document.querySelector('#titleScreen');
-  return !!title?.classList.contains('dismiss')&&!document.body.classList.contains('story-cinematic');
-}
-function battleBgmLevel(){return Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)))/100;}
-function stopMobileBattleBgmLoop(){
-  cancelAnimationFrame(mobileBattleBgmFadeFrame);mobileBattleBgmFadeFrame=0;
-  const state=window.__mobileBattleBgmLoop;
-  if(!state)return;
-  state.fading=false;
-  for(const music of [state.primary,state.secondary])if(music){music.pause();try{music.currentTime=0;}catch{}music.volume=battleBgmLevel();}
-  state.active=state.primary;
-}
-function resetMobileBattleBgmLoop(){
-  const state=window.__mobileBattleBgmLoop;
-  if(!state)return;
-  cancelAnimationFrame(mobileBattleBgmFadeFrame);mobileBattleBgmFadeFrame=0;state.fading=false;state.active=state.primary;
-  const standby=state.secondary;if(standby){standby.pause();try{standby.currentTime=0;}catch{}standby.volume=battleBgmLevel();}
-}
-function beginMobileBattleBgmCrossfade(current,next){
-  const state=window.__mobileBattleBgmLoop;
-  if(!state||state.fading||state.active!==current||current.dataset.storyKeepPlaying==='1'||!isRegularBattleActive())return;
-  state.fading=true;next.pause();next.src=current.currentSrc||current.src;next.loop=false;next.currentTime=0;next.volume=0;
-  next.play().then(()=>{
-    const began=performance.now(),duration=1600;
-    const fade=now=>{
-      const progress=Math.min(1,(now-began)/duration),level=battleBgmLevel();
-      current.volume=level*(1-progress);next.volume=level*progress;
-      if(progress<1){mobileBattleBgmFadeFrame=requestAnimationFrame(fade);return;}
-      current.pause();try{current.currentTime=0;}catch{}current.volume=level;next.volume=level;state.active=next;state.fading=false;mobileBattleBgmFadeFrame=0;
-    };
-    mobileBattleBgmFadeFrame=requestAnimationFrame(fade);
-  }).catch(()=>{state.fading=false;next.pause();next.volume=battleBgmLevel();});
-}
-function resumeMobileBattleBgm(){
-  if(!isTouchBattleDevice()||document.visibilityState==='hidden'||!isRegularBattleActive())return;
-  const music=window.__mobileBattleBgmLoop?.active||document.querySelector('#battleBgm');
-  if(!music||music.dataset.storyKeepPlaying==='1'||music.ended)return;
-  if(music.paused)music.play().catch(()=>{});
-}
-function configureMobileBattleBgm(){
-  const music=document.querySelector('#battleBgm');
-  if(!music||!isTouchBattleDevice())return;
-  // 素材の終端と先頭を短く重ね、同じ一曲を自然につなぐ。
-  music.loop=false;
-  let state=window.__mobileBattleBgmLoop;
-  if(!state){
-    const secondary=document.createElement('audio');secondary.id='mobileBattleBgmLoop';secondary.preload='auto';secondary.volume=battleBgmLevel();document.body.append(secondary);
-    state=window.__mobileBattleBgmLoop={primary:music,secondary,active:music,fading:false};
-    for(const track of [music,secondary]){
-      track.addEventListener('timeupdate',()=>{
-        if(state.active!==track||state.fading||track.dataset.storyKeepPlaying==='1'||!isRegularBattleActive()||!Number.isFinite(track.duration))return;
-        if(track.currentTime>=Math.max(0,track.duration-1.8))beginMobileBattleBgmCrossfade(track,track===state.primary?state.secondary:state.primary);
-      });
-      track.addEventListener('ended',()=>{
-        if(state.active!==track||state.fading||track.dataset.storyKeepPlaying==='1'||!isRegularBattleActive())return;
-        // metadata 取得前などでクロスフェードを開始できなかった時だけの保険。
-        track.currentTime=0;track.play().catch(()=>{});
-      });
-    }
-  }
-  resetMobileBattleBgmLoop();
-  clearInterval(mobileBattleBgmWatch);
-  mobileBattleBgmWatch=setInterval(resumeMobileBattleBgm,1800);
 }
 function preloadVisualsSequentiallyWhenIdle(sources,delay=0){
   // Chapter 2 は会話を優先するため、先読みキューを作らない。
@@ -600,23 +410,20 @@ function preloadChapterTwoBattleAssets(){
 }
 function startTitleBgm(){
   const title=document.querySelector('#titleScreen'),music=ensureTitleBgm();
-  if(title?.classList.contains('dismiss'))return;
+  if(title?.classList.contains('dismiss')||(!music.paused&&!music.ended))return;
   cancelAnimationFrame(titleBgmFadeFrame);titleBgmFadeFrame=0;
   titleBgmStarted=true;music.muted=false;music.volume=titleBgmLevel();music.dataset.fading='';
-  if(!music.paused&&!music.ended)return;
   music.play().catch(()=>{titleBgmStarted=false;});
 }
 function installTitleBgm(){
   ensureTitleBgm();
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
-  if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();const result=originalStartBgm();configureMobileBattleBgm();return result;};
+  if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopMobileBattleBgmLoop();stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
-  // 音を出せない初期表示中はミュートで曲を先読みする。最初のタップで startTitleBgm が
-  // 即座に解除するため、メニュー展開後まで待たせない。
-  primeTitleBgm();
+  startTitleBgm();
 }
 function renderTokenBalance(){
   const count=document.querySelector('#tokenBalance .token-count');
@@ -882,7 +689,7 @@ function claimStoryChapterReward(chapter,amount){
 
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
-onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();void loadAccountNickname();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
+onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
 function closeLogin(){modal?.remove();modal=null;}
 
@@ -947,8 +754,8 @@ function makeModal(){
         }else{
           await createUserWithEmailAndPassword(auth,email,password);
         }
+        await updateProfile(auth.currentUser,{displayName:nickname});
         currentUser=auth.currentUser;
-        if(!(await saveAccountNickname(nickname)))throw new Error('nickname-save-failed');
         updateLoginButton();
       }else{
         if(auth.currentUser?.isAnonymous)await signOut(auth);
@@ -970,7 +777,7 @@ function makeModal(){
 
 window.openSpellHeartsLogin=()=>{
   if(currentUser&&!currentUser.isAnonymous){
-    if(confirm('ログアウトしますか？'))signOut(auth);
+    if(confirm(`${currentUser.email} でログイン中です。ログアウトしますか？`))signOut(auth);
     return;
   }
   makeModal();
@@ -991,7 +798,10 @@ window.ensureSpellHeartsGuest=async()=>{
 };
 
 window.getSpellHeartsNickname=()=>{
-  return currentNickname();
+  if(currentUser?.displayName)return currentUser.displayName;
+  let guest=localStorage.getItem('spellHeartsGuestNickname');
+  if(!guest){guest=`ゲスト${Math.floor(1000+Math.random()*9000)}`;localStorage.setItem('spellHeartsGuestNickname',guest);}
+  return guest;
 };
 function storySpeakerName(name){return name==='主人公'?(window.getSpellHeartsNickname?.()||'主人公'):name;}
 function storyLineText(line){
@@ -1004,14 +814,14 @@ function storyLineText(line){
 function applySoundLevels(){
   const bgm=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)));
   const sfx=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsSfxVolume')??70)));
-  const music=document.querySelector('#battleBgm'); if(music)music.volume=music.dataset.delyukeBattle==='1'?bgm/100*.22:bgm/100;
+  const music=document.querySelector('#battleBgm'); if(music)music.volume=bgm/100;
   const titleMusic=document.querySelector('#titleBgm'); if(titleMusic&&!titleMusic.dataset.fading)titleMusic.volume=bgm/100;
   const chapterMusic=document.querySelector('#chapterOneBgm'); if(chapterMusic&&!chapterMusic.dataset.fading)chapterMusic.volume=bgm/100;
   const tavernMusic=document.querySelector('#tavernBgm'); if(tavernMusic&&!tavernMusic.dataset.fading)tavernMusic.volume=bgm/100;
   const tutorialMusic=document.querySelector('#tutorialBattleBgm'); if(tutorialMusic&&!tutorialMusic.dataset.fading)tutorialMusic.volume=bgm/100*.65;
   const villageAmbience=document.querySelector('#villageAmbience'); if(villageAmbience&&!villageAmbience.dataset.fading)villageAmbience.volume=bgm/100*.42;
   const villageDanger=document.querySelector('#villageDangerBgm'); if(villageDanger)villageDanger.volume=bgm/100;
-  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#enhancedBlockHealSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx,#cursorMoveSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
+  document.querySelectorAll('#cardFlipSfx,#pursuitSfx,#blockSfx,#schemeSfx,#damageSfxOne,#damageSfxTwo,#winFanfare,#sparringClashSfx').forEach(sound=>sound.volume=(sound.id==='pursuitSfx'?sfx*.57:sound.id==='winFanfare'?sfx*.82:sfx)/100);
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
@@ -1028,13 +838,10 @@ function makeSettings(){
   title.append(gear,panel);
   gear.onclick=()=>{panel.hidden=!panel.hidden;gear.classList.toggle('open',!panel.hidden);};
   panel.querySelector('.settings-save').onclick=async()=>{
-    const input=panel.querySelector('.settings-name'),nickname=input.value.trim().replace(/[<>]/g,'').slice(0,16);
+    const input=panel.querySelector('.settings-name'),nickname=input.value.trim().replace(/[<>]/g,'');
     if(!nickname){input.focus();return;}
-    try{
-      if(!(await saveAccountNickname(nickname)))throw new Error('nickname-save-failed');
-      input.value=nickname;
-      updateLoginButton();
-    }catch(error){alert(authMessage(error));}
+    try{if(currentUser&&!currentUser.isAnonymous)await updateProfile(currentUser,{displayName:nickname});else localStorage.setItem('spellHeartsGuestNickname',nickname);input.value=nickname;updateLoginButton();}
+    catch(error){alert(authMessage(error));}
   };
   for(const [kind,key] of [['bgm','spellHeartsBgmVolume'],['sfx','spellHeartsSfxVolume']]){
     const range=panel.querySelector(`.${kind}-range`),output=panel.querySelector(`.${kind}-value`);
@@ -1086,9 +893,9 @@ function makeRecordButton(){
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
 function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
-function unlockedStoryChapter(){return Math.max(1,Math.min(3,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
+function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
 function unlockStoryChapter(chapter){
-  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(3,Number(chapter)||1));
+  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(2,Number(chapter)||1));
   localStorage.setItem(storyProgressKey(),String(next));
   return next>before;
 }
@@ -1103,20 +910,6 @@ function playTitlePressSfx(){
   if(!sound){sound=document.createElement('audio');sound.id='titlePressSfx';sound.src='assets/title-press-sfx.mp3';sound.preload='auto';document.body.append(sound);}
   sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
   sound.currentTime=0;sound.play().catch(()=>{});
-}
-function playPcCursorMoveSfx(){
-  if(matchMedia('(max-width:600px)').matches)return;
-  let sound=document.querySelector('#cursorMoveSfx');
-  if(!sound){sound=document.createElement('audio');sound.id='cursorMoveSfx';sound.src='assets/cursor-move-2.mp3';sound.preload='auto';document.body.append(sound);}
-  sound.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100));
-  sound.currentTime=0;sound.play().catch(()=>{});
-}
-function installPcCursorMoveSfx(){
-  document.addEventListener('click',event=>{
-    if(matchMedia('(max-width:600px)').matches)return;
-    const target=event.target.closest('.top .btn,.result-actions button[onclick="returnToTitle()"],.chapter-return-title,#chapterOneEndScreen,#chapterTwoEndScreen,#chapterThreeEndScreen,#titleReturnConfirm [data-answer],#titleSettings,#battleSettings');
-    if(target)playPcCursorMoveSfx();
-  });
 }
 function playChapterOneSelectSfx(){
   let sound=document.querySelector('#chapterOneSelectSfx');
@@ -2011,7 +1804,7 @@ function startChapterTwoExpanded(){
     {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
-    {speaker:'主人公',text:'じゃあ・・・お願いします！',yuto:true,air:true,spoken:true},
+    {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
     {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
   ];
   const aftermath=[
@@ -2023,7 +1816,7 @@ function startChapterTwoExpanded(){
     {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
     {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
     {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
-    {speaker:'主人公',text:'「ありがとうございました……。」本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
+    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
     {speaker:'エア',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
     {speaker:'主人公',text:'王都に、行ってみたいです……！',yuto:true,air:true,spoken:true},
     {speaker:'ユート',text:'なら、実戦経験を積むがてら、王都へ帰るエアと旅してみたらどうだ？',yuto:true,air:true},
@@ -2176,7 +1969,7 @@ function chapterTwoHomePrelude(scene){
     {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
     {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
     {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
-    {speaker:'主人公',text:'じゃあ・・・お願いします！',yuto:true,air:true,spoken:true},
+    {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
     {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
   ];
   chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
@@ -2258,7 +2051,7 @@ function chapterTwoAfterAirBattle(){
     {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
     {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
     {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
-    {speaker:'主人公',text:'「ありがとうございました……。」本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
+    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
     {speaker:'エア',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
     {speaker:'主人公',text:'王都に、行ってみたいです……！',yuto:true,air:true,spoken:true},
     {speaker:'ユート',text:'なら、実戦経験を積むがてら、王都へ帰るエアと旅してみたらどうだ？',yuto:true,air:true},
@@ -2303,7 +2096,6 @@ function showChapterTwoEnd(){
   requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
     const received=claimStoryChapterReward('chapter-two',5);
-    unlockStoryChapter(3);
     if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
     window.returnToTitle?.();
   };
@@ -2327,263 +2119,6 @@ setTimeout(installChapterTwoAirResultHandler,0);
    呼んでタイトル初期化を止めないよう、現在動作する導入シーンを入口にする。 */
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
-function chapterThreeFade(scene,source,done){
-  let curtain=document.querySelector('#tutorialBattleCurtain');
-  if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  coverStoryCurtain(curtain);
-  setTimeout(()=>{
-    const backdrop=scene.querySelector('.chapter-scene-backdrop');
-    let settled=false;
-    const reveal=(applySource)=>{
-      if(settled)return;
-      settled=true;
-      // 遅い回線でも src を切り替えるため、夕景画像は読込完了後に必ず表示される。
-      if(applySource&&backdrop)backdrop.src=source;
-      if(done)done();
-      requestAnimationFrame(()=>revealStoryCurtain(curtain));
-      setTimeout(()=>curtain.remove(),1250);
-    };
-    const candidate=new Image();candidate.decoding='async';
-    candidate.onload=()=>reveal(true);
-    candidate.onerror=()=>reveal(true);
-    candidate.src=source;
-    // 読み込みが長引いても昼のまま固定せず、ブラウザ自身に画像読込を継続させる。
-    setTimeout(()=>reveal(true),5000);
-  },900);
-}
-function startChapterThree(){
-  const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');
-  if(panel)panel.hidden=true;
-  document.body.classList.add('story-active','story-cinematic');
-  preloadStoryVisuals(['assets/story-chapter-three-grassland-day.optimized.jpg','assets/story-chapter-three-grassland-dusk.optimized.jpg','assets/story-woman-warrior-smile.webp','assets/story-air-travel-card-v1.jpg','assets/story-delyuke-card-v1.jpg','assets/story-delyuke-battle-card-chapter3.jpg']);preloadDelyukeBattleCard();
-  stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopChapterThreeBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();stopTutorialBattleBgm();
-  const dayLines=[
-    {speaker:'主人公',text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'},
-    {speaker:'主人公',text:'街を出て半日ほど経っただろうか、\n辺りは気持ちの良い風が吹く草原が広がっている。'},
-    {speaker:'エア',text:'夜になると魔物が出るからね。\n夕方にはキャンプを設営して、火を炊くよ。',air:true},
-    {speaker:'主人公',text:'エアさんは言う。流石に冒険者、\n知識も経験も豊富だ。',air:true},
-    {speaker:'主人公',text:'・・・あの、聞きたいことがあるんですけど',air:true,spoken:true},
-    {speaker:'エア',text:'なに？なんでも聞いてよ',air:true},
-    {speaker:'主人公',text:'夜になると魔物が活発になるのは訓練所でも習いましたし、\n事実、街の近くをうろついていたのを何度か見たこともあります',air:true,spoken:true},
-    {speaker:'主人公',text:'でも、昼間に魔物が人を襲うようなことってあるんでしょうか。',air:true,spoken:true},
-    {speaker:'主人公',text:'俺は思い出していた。そう、昨日の騒ぎのことだ。',air:true},
-    {speaker:'エア',text:'無くはないね。魔物の種類にもよるけど',air:true},
-    {speaker:'主人公',text:'エアさんは表情を緩めず言う。',air:true},
-    {speaker:'エア',text:'昨日のこと、気になってるんだね。',air:true},
-    {speaker:'主人公',text:'俺は頷く。',air:true},
-    {speaker:'エア',text:'昨日の魔物、覚えてる？\n狼のような見た目で、体は痩せ細っていた。\n長い間食料にありつけていなかった証拠だよ',air:true},
-    {speaker:'エア',text:'魔物が食糧難で姿を見せるのは珍しいんだ。\n弱っているところを別の魔物に食べられてしまうからね',air:true},
-    {speaker:'エア',text:'つまりあの魔物の出現は、あの街の周辺で少し前から、\n野生における食物連鎖が完全に停止していたことの裏返しなんだ',air:true},
-    {speaker:'主人公',text:'食物連鎖の・・・停止',air:true,spoken:true},
-    {speaker:'エア',text:'そう。そして、この食物連鎖の停止なんだけど、\n私も何度か見た経験がある。',air:true},
-    {speaker:'エア',text:'その全てが、\nたったひとつの理由で起こっているんだ',air:true},
-    {speaker:'主人公',text:'たったひとつ、ですか',air:true,spoken:true},
-    {speaker:'エア',text:'そう。なんだと思う？',air:true},
-    {speaker:'主人公',text:'・・・見当もつきません',air:true,spoken:true},
-    {speaker:'エア',text:'人間だよ',air:true},
-    {speaker:'主人公',text:'一瞬、息が止まる。',air:true},
-    {speaker:'主人公',text:'・・・人間？',air:true,spoken:true},
-    {speaker:'エア',text:'そう。魔物を含む食物連鎖の停止は、\n人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。',air:true},
-    {speaker:'主人公',text:'どうしてそんなこと、わかるんですか？',air:true,spoken:true},
-    {speaker:'エア',text:'現象としてはかなり珍しいよ。\nただ、いくつか報告事例があるんだ。\n逆に、魔物だけで食物連鎖が崩壊した事例は無い。',air:true},
-    {speaker:'エア',text:'私もいくつか報告書を読んだけど、\nどれも目を覆うような凄惨な事件ばかりだったよ。',air:true},
-    {speaker:'主人公',text:'・・・そうなんですか',air:true,spoken:true},
-    {speaker:'エア',text:'よく違和感を持ったね。冒険者に向いてるかもね',air:true},
-    {speaker:'主人公',text:'少し微笑んでエアさんは言う。\nしかし、その笑顔の奥に何か思うものがあるようにも感じた。',air:true},
-    {speaker:'主人公',text:'人間・・・か',air:true,spoken:true}
-  ];
-  const duskLines=[
-    {speaker:'エア',text:'そろそろキャンプを張るよ',air:true},
-    {speaker:'主人公',text:'頷いて荷物を取り出す。\n訓練所で野営の授業はあったので、設営はスムーズだ。',air:true},
-    {speaker:'エア',text:'へえ、やるじゃん！',air:true},
-    {speaker:'主人公',text:'いえ・・・',air:true,spoken:true},
-    {speaker:'主人公',text:'少し照れくさい。',air:true},
-    {speaker:'主人公',text:'最後の杭に手をかけた、そのときだった。',air:true},
-    {speaker:'デリューク',name:'？？？',text:'お前ら、ここで何をしている'},
-    {speaker:'主人公',text:'声に振り向くと、そこには如何にも手練れであろう風体の男性が\nこちらを怪訝そうな眼差しで睨みつけていた。\nかなりこちらを警戒しているようだ。',spoken:false},
-    {speaker:'エア',text:'私たちは西の村から出てきた旅の者だよ',air:true},
-    {speaker:'主人公',text:'エアさんが言うが、男は表情ひとつ変えず\nこちらを見据えている。',air:true,spoken:false},
-    {speaker:'デリューク',name:'？？？',text:'ここ最近、この周辺でサイクル・ハウトが観測されている。'},
-    {speaker:'主人公',text:'サイクル・・・？',spoken:true},
-    {speaker:'主人公',text:'言いかけて、フラッシュバックする。',spoken:false},
-    {speaker:'主人公',text:'（食物連鎖の――停止）',spoken:false},
-    {speaker:'主人公',text:'なるほど・・・そういうことか。',spoken:false},
-    {speaker:'エア',text:'それは私たちも観測したよ。\n街中に飢餓状態の魔物が入り込んで来た。',air:true},
-    {speaker:'主人公',text:'・・・',air:true,spoken:true},
-    {speaker:'主人公',text:'こちらを見る男の目は変わらない。',air:true,spoken:false},
-    {speaker:'デリューク',text:'私は王都騎士団のデリューク・ロイアルト。\n旅証を見せてもらおう。'},
-    {speaker:'エア',text:'旅証ね。待って',air:true},
-    {speaker:'主人公',text:'エアさんは荷物の中から写真付きの旅証を取り出し見せる。',air:true,spoken:false},
-    {speaker:'エア',text:'はい。これでいいでしょ',air:true},
-    {speaker:'デリューク',text:'・・・写真、王都の印はあるな。いいだろう。'},
-    {speaker:'エア',text:'じゃあね、お疲れ様',air:true},
-    {speaker:'デリューク',text:'まだだ。貴様もだ'},
-    {speaker:'主人公',text:'当然、俺に向けられた言葉だ。\nしかし、街を出てきたばかりの俺に旅証などあるはずもなかった。',spoken:false},
-    {speaker:'主人公',text:'私は・・・街から出てきたばかりで',spoken:true},
-    {speaker:'デリューク',text:'・・・怪しいな'},
-    {speaker:'エア',text:'この人は私の連れだよ。\nそれに、アインクロッズより東のエリア以外では\n旅証の提示は義務じゃないはずだけど？',air:true},
-    {speaker:'主人公',text:'デリュークと名乗った男とエアさんが睨み合う。',air:true,spoken:false},
-    {speaker:'デリューク',text:'取り調べを行う。\n騎士団の前哨基地まで来てもらおう。'},
-    {speaker:'エア',text:'はぁ？ 騎士団ごときにそんな権限あるわけないでしょ。',air:true},
-    {speaker:'デリューク',text:'貴様、口答えするのか'},
-    {speaker:'主人公',text:'二人のテンションがヒートアップしてきているのが伝わってくる。',air:true,spoken:false},
-    {speaker:'デリューク',text:'今は緊急事態なのだ。\n無理やりにでも・・・来てもらうぞ。'},
-    {speaker:'主人公',text:'男は剣を抜いた。',spoken:false},
-    {speaker:'エア',text:'そんな義理はないって言ってるでしょ。\nやるなら相手になるよ。\n私の方が強いと思うけど？',air:true},
-    {speaker:'デリューク',text:'抜かせ、小娘。'},
-    {speaker:'主人公',text:'振りかざした二人の刃が重なった・・・！',spoken:false}
-  ];
-  let scene=document.querySelector('#chapterThreeScene');
-  if(!scene){
-    scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-one-scene chapter-three-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-chapter-three-grassland-day.optimized.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-story-card chapter-three-air" src="assets/story-air-travel-card-v1.jpg" alt="旅装のエア・ノエル" hidden><img class="chapter-story-card chapter-three-delyuke" src="assets/story-delyuke-card-v1.jpg" alt="王都騎士団のデリューク・ロイアルト" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>'; 
-    document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
-  }
-  const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),air=scene.querySelector('.chapter-three-air'),delyuke=scene.querySelector('.chapter-three-delyuke');
-  let chapterThreeConfrontation=false;
-  const playLines=(lines,done)=>{
-    let index=0;
-const showLine=()=>{const line=lines[index],isDelyuke=line.speaker==='デリューク',isAir=line.speaker==='エア',useBattleAir=!!line.battleAir;if(isDelyuke&&!useBattleAir)chapterThreeConfrontation=true;speaker.hidden=!!line.noName;speaker.textContent=line.name??storySpeakerName(line.speaker);copy.textContent=storyLineText(line);const showBoth=chapterThreeConfrontation&&!useBattleAir;air.hidden=useBattleAir||!(line.air||showBoth);delyuke.hidden=useBattleAir||!showBoth;const battleAir=document.querySelector('#chapterThreeBattleAirCard'),battleDelyuke=document.querySelector('#chapterThreeBattleDelyukeCard');if(battleAir&&useBattleAir)battleAir.hidden=false;if(battleDelyuke&&useBattleAir){battleDelyuke.hidden=false;if(line.delyukeStanding){battleDelyuke.src='assets/story-delyuke-card-v1.jpg';battleDelyuke.classList.add('chapter-three-delyuke-standing');}}air.classList.toggle('speaker-active',isAir);air.classList.toggle('speaker-idle',!isAir&&(!air.hidden));delyuke.classList.toggle('speaker-active',isDelyuke);delyuke.classList.toggle('speaker-idle',!isDelyuke&&showBoth);dialogue.dataset.ended=String(index===lines.length-1);};
-    dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;showLine();}else{dialogue.onclick=null;if(done)done();}};showLine();
-  };
-  window.chapterThreePlayLines=playLines;
-  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  scene.hidden=true;scene.classList.remove('show','preparing','leaving');title?.classList.add('dismiss');coverStoryCurtain(curtain);
-  setTimeout(()=>{const backdrop=scene.querySelector('.chapter-scene-backdrop');backdrop.src='assets/story-chapter-three-grassland-day.optimized.jpg';scene.hidden=false;scene.classList.add('preparing','show');startChapterThreeBgm();playLines(dayLines,()=>chapterThreeFade(scene,'assets/story-chapter-three-grassland-dusk.optimized.jpg',()=>playLines(duskLines,()=>beginChapterThreeDelyukeBattle(scene))));requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1250);},1050);
-}
-window.startChapterThree=startChapterThree;
-function chapterThreeBattleCards(){
-  let air=document.querySelector('#chapterThreeBattleAirCard'),delyuke=document.querySelector('#chapterThreeBattleDelyukeCard');
-  if(!air){air=document.createElement('img');air.id='chapterThreeBattleAirCard';air.className='chapter-three-battle-card chapter-three-battle-air';air.alt='エア・ノエル';document.body.append(air);}
-  if(!delyuke){delyuke=document.createElement('img');delyuke.id='chapterThreeBattleDelyukeCard';delyuke.className='chapter-three-battle-card chapter-three-battle-delyuke';delyuke.alt='デリューク・ロイアルト';document.body.append(delyuke);}
-  air.classList.remove('chapter-three-victory-card');delyuke.classList.remove('chapter-three-victory-card','chapter-three-delyuke-standing');document.body.append(air,delyuke);
-  const compact=isTouchBattleDevice(),height=compact?'43vh':'min(58vh,620px)',maxWidth=compact?'min(16vw,290px)':'28vw';
-  // 盤面の再描画に左右されず、両方の対戦カードを同じ層へ明示的に再配置する。
-  air.style.cssText=`position:fixed!important;z-index:1000!important;left:.5vw!important;right:auto!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;`;
-  delyuke.style.cssText=`position:fixed!important;z-index:1000!important;left:auto!important;right:0!important;bottom:21vh!important;width:auto!important;height:${height}!important;max-width:${maxWidth}!important;display:block!important;visibility:visible!important;opacity:1!important;transform:scaleX(-1)!important;transform-origin:right bottom!important;`;
-  // Chapter 3 専用に新規追加した実画像を直接貼り付ける。
-  // 背景画像を持つ空の要素は使わず、常に img 要素そのものを描画する。
-  air.src='assets/story-woman-warrior.webp';delyuke.loading='eager';delyuke.decoding='sync';preloadDelyukeBattleCard();delyuke.onerror=()=>{delyuke.onerror=null;delyuke.src='assets/story-delyuke-battle-card-chapter3.jpg';};delyuke.src='assets/story-delyuke-battle-card-chapter3.jpg';air.removeAttribute('hidden');delyuke.removeAttribute('hidden');
-  document.querySelector('#chapterThreeBattleDelyukeDisplay')?.remove();
-  return {air,delyuke};
-}
-function hideChapterThreeBattleCards(){
-  document.querySelector('#chapterThreeBattleAirCard')?.setAttribute('hidden','');
-  document.querySelector('#chapterThreeBattleDelyukeCard')?.setAttribute('hidden','');
-  document.querySelector('#chapterThreeBattleDelyukeDisplay')?.setAttribute('hidden','');
-}
-function retryChapterThreeDelyukeBattle(){
-  const result=document.querySelector('#resultScreen');
-  if(result){result.classList.remove('show');result.innerHTML='';}
-  window.storyDelyukeBattleResolved=false;window.storyDelyukeBattleActive=true;
-  document.querySelector('#storyBattleOpponentCard')?.setAttribute('hidden','');document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
-  window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.optimized.jpg');startDelyukeBattleBgm();chapterThreeBattleCards();
-}
-function beginChapterThreeDelyukeBattle(scene){
-  stopChapterThreeBgm();
-  const battleMusic=document.querySelector('#battleBgm');startDelyukeBattleBgm();
-  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  coverStoryCurtain(curtain);scene.classList.add('leaving');
-  setTimeout(()=>{
-    scene.hidden=true;scene.classList.remove('show','preparing','leaving');document.body.classList.remove('story-cinematic');
-    document.querySelector('main')?.style.removeProperty('visibility');
-    window.storyDelyukeBattleActive=true;window.storyDelyukeBattleResolved=false;
-    document.querySelector('#storyBattleOpponentCard')?.setAttribute('hidden','');document.querySelector('#storyAirOpponentCard')?.setAttribute('hidden','');
-    window.start?.();window.setBattleBackdrop?.('story-chapter-three-grassland-dusk.optimized.jpg');
-    applySoundLevels();if(battleMusic?.paused||!battleMusic?.src.endsWith('/story-delyuke-battle-bgm.mp3'))startDelyukeBattleBgm();chapterThreeBattleCards();requestAnimationFrame(chapterThreeBattleCards);setTimeout(chapterThreeBattleCards,180);
-    requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
-  },950);
-}
-function chapterThreeAfterDelyukeVictory(){
-  window.storyDelyukeBattleActive=false;hideChapterThreeBattleCards();
-  const music=document.querySelector('#battleBgm');if(music){music.dataset.storyKeepPlaying='';music.pause();music.currentTime=0;}
-  const result=document.querySelector('#resultScreen');if(result){result.classList.remove('show');result.innerHTML='';}
-  const scene=document.querySelector('#chapterThreeScene');if(!scene)return;
-  const battleCards=chapterThreeBattleCards();battleCards.air.removeAttribute('style');battleCards.delyuke.removeAttribute('style');battleCards.air.classList.add('chapter-three-victory-card');battleCards.delyuke.classList.add('chapter-three-victory-card');scene.append(battleCards.air,battleCards.delyuke);battleCards.air.hidden=false;battleCards.delyuke.hidden=false;scene.querySelector('.chapter-three-air').hidden=true;scene.querySelector('.chapter-three-delyuke').hidden=true;
-  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  coverStoryCurtain(curtain);
-  setTimeout(()=>{
-    document.body.classList.add('story-cinematic');scene.hidden=false;scene.classList.add('preparing','show');
-    scene.querySelector('.chapter-scene-backdrop').src='assets/story-chapter-three-grassland-dusk.optimized.jpg';
-    window.chapterThreePlayLines?.([
-      {speaker:'デリューク',text:'ほう、やるな',battleAir:true},
-      {speaker:'エア',text:'だから言ったでしょ、私のほうが強いって！',battleAir:true},
-      {speaker:'主人公',text:'確かに、一見押しているのはエアさんに見える。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'しかし――目に見えて、息が上がっているのはエアさんの方だ。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'デリュークと名乗った男は全く呼吸が乱れていない。\nそして、エアさんの攻め手を最小限の動きでいなしている。',battleAir:true,spoken:false},
-      {speaker:'エア',text:'ハァ・・・ハァ・・・くっ',battleAir:true},
-      {speaker:'デリューク',text:'大した体感、そして瞬発力だ。',battleAir:true},
-      {speaker:'デリューク',text:'だが――',battleAir:true},
-      {speaker:'主人公',text:'ガキィィィーーーーン・・・・',battleAir:true,spoken:false,noName:true},
-      {speaker:'主人公',text:'デリュークはエアさんが振りかぶった一振りの根本を捉え、\n剣を弾き飛ばした。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'剣は舞うように吹き飛び、地へと突き刺さる。',battleAir:true,spoken:false},
-      {speaker:'デリューク',text:'惜しいな。エルナ流剣術・・・\nまだその真髄は掴めていないと見える',battleAir:true},
-      {speaker:'エア',text:'なっ・・・！',battleAir:true},
-      {speaker:'主人公',text:'剣を弾き飛ばされたときより険しい表情が、\nエアさんの顔に浮かぶ。',battleAir:true,spoken:false},
-      {speaker:'デリューク',text:'なぜそれを・・・と言いた気な顔だな。',battleAir:true},
-      {speaker:'主人公',text:'眉一つ動かさずデリュークは言う。',battleAir:true,spoken:false},
-      {speaker:'デリューク',text:'太刀筋を見れば解る。\nいや、解りやすいと言ったほうがいいか？',battleAir:true},
-      {speaker:'主人公',text:'明らかに地力が違う。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'そして、デリュークは俺の方を見据える。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'一瞬の緊張が走る。\nが、俺を一瞥するとエアさんに向き直る。',battleAir:true,spoken:false},
-      {speaker:'デリューク',text:'西の街、だったな。',battleAir:true},
-      {speaker:'主人公',text:'デリュークは剣を鞘に納めながら、そう言った。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'え・・・',battleAir:true,delyukeStanding:true,spoken:true},
-      {speaker:'デリューク',text:'情報提供、感謝する。',battleAir:true},
-      {speaker:'主人公',text:'俺とエアさんが歩いてきた方角を見つめ、歩き出した。',battleAir:true,spoken:false},
-      {speaker:'エア',text:'ちょ・・・ちょっと待って！',battleAir:true},
-      {speaker:'主人公',text:'エアさんが叫ぶように制止する。',battleAir:true,spoken:false},
-      {speaker:'エア',text:'どういうこと？ 連行とか、前哨基地とか',battleAir:true},
-      {speaker:'デリューク',text:'フ・・・',battleAir:true},
-      {speaker:'主人公',text:'デリュークは如何にもお見通しだ、という笑みを浮かべ告げる。',battleAir:true,spoken:false},
-      {speaker:'デリューク',text:'剣を交えればわかる。\nお前達がどのような人間で、嘘を吐いているかどうかなど、な',battleAir:true},
-      {speaker:'主人公',text:'驚いているとも呆れているとも何とも言えない表情で、\nエアさんがデリュークを見つめている。\n恐らく、俺も全く同じ表情をしていたことだろう。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。',battleAir:true,spoken:false},
-      {speaker:'エア',text:'ぐっ・・・なんで・・・！',battleAir:true},
-      {speaker:'主人公',text:'吐き捨てるほど悔しそうなエアさんの声が聞こえる。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'突き刺さった剣を引き抜くと、\n俺の方は見ずにエアさんが呟く。',battleAir:true,spoken:false},
-      {speaker:'エア',text:'キャンプ・・・張ろっか',battleAir:true},
-      {speaker:'主人公',text:'ハッとした俺は、左手に持ったままだった杭の存在を思い出す。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'その後はキャンプの中で食事を取り、床についた。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'食事を終える頃には笑顔を見せていたが、\n終始エアさんは気落ちしていたように見えた。\nあれだけの実力差を見せられれば、剣士として思うところもあったことだろう。',battleAir:true,spoken:false},
-      {speaker:'主人公',text:'そして明日以降のことを考える。\nこのまま何もなく王都にたどり着けるか・・・\n恐らくそうは行かない気がすると想いながら、目を瞑った。',battleAir:true,spoken:false}
-    ],()=>showChapterThreeEnd(scene));
-    requestAnimationFrame(()=>revealStoryCurtain(curtain));setTimeout(()=>curtain.remove(),1150);
-  },950);
-}
-function showChapterThreeEnd(scene){
-  let curtain=document.querySelector('#tutorialBattleCurtain');if(!curtain){curtain=document.createElement('div');curtain.id='tutorialBattleCurtain';document.body.append(curtain);}
-  coverStoryCurtain(curtain);stopChapterThreeBgm();
-  setTimeout(()=>{
-    scene.hidden=true;scene.classList.remove('show','preparing','leaving');hideChapterThreeBattleCards();
-    let end=document.querySelector('#chapterThreeEndScreen');
-    if(!end){end=document.createElement('button');end.id='chapterThreeEndScreen';end.type='button';end.innerHTML='<span>Chapter 3 END</span><small>タイトルに戻る</small>';document.body.append(end);}
-    end.hidden=false;end.style.zIndex='10001';void end.offsetWidth;end.classList.add('show');end.onclick=()=>window.returnToTitle?.();
-  },950);
-}
-function installChapterThreeDelyukeResultHandler(){
-  const original=window.render;
-  if(typeof original!=='function'||original.chapterThreeDelyukeResultHandlerInstalled)return;
-  const wrapped=function(...args){
-    const rendered=original.apply(this,args);
-    if(window.storyDelyukeBattleActive&&typeof g!=='undefined'&&g?.phase==='end'&&g.p.hp<g.c.hp){
-      const result=document.querySelector('#resultScreen');
-      if(result){
-        result.innerHTML='<div class="result-stack"><div class="result-word result-blue">DELYUKE WIN</div><div class="result-actions"><button class="result-retry" type="button" data-delyuke-retry>もう一度戦う</button><button class="result-retry" type="button" data-delyuke-title>タイトルに戻る</button></div></div>';
-        result.querySelector('[data-delyuke-retry]').onclick=retryChapterThreeDelyukeBattle;
-        result.querySelector('[data-delyuke-title]').onclick=()=>{window.storyDelyukeBattleActive=false;hideChapterThreeBattleCards();window.returnToTitle?.();};
-      }
-    }
-    if(window.storyDelyukeBattleActive&&typeof g!=='undefined'&&g?.phase==='end'&&g.p.hp>g.c.hp&&!window.storyDelyukeBattleResolved){
-      window.storyDelyukeBattleResolved=true;chapterThreeAfterDelyukeVictory();
-    }
-    return rendered;
-  };
-  wrapped.chapterThreeDelyukeResultHandlerInstalled=true;window.render=wrapped;
-}
-setTimeout(installChapterThreeDelyukeResultHandler,0);
-function installStoryOwnerForceWin(){document.querySelector('#storyOwnerForceWin')?.remove();}
-setTimeout(installStoryOwnerForceWin,0);
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
     window.openSpellHeartsLogin?.();
@@ -2599,16 +2134,13 @@ function openStoryMode(){
     panel.querySelector('.story-mode-close').onclick=()=>panel.hidden=true;
     panel.onclick=event=>{if(event.target===panel)panel.hidden=true;};
   }
-  // Chapter 3追加前にChapter 2を終えたユーザーは、既存の報酬記録から一度だけ解放状態を移行する。
-  if(localStorage.getItem(`spellHeartsStoryReward:${currentUser.uid}:chapter-two`)==='claimed')unlockStoryChapter(3);
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
-  chapters.innerHTML=[1,2,3].map(chapter=>{
+  chapters.innerHTML=[1,2].map(chapter=>{
     const available=chapter<=unlocked;
-    const title=chapter===1?'始まりの日':chapter===2?'邂逅':'草原の旅路';
-    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?title:'🔒 LOCKED'}</small></button>`;
+    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'始まりの日':'邂逅'):'🔒 LOCKED'}</small></button>`;
   }).join('');
-  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':unlocked<3?'Chapter 2 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else if(button.dataset.storyChapter==='2')startChapterTwoExpanded();else startChapterThree();});
+  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else startChapterTwoExpanded();});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
@@ -2640,11 +2172,7 @@ function openTutorial(){
 window.primeSpellHeartsAudio=()=>{
   if(window.__spellHeartsAudioPrimed)return;
   window.__spellHeartsAudioPrimed=true;
-  // タッチ端末では無音化した複数の audio.play() が競合し、メニュー選択時に
-  // SE が同時に漏れることがある。以後のカード操作はユーザー操作なので、ここで
-  // 全SEを並列再生して解除する必要はない。
-  if(matchMedia('(hover:none) and (pointer:coarse)').matches)return;
-  for(const id of ['cardFlipSfx','pursuitSfx','blockSfx','enhancedBlockHealSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
+  for(const id of ['battleBgm','cardFlipSfx','pursuitSfx','blockSfx','schemeSfx','damageSfxOne','damageSfxTwo','winFanfare']){
     const sound=document.querySelector('#'+id);
     if(!sound)continue;
     const previousVolume=sound.volume;
@@ -2668,34 +2196,11 @@ function startCpuBattleFromTitle(){
   /* Firebase / 着せ替えの同期を待つとユーザー操作の有効期限が切れ、ブラウザが
      BGM と SE をまとめて拒否する。クリックの瞬間に音声を一度だけ許可する。 */
   window.primeSpellHeartsAudio?.();
-  window.startSpellHeartsBgm?.();
   const begin=()=>window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
   const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
   if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();});else beginWithCosmetics();
 }
-// CPU戦のボタンを押した同じ操作内で曲をロード・再生する。非同期の認証完了後まで
-// 待つと、ブラウザから自動再生として拒否されるため、ここでは battleBgm を prime しない。
-window.startSpellHeartsBgm=()=>{
-  const music=document.querySelector('#battleBgm');
-  if(!music)return;
-  stopTitleBgm();
-  const tracks=['assets/forgotten-city.mp3','assets/memoria.mp3','assets/ice-chain.mp3','assets/melancholy.mp3'];
-  music.pause();
-  music.src=tracks[Math.floor(Math.random()*tracks.length)];
-  music.load();
-  configureMobileBattleBgm();
-  if(isTouchBattleDevice())music.loop=false;
-  music.volume=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)))/100;
-  music.play().catch(()=>{});
-};
-// 復帰時に旧実装が BGM を一度停止してから非同期再生し直すのを防ぐ。
-window.restartCpuMatch=()=>{
-  window.start?.();
-  document.querySelector('#titleScreen')?.classList.add('dismiss');
-  const music=document.querySelector('#battleBgm');
-  if(!music||music.paused)window.startSpellHeartsBgm?.();
-};
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');
   if(!menu)return;
@@ -2731,10 +2236,6 @@ function installTitlePressMenu(){
   };
   // 開いた直後に title 側の「メニュー外を押したら閉じる」処理へ同じクリックが
   // 伝わると、PRESS SCREEN が何も起こらないように見えてしまう。
-  // iOS/Android は document 側のイベントを音声再生のユーザー操作として扱わない
-  // 場合があるため、最初の PRESS SCREEN 自体に直接結び付ける。
-  trigger.addEventListener('pointerdown',startTitleBgm,{capture:true});
-  trigger.addEventListener('touchstart',startTitleBgm,{capture:true,passive:true});
   trigger.onclick=event=>{event.stopPropagation();startTitleBgm();playTitlePressSfx();openMenu();};
   menu.addEventListener('click',event=>event.stopPropagation());
   title.addEventListener('click',event=>{
@@ -2782,7 +2283,7 @@ function makeBattleSettings(){
 
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 // タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
-for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installPcCursorMoveSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
+for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
   try{initialize();}catch(error){console.error('Spell Hearts initialization warning:',error);}
 }
 // 装飾の生成が想定外に失敗しても、タイトルの選択肢を隠したままにしない。
@@ -2799,7 +2300,7 @@ style.textContent=`
 .auth-modal{position:fixed;inset:0;z-index:240;display:grid;place-items:center;padding:20px;background:rgba(1,4,9,.78);backdrop-filter:blur(5px);animation:auth-fade .2s ease-out both}.auth-panel{position:relative;width:min(92vw,410px);padding:30px 34px 26px;border:1px solid #d8af4b;border-radius:8px;background:linear-gradient(145deg,rgba(27,28,41,.98),rgba(9,9,16,.99));box-shadow:inset 0 0 32px rgba(226,169,52,.16),0 18px 60px #000;color:#fff0bc;text-align:center}.auth-panel:before{content:'';position:absolute;inset:7px;border:1px solid rgba(219,181,84,.35);border-radius:4px;pointer-events:none}.auth-crown{position:relative;color:#ffe28a;font-size:29px;text-shadow:0 0 18px #e1a126}.auth-panel h2{position:relative;margin:3px 0 1px;font:27px Georgia,"Yu Mincho",serif;letter-spacing:.1em;text-shadow:0 0 12px #d99b27}.auth-subtitle{position:relative;margin:0 0 20px;color:#cbb879;font:13px Georgia,"Yu Mincho",serif;letter-spacing:.22em}.auth-close{position:absolute;z-index:1;right:14px;top:10px;border:0;background:transparent;color:#d9c27f;font:28px/1 Georgia,serif;cursor:pointer}.auth-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;margin-bottom:16px;border-bottom:1px solid #735d2b}.auth-tab{border:0;background:transparent;color:#b8a66b;padding:9px;font:15px Georgia,"Yu Mincho",serif;cursor:pointer}.auth-tab.active{color:#fff3b2;border-bottom:2px solid #f0c85c;text-shadow:0 0 8px #e6ac2b}.auth-form{position:relative;display:grid;gap:12px;text-align:left}.auth-form label{display:grid;gap:5px;color:#e5d29a;font:13px "Yu Gothic",sans-serif}.auth-form input{width:100%;padding:11px;border:1px solid #80652d;border-radius:3px;outline:0;background:#080911;color:#fff2c6;font:15px Georgia,"Yu Mincho",serif}.auth-form input:focus{border-color:#ffe287;box-shadow:0 0 13px rgba(255,205,77,.35)}.auth-status{min-height:2.6em;margin:0;color:#ffe59a;font:12px "Yu Gothic",sans-serif;line-height:1.35}.auth-submit{padding:11px;border:1px solid #e5b64a;border-radius:3px;background:linear-gradient(#75541a,#291806);color:#fff2b0;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em;cursor:pointer}.auth-submit:disabled{opacity:.55;cursor:wait}.auth-reset{position:relative;margin-top:13px;border:0;background:transparent;color:#d6c184;font:12px "Yu Gothic",sans-serif;text-decoration:underline;cursor:pointer}.auth-guest-note{position:relative;margin:14px 0 0;color:#a5adbc;font:11px "Yu Gothic",sans-serif}@keyframes auth-fade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}`;
 document.head.append(style);
 const settingsTweaks=document.createElement('style');
-settingsTweaks.textContent='.title-settings{top:58px;left:34px;width:84px;height:84px;padding:0;display:grid;place-items:center;border:2px solid #d8ae4e;border-radius:6px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 14px rgba(255,225,135,.13),0 2px 14px #0009;color:#ffe9a0;font:50px/1 serif;text-shadow:0 1px 3px #000;transition:filter .2s}.title-settings.open{transform:none}.settings-panel{top:158px}.nickname-change-button{position:absolute;z-index:3;top:132px;right:34px;padding:9px 16px;border:1px solid #d8ae4e;border-radius:4px;background:rgba(3,5,8,.78);box-shadow:inset 0 0 12px rgba(255,225,135,.12),0 2px 12px #0009;color:#ffe9a0;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.08em;text-shadow:0 1px 3px #000;cursor:pointer}.nickname-change-button:hover{filter:brightness(1.28)}.push-screen{margin-bottom:42px}@media(max-width:600px){.title-settings{top:50px;left:16px;width:64px;height:64px;font-size:39px}.settings-panel{top:122px}.nickname-change-button{top:100px;right:16px;padding:7px 11px;font-size:12px}.push-screen{margin-bottom:24px}}';
+settingsTweaks.textContent='.title-settings{top:58px;left:34px;width:84px;height:84px;padding:0;display:grid;place-items:center;border:2px solid #d8ae4e;border-radius:6px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 14px rgba(255,225,135,.13),0 2px 14px #0009;color:#ffe9a0;font:50px/1 serif;text-shadow:0 1px 3px #000;transition:filter .2s}.title-settings.open{transform:none}.settings-panel{top:158px}.push-screen{margin-bottom:42px}@media(max-width:600px){.title-settings{top:50px;left:16px;width:64px;height:64px;font-size:39px}.settings-panel{top:122px}.push-screen{margin-bottom:24px}}';
 document.head.append(settingsTweaks);
 const tokenStyle=document.createElement('style');
 tokenStyle.textContent='.token-balance{position:absolute;z-index:3;right:34px;bottom:3.5vh;display:inline-flex;align-items:center;gap:14px;background:transparent;color:#fff0ad;font:bold 34px Georgia,"Yu Mincho",serif;text-shadow:0 2px 5px #000}.token-coin{display:block;width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 5px #000)}.token-balance .token-coin{width:81px;height:81px}.token-count{min-width:2ch;text-align:right}.result-token-reward{display:inline-flex;align-items:center;gap:12px;margin-top:20px;padding:8px 15px;border:1px solid rgba(225,184,77,.8);border-radius:5px;background:rgba(3,5,8,.74);box-shadow:inset 0 0 13px rgba(255,225,135,.12),0 2px 12px #0009;color:#fff0ad;font:bold clamp(20px,2.7vw,32px) Georgia,"Yu Mincho",serif;text-shadow:0 1px 3px #000}.result-token-reward .token-coin{width:50px;height:50px}@media(max-width:600px){.token-balance{right:16px;bottom:3vh;gap:8px;font-size:25px}.token-balance .token-coin{width:58px;height:58px}.result-token-reward{margin-top:14px;padding:7px 12px}.result-token-reward .token-coin{width:43px;height:43px}}';
@@ -2860,13 +2361,7 @@ chapterOneStyle.textContent+='#tutorialBattleCurtain{opacity:1!important;transit
 chapterOneStyle.textContent+='#titleScreen.chapter-title-reveal{transition:none!important;opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.tutorial-hp-glow{z-index:28!important}.tutorial-hp-glow:after{content:"";position:absolute;inset:-8px -12px;border:2px solid #ffe584;border-radius:6px;box-shadow:0 0 10px 3px rgba(255,224,112,.9),inset 0 0 10px rgba(255,229,141,.35);animation:tutorial-hp-pulse .9s ease-in-out infinite;pointer-events:none}@keyframes tutorial-hp-pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}';
 chapterOneStyle.textContent+='.chapter-one-scene.village-scene:before{background-image:url("assets/story-village.webp")}.chapter-one-scene.night-village:before{background-image:url("assets/story-village-night.webp")}.chapter-story-card{position:absolute;z-index:2;bottom:22vh;width:min(25vw,315px);max-height:67vh;object-fit:contain;transform-origin:bottom center;filter:brightness(.55) saturate(.65);opacity:.76;transition:transform .35s ease,filter .35s ease,opacity .35s ease;pointer-events:none}.chapter-story-card[hidden]{display:none}.chapter-story-card.enter{animation:chapter-story-card-enter .55s cubic-bezier(.16,.82,.28,1) both}.story-wolf-card{right:3vw}.story-warrior-card{left:3vw}.chapter-story-card.speaker-active{z-index:4;transform:translateX(0) scale(1.08);filter:brightness(1.13) saturate(1.07) drop-shadow(0 0 12px rgba(225,205,138,.45));opacity:1}.chapter-story-card.speaker-idle{z-index:2;transform:scale(.92);filter:brightness(.53) saturate(.67);opacity:.72}@keyframes chapter-story-card-enter{from{opacity:0;transform:translateY(28px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1.08)}}#villageBattleIntro{position:fixed;z-index:160;inset:0;opacity:0;background:transparent;pointer-events:auto;transition:opacity .45s ease}#villageBattleIntro[hidden]{display:none}#villageBattleIntro.show{opacity:1}.village-battle-dialogue{position:fixed;z-index:5;cursor:pointer;pointer-events:auto}.story-battle-opponent-card{position:fixed;z-index:140;right:0;bottom:21vh;width:min(26vw,330px);max-height:66vh;object-fit:contain;filter:brightness(1.04) saturate(1.05) drop-shadow(0 0 13px rgba(194,158,83,.38));pointer-events:none}.story-battle-opponent-card[hidden],#wolfBattleContinue[hidden],#chapterOneEndScreen[hidden]{display:none}#wolfBattleContinue{position:fixed;z-index:250;inset:0;border:0;background:transparent;color:#fff0ad;cursor:pointer}#wolfBattleContinue span{position:absolute;left:50%;bottom:7vh;transform:translateX(-50%);padding:10px 18px;border:1px solid rgba(216,174,78,.72);background:rgba(4,5,9,.8);font:16px Georgia,"Yu Mincho",serif;letter-spacing:.12em}#chapterOneEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterOneEndScreen.show{opacity:1}#chapterOneEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterOneEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){.chapter-story-card{bottom:20vh;width:31vw;max-height:48vh}.story-wolf-card{right:0}.story-warrior-card{left:0}.story-battle-opponent-card{right:0;bottom:20vh;width:32vw;max-height:48vh}}';
-chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-air{box-sizing:border-box;border:0;outline:0;background:transparent;box-shadow:none;filter:saturate(.82)}.chapter-three-scene .chapter-three-delyuke{box-sizing:border-box;border:0;outline:0;background:transparent;box-shadow:none;filter:saturate(.82);transform:scaleX(-1)}.chapter-three-scene .chapter-three-delyuke.speaker-active{transform:translateX(0) scaleX(-1) scale(1.08)}.chapter-three-scene .chapter-three-delyuke.speaker-idle{transform:scaleX(-1) scale(.92)}.chapter-three-scene .chapter-scene-backdrop{transition:filter .5s ease}@media(min-width:601px){.chapter-three-scene .chapter-three-air{left:15vw;right:auto;top:17vh;bottom:auto;width:min(23vw,300px);max-height:58vh;transform-origin:top center}.chapter-three-scene .chapter-three-delyuke{left:68vw;right:auto;top:16vh;bottom:auto;width:min(23vw,300px);max-height:58vh;transform-origin:top center}}@media(max-width:600px){.chapter-three-scene .chapter-three-air{left:0;right:auto;bottom:43vh;width:27vw;max-height:34vh}.chapter-three-scene .chapter-three-delyuke{right:0;left:auto;bottom:43vh;width:27vw;max-height:34vh}}';
-chapterOneStyle.textContent+='.chapter-three-battle-card{position:fixed;z-index:140;bottom:21vh;width:auto;height:min(58vh,620px);max-width:28vw;object-fit:contain;pointer-events:none;filter:brightness(1.03) saturate(.88) drop-shadow(0 0 12px rgba(202,165,84,.36));transition:transform .35s ease,filter .35s ease,opacity .35s ease}.chapter-three-battle-card[hidden]{display:none}.chapter-three-battle-air{left:.5vw}.chapter-three-battle-delyuke{right:0;transform:scaleX(-1) scale(.88)}@media(max-width:600px){.chapter-three-battle-card{bottom:21vh;height:43vh;max-width:31vw}.chapter-three-battle-air{left:.5vw}.chapter-three-battle-delyuke{right:0}}';
-chapterOneStyle.textContent+='.chapter-three-scene .chapter-dialogue p{line-break:strict;overflow-wrap:normal;text-wrap:pretty}';
-chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-battle-air{z-index:2}.chapter-three-scene .chapter-dialogue{z-index:3}';
-chapterOneStyle.textContent+='.chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{position:absolute;z-index:2;bottom:auto;width:auto;height:min(58vh,620px);max-width:none;max-height:none}.chapter-three-scene .chapter-three-battle-air.chapter-three-victory-card{left:15vw;right:auto;top:9vh}.chapter-three-scene .chapter-three-battle-delyuke.chapter-three-victory-card{left:68vw;right:auto;top:16vh;transform:scaleX(-1)}@media(max-width:600px){.chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{bottom:43vh;top:auto;width:auto;height:34vh;max-height:none}.chapter-three-scene .chapter-three-battle-air.chapter-three-victory-card{left:0}.chapter-three-scene .chapter-three-battle-delyuke.chapter-three-victory-card{left:auto;right:0}}';
 chapterOneStyle.textContent+='#chapterTwoEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.86);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterTwoEndScreen[hidden]{display:none}#chapterTwoEndScreen.show{opacity:1}#chapterTwoEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterTwoEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterTwoEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterTwoEndScreen small{top:63%;font-size:10px}}';
-chapterOneStyle.textContent+='#chapterThreeEndScreen{position:fixed;z-index:10000;inset:0;border:0;background:rgba(0,0,0,.9);color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .8s ease}#chapterThreeEndScreen[hidden]{display:none}#chapterThreeEndScreen.show{opacity:1}#chapterThreeEndScreen span{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);font:clamp(34px,5vw,72px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}#chapterThreeEndScreen small{position:absolute;left:50%;top:59%;transform:translateX(-50%);font:14px "Yu Gothic",sans-serif;letter-spacing:.12em;color:#d8c58d}@media(max-width:600px){#chapterThreeEndScreen span{font-size:clamp(25px,6vh,47px)}#chapterThreeEndScreen small{top:63%;font-size:10px}}';
 // 暗転が黒を覆い切るまで直前の場面を残し、背後のバトル盤面を透かさない。
 chapterOneStyle.textContent+='.chapter-one-scene.leaving{opacity:1!important;visibility:visible!important}';
 chapterOneStyle.textContent+='.chapter-two-scene{background:#120b05!important}.chapter-two-scene .chapter-scene-backdrop{filter:brightness(.82) saturate(.92)}.chapter-two-scene.chapter-two-css-backdrop{background:#120b05 var(--chapter-two-backdrop) center/cover no-repeat!important}.chapter-two-scene.chapter-two-css-backdrop .chapter-scene-backdrop{display:none!important}.chapter-two-air{left:4vw}.chapter-two-yuto{right:4vw}.chapter-two-air.speaker-active{transform:translateX(14px) scale(1.08)}.chapter-two-air.speaker-idle{transform:translateX(-16px) scale(.92)}.chapter-two-yuto.speaker-active{transform:translateX(-14px) scale(1.08)}.chapter-two-yuto.speaker-idle{transform:translateX(18px) scale(.92)}@media(max-width:600px){.chapter-two-air{left:0}.chapter-two-yuto{right:0}.chapter-two-air.speaker-active{transform:translateX(4px) scale(1.04)}.chapter-two-air.speaker-idle{transform:translateX(-7px) scale(.9)}.chapter-two-yuto.speaker-active{transform:translateX(-4px) scale(1.04)}.chapter-two-yuto.speaker-idle{transform:translateX(7px) scale(.9)}}';
@@ -2957,15 +2452,6 @@ mobileLandscapeStyle.textContent=`
 }
 `;
 document.head.append(mobileLandscapeStyle);
-const chapterThreeMobileLayoutStyle=document.createElement('style');
-chapterThreeMobileLayoutStyle.textContent=`
-/* 横向きスマホは幅が 600px を超えるため、Chapter 3 だけは高さ基準で会話欄との間隔を固定する。 */
-@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:620px){
-  .chapter-three-scene .chapter-three-air,.chapter-three-scene .chapter-three-delyuke{bottom:172px!important;width:min(16vw,145px)!important;max-height:calc(100vh - 208px)!important}
-  .chapter-three-scene .chapter-three-battle-card.chapter-three-victory-card{bottom:172px!important;height:min(35vh,260px)!important;max-height:calc(100vh - 208px)!important}
-}
-`;
-document.head.append(chapterThreeMobileLayoutStyle);
 const tutorialTargetStyle=document.createElement('style');
 tutorialTargetStyle.textContent='#tutorialInputLock.focus{background:rgba(0,0,0,.74)!important}.tutorial-focus-target{z-index:170!important;filter:brightness(1.4)!important;box-shadow:0 0 0 3px #ffe584,0 0 24px 10px rgba(255,201,67,.94)!important;animation:tutorial-card-pulse 1s ease-in-out infinite!important}.slot.tutorial-focus-target,.charge.tutorial-focus-target{position:absolute!important}.picks .tutorial-focus-target{position:relative!important}';
 document.head.append(tutorialTargetStyle);
@@ -3110,5 +2596,3 @@ mobileDressupStyle.textContent=`
 }
 `;
 document.head.append(mobileDressupStyle);
-
-        setInterval(()=>{if(!window.storyDelyukeBattleActive)return;let e=document.querySelector('#chapterThreeDelyukeFreshImage');if(!e){e=document.createElement('img');e.id='chapterThreeDelyukeFreshImage';e.alt='デリューク・ロイアルト';document.body.append(e)}e.src=e.src.endsWith('/assets/story-delyuke-battle-card-chapter3.jpg')?e.src:'assets/story-delyuke-battle-card-chapter3.jpg';e.removeAttribute('hidden');e.style.cssText='position:fixed!important;z-index:1002!important;right:0!important;bottom:21vh!important;height:min(58vh,620px)!important;max-width:28vw!important;width:auto!important;display:block!important;visibility:visible!important;opacity:1!important;object-fit:contain!important;pointer-events:none!important;transform:scaleX(-1)!important;transform-origin:right bottom!important';let old=document.querySelector('#chapterThreeBattleDelyukeCard');if(old)old.style.display='none'},250);

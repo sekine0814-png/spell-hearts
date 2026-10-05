@@ -16,7 +16,6 @@
     return `<img class="spell-back" src="${A+(selected||fallback)}" alt="">`;
   };
   const battleFallback={rock:'rock.webp',scissors:'scissors.webp',paper:'paper.webp',amplify:'amplify.webp'};
-  const battleCardName={rock:'グー',scissors:'チョキ',paper:'パー',amplify:'アンプリファイア'};
   const battleFace=(w,key)=>{
     const fallback=battleFallback[key]||'rock.webp';
     try{const selected=window.getSpellHeartsBattleArt?.((w==='p'?net?.red:net?.blue)?.cosmetics,key);return A+(typeof selected==='string'&&selected?selected:fallback);}
@@ -42,10 +41,9 @@
   onlineStyle.textContent+='.online-mode .faction{display:none}.online-nameplate{position:absolute;z-index:6;top:5.2%;max-width:20%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold clamp(11px,1.9vw,23px) Georgia,"Yu Mincho",serif;letter-spacing:.07em;-webkit-text-stroke:1px #10090d;paint-order:stroke fill;text-shadow:0 2px 6px #000}.online-nameplate.p-side{left:8%;color:#ff9b91}.online-nameplate.c-side{right:8%;color:#94dcff;text-align:right}';
 
   onlineStyle.textContent+='.online-nameplate{top:3.5%;min-width:15%;padding:3px 8px;border:1px solid rgba(225,184,77,.7);border-radius:3px;background:rgba(2,3,7,.86);box-shadow:0 2px 8px #000b;font-size:clamp(10px,1.45vw,18px);line-height:1.15}.online-nameplate.p-side{left:24%;text-align:center}.online-nameplate.c-side{right:24%;text-align:center}';
-  onlineStyle.textContent+='@media (hover:none) and (pointer:coarse){.online-nameplate{top:.7%!important}}';
 
   function hand(){
-    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick battle-art-button" data-battle-card="${k}" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}<span class="battle-card-name">${battleCardName[k]||''}</span></button>`).join('')}</div>`;
+    return `<div class="picks${net.hand.length===3?' three-picks':''}">${net.hand.map(k=>`<button class="pick" title="${cardTip(k)}" onclick="pick('${k}')">${battleImage(net.side,k)}</button>`).join('')}</div>`;
   }
 
   function showResult(){
@@ -113,8 +111,6 @@
       amplifier.classList.toggle('amp-arriving',!!ampArriving[w]||isOpeningAmplifier);
       const held=$(chargeSpell(w));
       held.innerHTML=s.hasSpell?(own?`<img src="${A+spells[s.spell].i}" title="${spellTip(s.spell,s.amp==='charged')}" alt="${spells[s.spell].n}">`:back(w,'spell')):'';
-      if(own&&s.hasSpell)held.dataset.spellName=spells[s.spell].n;
-      else delete held.dataset.spellName;
       held.classList.toggle('spell-ready',net.phase==='spell'&&own&&net.canUse);
       held.onclick=net.phase==='spell'&&own&&net.canUse?()=>send('use'):null;
       held.style.cursor=net.phase==='spell'&&own&&net.canUse?'pointer':'default';
@@ -206,7 +202,7 @@
         if(drew){const held=$(chargeSpell(net.side));held?.classList.add('spell-draw');playCardFlip();setTimeout(()=>held?.classList.remove('spell-draw'),1100)}
         if(opponentSet){const opponent=net.side==='p'?'c':'p',target=$(opponent==='p'?'#pPlayed':'#cPlayed');slideCard(sideSlot(opponent),opponent==='p'?'#pPlayed':'#cPlayed',A+(opponent==='p'?'red-battle-back.webp':'blue-battle-back.webp'));playCardFlip();setTimeout(()=>{target?.classList.remove('flight-target');battleArriving[opponent]=false;remoteSet=true;renderOnline()},1320)}
         if(flipped){playCardFlip();for(const id of ['#pPlayed','#cPlayed']){const card=$(id);card?.classList.add('battle-flip');setTimeout(()=>card?.classList.remove('battle-flip'),650)}setTimeout(()=>charging.forEach(side=>{slideCard(side==='p'?'#pPlayed':'#cPlayed',charge(side),amplifyFace(side));playCardFlip()}),650);setTimeout(()=>{for(const side of charging)ampArriving[side]=false;renderOnline()},1980)}
-        newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block'){playBlock();if(use.enhanced)window.playEnhancedBlockHeal?.()}if(use.k==='scheme')playScheme()})
+        newSpellUses.forEach(use=>{if(use.k==='pursuit')playPursuit();if(use.k==='block')playBlock();if(use.k==='scheme')playScheme()})
         if(damaged)runOnlineDamage(previous,incoming);
         if(gameEnded){
           const winner=incoming.red.hp===incoming.blue.hp?null:(incoming.red.hp>incoming.blue.hp?'p':'c');
