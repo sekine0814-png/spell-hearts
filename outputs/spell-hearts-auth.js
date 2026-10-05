@@ -893,9 +893,13 @@ function makeRecordButton(){
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
 function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
-function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
+function unlockedStoryChapter(){
+  const stored=Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1;
+  const chapterTwoFinished=!!(currentUser&&!currentUser.isAnonymous&&localStorage.getItem(`spellHeartsStoryReward:${currentUser.uid}:chapter-two`)==='claimed');
+  return Math.max(1,Math.min(3,Math.max(stored,chapterTwoFinished?3:1)));
+}
 function unlockStoryChapter(chapter){
-  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(2,Number(chapter)||1));
+  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(3,Number(chapter)||1));
   localStorage.setItem(storyProgressKey(),String(next));
   return next>before;
 }
@@ -2095,8 +2099,9 @@ function showChapterTwoEnd(){
   end.hidden=false;
   requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
-    const received=claimStoryChapterReward('chapter-two',5);
+    const received=claimStoryChapterReward('chapter-two',5),unlocked=unlockStoryChapter(3);
     if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+    if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice','3');
     window.returnToTitle?.();
   };
 }
@@ -2135,15 +2140,30 @@ function openStoryMode(){
     panel.onclick=event=>{if(event.target===panel)panel.hidden=true;};
   }
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
-  chapters.innerHTML=[1,2].map(chapter=>{
+  chapters.innerHTML=[1,2,3].map(chapter=>{
     const available=chapter<=unlocked;
-    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?(chapter===1?'始まりの日':'邂逅'):'🔒 LOCKED'}</small></button>`;
+    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':'新たな旅路';
+    return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?subtitle:'🔒 LOCKED'}</small></button>`;
   }).join('');
-  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'すべての章が解放されています。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else startChapterTwoExpanded();});
+  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':unlocked<3?'Chapter 2 をクリアすると、Chapter 3 が解放されます。':'すべての章が解放されています。';
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else if(button.dataset.storyChapter==='2')startChapterTwoExpanded();else startChapterThree();});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
+function startChapterThree(){
+  document.querySelector('#storyModePanel')?.setAttribute('hidden','');
+  let scene=document.querySelector('#chapterThreeScene');
+  if(!scene){
+    scene=document.createElement('section');scene.id='chapterThreeScene';
+    scene.innerHTML='<div class="chapter-three-start"><p>CHAPTER 3</p><h2>新たな旅路</h2><button type="button">タイトルに戻る</button></div>';
+    document.body.append(scene);
+    scene.querySelector('button').onclick=()=>{scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
+    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;display:grid;place-items:center;background:#08090d;color:#fff1bd;text-align:center}#chapterThreeScene[hidden]{display:none}.chapter-three-start{padding:40px;border:1px solid #d8ae4e;background:rgba(8,8,12,.88);box-shadow:0 0 42px #000}.chapter-three-start p{margin:0;color:#e8bf56;letter-spacing:.2em}.chapter-three-start h2{margin:16px 0 28px;font:clamp(28px,5vw,56px) Georgia,"Yu Mincho",serif}.chapter-three-start button{padding:10px 22px;border:1px solid #d8ae4e;border-radius:4px;background:#271a08;color:#fff1bd;font:16px Georgia,"Yu Mincho",serif;cursor:pointer}';document.head.append(style);
+  }
+  document.body.classList.add('story-active','story-cinematic');scene.hidden=false;
+}
+window.startChapterThree=startChapterThree;
+
 function openTutorial(){
   let modal=document.querySelector('#tutorialPanel');
   if(!modal){
