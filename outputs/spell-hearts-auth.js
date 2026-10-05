@@ -8,6 +8,8 @@ import {
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
 
+
+
 const firebaseConfig={
   apiKey:'AIzaSyCP3E5ojlmFo9cp0sT4GY_MN81bMV4eSSc',
   authDomain:'spellhearts-3579a.firebaseapp.com',
@@ -19,12 +21,16 @@ const firebaseConfig={
 };
 
 
+
+
 const firebaseApp=initializeApp(firebaseConfig);
 const auth=getAuth(firebaseApp);
 const db=getFirestore(firebaseApp);
 let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
+
+
 
 
 // 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
@@ -47,7 +53,11 @@ window.screen?.orientation?.addEventListener?.('change',scheduleTouchLandscapeLa
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTouchLandscapeLayout,{once:true});else syncTouchLandscapeLayout();
 
 
+
+
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
+
+
 
 
 function authMessage(error){
@@ -67,6 +77,8 @@ function authMessage(error){
 }
 
 
+
+
 function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
@@ -74,6 +86,8 @@ function updateLoginButton(){
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
 }
+
+
 
 
 function tokenKey(){return `spellHeartsTokens:${currentUser?.uid||'guest'}`;}
@@ -364,6 +378,8 @@ function resumeStoryMedia(){
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
+
+
 
 
 const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
@@ -696,12 +712,18 @@ function claimStoryChapterReward(chapter,amount){
 }
 
 
+
+
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
 onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
 
+
+
 function closeLogin(){modal?.remove();modal=null;}
+
+
 
 
 function makeModal(){
@@ -787,6 +809,8 @@ function makeModal(){
 }
 
 
+
+
 window.openSpellHeartsLogin=()=>{
   if(currentUser&&!currentUser.isAnonymous){
     if(confirm(`${currentUser.email} でログイン中です。ログアウトしますか？`))signOut(auth);
@@ -794,6 +818,8 @@ window.openSpellHeartsLogin=()=>{
   }
   makeModal();
 };
+
+
 
 
 window.ensureSpellHeartsGuest=async()=>{
@@ -811,6 +837,8 @@ window.ensureSpellHeartsGuest=async()=>{
 };
 
 
+
+
 window.getSpellHeartsNickname=()=>{
   if(currentUser?.displayName)return currentUser.displayName;
   let guest=localStorage.getItem('spellHeartsGuestNickname');
@@ -824,6 +852,8 @@ function storyLineText(line){
   const spoken=line.spoken===true||(line.spoken!==false&&line.speaker!=='主人公');
   return spoken&&!/[「」]/.test(text)?`「${text}」`:text;
 }
+
+
 
 
 function applySoundLevels(){
@@ -840,6 +870,8 @@ function applySoundLevels(){
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
+
+
 
 
 function makeSettings(){
@@ -864,6 +896,8 @@ function makeSettings(){
     range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
   }
 }
+
+
 
 
 function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
@@ -2179,54 +2213,39 @@ function startChapterThree(){
     scene.querySelector('.chapter-three-air').src='assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png';
     scene.querySelector('.chapter-three-return').onclick=()=>{scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
   }
+  const n=(...parts)=>parts.join('\\n');
   const lines=[
-    {text:'エアさん曰く、王都までは徒歩で２～３日程かかるらしい。
-街を出て半日ほど経っただろうか、
-辺りは気持ちの良い風が吹く草原が広がっている。'},
-    {speaker:'エア',text:'夜になると魔物が出るからね。
-夕方にはキャンプを設営して、火を炊くよ。'},
-    {text:'エアさんは言う。流石に冒険者、
-知識も経験も豊富だ。'},
+    {text:n('エアさん曰く、王都までは徒歩で２～３日程かかるらしい。','街を出て半日ほど経っただろうか、','辺りは気持ちの良い風が吹く草原が広がっている。')},
+    {speaker:'エア',text:n('夜になると魔物が出るからね。','夕方にはキャンプを設営して、火を炊くよ。')},
+    {text:n('エアさんは言う。流石に冒険者、','知識も経験も豊富だ。')},
     {speaker:'主人公',text:'・・・あの、聞きたいことがあるんですけど'},
     {speaker:'エア',text:'なに？なんでも聞いてよ'},
-    {speaker:'主人公',text:'夜になると魔物が活発になるのは訓練所でも習いましたし、
-事実、街の近くをうろついていたのを何度か見たこともあります'},
+    {speaker:'主人公',text:n('夜になると魔物が活発になるのは訓練所でも習いましたし、','事実、街の近くをうろついていたのを何度か見たこともあります')},
     {speaker:'主人公',text:'でも、昼間に魔物が人を襲うようなことってあるんでしょうか。'},
     {text:'俺は思い出していた。そう、昨日の騒ぎのことだ。'},
     {speaker:'エア',text:'無くはないね。魔物の種類にもよるけど'},
     {text:'エアさんは表情を緩めず言う。'},
     {speaker:'エア',text:'昨日のこと、気になってるんだね。'},
     {text:'俺は頷く。'},
-    {speaker:'エア',text:'昨日の魔物、覚えてる？
-狼のような見た目で、体は痩せ細っていた。
-長い間食料にありつけていなかった証拠だよ'},
-    {speaker:'エア',text:'魔物が食糧難で姿を見せるのは珍しいんだ。
-弱っているところを別の魔物に食べられてしまうからね'},
-    {speaker:'エア',text:'つまりあの魔物の出現は、あの街の周辺で少し前から、
-野生における食物連鎖が完全に停止していたことの裏返しなんだ'},
+    {speaker:'エア',text:n('昨日の魔物、覚えてる？','狼のような見た目で、体は痩せ細っていた。','長い間食料にありつけていなかった証拠だよ')},
+    {speaker:'エア',text:n('魔物が食糧難で姿を見せるのは珍しいんだ。','弱っているところを別の魔物に食べられてしまうからね')},
+    {speaker:'エア',text:n('つまりあの魔物の出現は、あの街の周辺で少し前から、','野生における食物連鎖が完全に停止していたことの裏返しなんだ')},
     {speaker:'主人公',text:'食物連鎖の・・・停止'},
-    {speaker:'エア',text:'そう。そして、この食物連鎖の停止なんだけど、
-私も何度か見た経験がある。'},
-    {speaker:'エア',text:'その全てが、
-たったひとつの理由で起こっているんだ'},
+    {speaker:'エア',text:n('そう。そして、この食物連鎖の停止なんだけど、','私も何度か見た経験がある。')},
+    {speaker:'エア',text:n('その全てが、','たったひとつの理由で起こっているんだ')},
     {speaker:'主人公',text:'たったひとつ、ですか'},
     {speaker:'エア',text:'そう。なんだと思う？'},
     {speaker:'主人公',text:'・・・見当もつきません'},
     {speaker:'エア',text:'人間だよ'},
     {text:'一瞬、息が止まる。'},
     {speaker:'主人公',text:'・・・人間？'},
-    {speaker:'エア',text:'そう。魔物を含む食物連鎖の停止は、
-人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。'},
+    {speaker:'エア',text:n('そう。魔物を含む食物連鎖の停止は、','人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。')},
     {speaker:'主人公',text:'どうしてそんなこと、わかるんですか？'},
-    {speaker:'エア',text:'現象としてはかなり珍しいよ。
-ただ、いくつか報告事例があるんだ。
-逆に、魔物だけで食物連鎖が崩壊した事例は無い。'},
-    {speaker:'エア',text:'私もいくつか報告書を読んだけど、
-どれも目を覆うような凄惨な事件ばかりだったよ。'},
+    {speaker:'エア',text:n('現象としてはかなり珍しいよ。','ただ、いくつか報告事例があるんだ。','逆に、魔物だけで食物連鎖が崩壊した事例は無い。')},
+    {speaker:'エア',text:n('私もいくつか報告書を読んだけど、','どれも目を覆うような凄惨な事件ばかりだったよ。')},
     {speaker:'主人公',text:'・・・そうなんですか'},
     {speaker:'エア',text:'よく違和感を持ったね。冒険者に向いてるかもね'},
-    {text:'少し微笑んでエアさんは言う。
-しかし、その笑顔の奥に何か思うものがあるようにも感じた。'},
+    {text:n('少し微笑んでエアさんは言う。','しかし、その笑顔の奥に何か思うものがあるようにも感じた。')},
     {speaker:'主人公',text:'人間・・・か'}
   ];
   const card=scene.querySelector('.chapter-three-air'),dialogue=scene.querySelector('.chapter-three-dialogue'),speaker=dialogue.querySelector('b'),body=dialogue.querySelector('p'),next=dialogue.querySelector('i');let index=0;
@@ -2235,6 +2254,8 @@ function startChapterThree(){
   document.body.classList.add('story-active','story-cinematic');scene.hidden=false;showLine();
 }
 window.startChapterThree=startChapterThree;
+
+
 
 
 function openTutorial(){
@@ -2344,6 +2365,8 @@ function installTitlePressMenu(){
 }
 
 
+
+
 /* 横画面で fixed 要素のタップ座標がずれる端末では、タイトル表示中だけ通常配置にする。 */
 function installMobileTitleViewportLock(){
   const title=document.querySelector('#titleScreen');
@@ -2376,6 +2399,8 @@ function makeBattleSettings(){
 }
 
 
+
+
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 // タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
 for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
@@ -2389,6 +2414,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const fanfare=document.querySelector('#winFanfare');
   if(fanfare)fanfare.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.82));
 });
+
+
 
 
 const style=document.createElement('style');
