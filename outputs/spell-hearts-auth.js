@@ -38,6 +38,38 @@ import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.c
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const firebaseConfig={
   apiKey:'AIzaSyCP3E5ojlmFo9cp0sT4GY_MN81bMV4eSSc',
   authDomain:'spellhearts-3579a.firebaseapp.com',
@@ -79,12 +111,76 @@ const firebaseConfig={
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const firebaseApp=initializeApp(firebaseConfig);
 const auth=getAuth(firebaseApp);
 const db=getFirestore(firebaseApp);
 let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -167,7 +263,71 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -247,6 +407,38 @@ function authMessage(error){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
@@ -254,6 +446,38 @@ function updateLoginButton(){
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -574,6 +798,38 @@ function resumeStoryMedia(){
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -966,6 +1222,38 @@ function claimStoryChapterReward(chapter,amount){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
 onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
@@ -1001,7 +1289,71 @@ onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmeti
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function closeLogin(){modal?.remove();modal=null;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1147,6 +1499,38 @@ function makeModal(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 window.openSpellHeartsLogin=()=>{
   if(currentUser&&!currentUser.isAnonymous){
     if(confirm(`${currentUser.email} でログイン中です。ログアウトしますか？`))signOut(auth);
@@ -1154,6 +1538,38 @@ window.openSpellHeartsLogin=()=>{
   }
   makeModal();
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1231,6 +1647,38 @@ window.ensureSpellHeartsGuest=async()=>{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 window.getSpellHeartsNickname=()=>{
   if(currentUser?.displayName)return currentUser.displayName;
   let guest=localStorage.getItem('spellHeartsGuestNickname');
@@ -1244,6 +1692,38 @@ function storyLineText(line){
   const spoken=line.spoken===true||(line.spoken!==false&&line.speaker!=='主人公');
   return spoken&&!/[「」]/.test(text)?`「${text}」`:text;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1322,6 +1802,38 @@ function applySoundLevels(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function makeSettings(){
   const title=document.querySelector('#titleScreen');
   if(!title||document.querySelector('#titleSettings'))return;
@@ -1344,6 +1856,38 @@ function makeSettings(){
     range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2678,13 +3222,14 @@ function openStoryMode(){
 }
 window.openStoryMode=openStoryMode;
 function startChapterThree(){
+  stopTitleBgm();
   document.querySelector('#storyModePanel')?.setAttribute('hidden','');
   let scene=document.querySelector('#chapterThreeScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-three-scene';
     scene.innerHTML='<audio id="chapterThreeBgm" loop preload="auto" src="assets/藁の記憶.mp3"></audio><img class="chapter-three-backdrop" alt=""><button type="button" class="chapter-three-return">タイトルに戻る</button><img class="chapter-three-air" alt="エア"><section class="chapter-three-dialogue"><b class="chapter-three-speaker"></b><p></p><i>▼</i></section>';
     document.body.append(scene);
-    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;overflow:hidden;background:#101714;color:#fff4cf;font-family:"Yu Mincho",serif;opacity:0;transition:opacity .72s ease}#chapterThreeScene.scene-intro{opacity:1}#chapterThreeScene[hidden]{display:none}.chapter-three-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78) saturate(.9)}.chapter-three-air{position:absolute;left:18.8vw;right:auto;top:15vh;bottom:auto;width:min(20vw,300px);max-height:55vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);opacity:0;transform:scale(.94);transform-origin:center bottom;transition:opacity .42s ease,transform .32s ease}.chapter-three-air.is-speaking{transform:scale(1.045)}.chapter-three-scene.scene-intro .chapter-three-air{opacity:1}.chapter-three-dialogue{opacity:0;pointer-events:none;transition:opacity .35s ease}.chapter-three-scene.scene-dialogue .chapter-three-dialogue{opacity:1;pointer-events:auto}.chapter-three-return{position:absolute;z-index:3;right:2.4vw;top:2.4vh;padding:11px 24px;border:1px solid #e1b948;border-radius:5px;background:#241806e8;color:#fff1bd;font:600 15px "Yu Mincho",serif;cursor:pointer}.chapter-three-dialogue{position:absolute;z-index:3;left:50%;bottom:5.5vh;transform:translateX(-50%);width:min(72vw,1080px);min-height:118px;padding:27px 74px 30px;border:1px solid #c79a31;background:#06080bd9;box-shadow:0 0 24px #0009;font-size:clamp(17px,1.5vw,24px);line-height:1.75}.chapter-three-dialogue b{position:absolute;left:25px;top:-25px;min-width:112px;padding:7px 16px;border:1px solid #c79a31;background:#211604;color:#f7dda0;text-align:center;font-size:15px;font-weight:600}.chapter-three-dialogue b[hidden]{display:none}.chapter-three-dialogue p{margin:0;white-space:pre-line}.chapter-three-dialogue i{position:absolute;right:22px;bottom:13px;color:#e8c352;font-style:normal;font-size:17px;animation:chapterThreeNext 1.1s ease-in-out infinite}@keyframes chapterThreeNext{50%{opacity:.3;transform:translateY(4px)}}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter-three-air{left:5vw;right:auto;top:8vh;bottom:auto;width:min(28vw,210px);max-height:48vh}.chapter-three-dialogue{bottom:3.5vh;width:78vw;min-height:72px;padding:18px 42px 18px;font-size:clamp(13px,2.35vw,19px);line-height:1.55}.chapter-three-dialogue b{left:15px;top:-20px;min-width:70px;padding:4px 9px;font-size:12px}.chapter-three-return{right:2vw;top:2vh;padding:7px 13px;font-size:12px}}';document.head.append(style);
+    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;overflow:hidden;background:#101714;color:#fff4cf;font-family:"Yu Mincho",serif;opacity:0;transition:opacity .72s ease}#chapterThreeScene.scene-intro{opacity:1}#chapterThreeScene[hidden]{display:none}.chapter-three-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.78) saturate(.9)}.chapter-three-air{position:absolute;left:18.8vw;right:auto;top:20vh;bottom:auto;width:min(20vw,300px);max-height:55vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);opacity:0;transform:scale(.94);transform-origin:center bottom;transition:opacity .42s ease,transform .32s ease}.chapter-three-air.is-speaking{transform:scale(1.045)}.chapter-three-scene.scene-intro .chapter-three-air{opacity:1}.chapter-three-dialogue{opacity:0;pointer-events:none;transition:opacity .35s ease}.chapter-three-scene.scene-dialogue .chapter-three-dialogue{opacity:1;pointer-events:auto}.chapter-three-return{position:absolute;z-index:3;right:2.4vw;top:2.4vh;padding:11px 24px;border:1px solid #e1b948;border-radius:5px;background:#241806e8;color:#fff1bd;font:600 15px "Yu Mincho",serif;cursor:pointer}.chapter-three-dialogue{position:absolute;z-index:3;left:50%;bottom:5.5vh;transform:translateX(-50%);width:min(72vw,1080px);min-height:118px;padding:27px 74px 30px;border:1px solid #c79a31;background:#06080bd9;box-shadow:0 0 24px #0009;font-size:clamp(17px,1.5vw,24px);line-height:1.75}.chapter-three-dialogue b{position:absolute;left:25px;top:-25px;min-width:112px;padding:7px 16px;border:1px solid #c79a31;background:#211604;color:#f7dda0;text-align:center;font-size:15px;font-weight:600}.chapter-three-dialogue b[hidden]{display:none}.chapter-three-dialogue p{margin:0;white-space:pre-line}.chapter-three-dialogue i{position:absolute;right:22px;bottom:13px;color:#e8c352;font-style:normal;font-size:17px;animation:chapterThreeNext 1.1s ease-in-out infinite}@keyframes chapterThreeNext{50%{opacity:.3;transform:translateY(4px)}}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter-three-air{left:5vw;right:auto;top:8vh;bottom:auto;width:min(28vw,210px);max-height:48vh}.chapter-three-dialogue{bottom:3.5vh;width:78vw;min-height:72px;padding:18px 42px 18px;font-size:clamp(13px,2.35vw,19px);line-height:1.55}.chapter-three-dialogue b{left:15px;top:-20px;min-width:70px;padding:4px 9px;font-size:12px}.chapter-three-return{right:2vw;top:2vh;padding:7px 13px;font-size:12px}}';document.head.append(style);
     scene.querySelector('.chapter-three-backdrop').src='assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg';
     scene.querySelector('.chapter-three-air').src='assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png';
     scene.querySelector('.chapter-three-return').onclick=()=>{const bgm=scene.querySelector('#chapterThreeBgm');bgm?.pause();scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
@@ -2730,6 +3275,38 @@ function startChapterThree(){
   document.body.classList.add('story-active','story-cinematic');scene.hidden=false;scene.classList.remove('scene-intro','scene-dialogue');bgm.volume=.18;bgm.currentTime=0;bgm.play().catch(()=>{});showLine();requestAnimationFrame(()=>scene.classList.add('scene-intro'));window.setTimeout(()=>{scene.classList.add('scene-dialogue');showLine();},820);
 }
 window.startChapterThree=startChapterThree;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2899,6 +3476,38 @@ function installTitlePressMenu(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* 横画面で fixed 要素のタップ座標がずれる端末では、タイトル表示中だけ通常配置にする。 */
 function installMobileTitleViewportLock(){
   const title=document.querySelector('#titleScreen');
@@ -2961,6 +3570,38 @@ function makeBattleSettings(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 // タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
 for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
@@ -2974,6 +3615,38 @@ document.addEventListener('DOMContentLoaded',()=>{
   const fanfare=document.querySelector('#winFanfare');
   if(fanfare)fanfare.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.82));
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
