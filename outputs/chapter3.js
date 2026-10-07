@@ -69,14 +69,22 @@
     line('デリュークと名乗った男とエアさんが睨み合う。', '', { evening: true, delyuke: true }),
     line('取り調べを行う。\n騎士団の前哨基地まで来てもらおう。', 'デリューク', { evening: true, delyuke: true }),
     line('はぁ？ 騎士団ごときにそんな権限あるわけないでしょ。', 'エア', { evening: true, delyuke: true }),
-    line('貴様、口答えするのか', 'デリューク', { evening: true, delyuke: true })
+    line('貴様、口答えするのか', 'デリューク', { evening: true, delyuke: true }),
+    line('二人のテンションがヒートアップしてきているのが伝わってくる。', '', { evening: true, delyuke: true }),
+    line('今は緊急事態なのだ。\n無理やりにでも・・・来てもらうぞ。', 'デリューク', { evening: true, delyuke: true }),
+    line('男は剣を抜いた。', '', { evening: true, delyuke: true, delyukeSword: true }),
+    line('そんな義理はないって言ってるでしょ。\nやるなら相手になるよ。\n私の方が強いと思うけど？', 'エア', { evening: true, delyuke: true, delyukeSword: true, airBattle: true }),
+    line('抜かせ、小娘。', 'デリューク', { evening: true, delyuke: true, delyukeSword: true, airBattle: true }),
+    line('振りかざした二人の刃が重なった・・・！', '', { evening: true, delyuke: true, delyukeSword: true, airBattle: true, battle: true })
   ];
   const assets = {
     background: 'assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg',
     bgm: 'assets/藁の記憶.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png',
     evening: 'assets/862dbc28-ef1d-474f-becc-68ab30b979fd.jpg',
-    delyuke: 'assets/exec-ea55e498-d164-4f94-8b07-78a9d38615a8.png'
+    delyuke: 'assets/exec-ea55e498-d164-4f94-8b07-78a9d38615a8.png',
+    delyukeSword: 'assets/exec-de0615d8-6dfe-4ee0-af48-a7ce0210f4e2.png',
+    airBattle: 'assets/exec-aad00cca-1829-4589-bfe0-4928ffa9b89d.png'
   };
   let scene;
 
@@ -109,6 +117,7 @@
       .chapter3-return{position:absolute;z-index:6;top:14px;right:16px;padding:10px 18px;border:1px solid #d8ae4e;border-radius:4px;background:linear-gradient(180deg,rgba(81,57,18,.94),rgba(23,14,5,.97));color:#fff0ba;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.1em;cursor:pointer}
       .chapter3-air{position:absolute;z-index:2;left:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:0;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(-14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter3-air.show{opacity:.78}.chapter3-air.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
       .chapter3-delyuke{position:absolute;z-index:2;right:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:0;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter3-delyuke.show{opacity:.78}.chapter3-delyuke.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
+      #chapter3BattleCards{position:fixed;z-index:138;inset:0;pointer-events:none}#chapter3BattleCards img{position:absolute;bottom:7vh;width:min(20vw,260px);max-height:66vh;object-fit:contain;filter:drop-shadow(0 8px 14px #0009)}#chapter3BattleCards .air{left:3vw}#chapter3BattleCards .delyuke{right:3vw}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){#chapter3BattleCards img{bottom:2vh;width:min(19vw,176px);max-height:54vh}#chapter3BattleCards .air{left:1vw}#chapter3BattleCards .delyuke{right:1vw}}
       .chapter3-dialogue{position:absolute;z-index:5;left:50%;bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;transform:translate(-50%,16px);border:1px solid #d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;opacity:0;pointer-events:none;text-align:left;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:opacity .35s ease,transform .35s ease}
       .chapter3-dialogue.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}.chapter3-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter3-dialogue b{position:absolute;z-index:1;left:26px;top:-17px;min-width:120px;padding:7px 17px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-align:center}.chapter3-dialogue p{position:relative;margin:16px 20px 0;white-space:pre-line;font:clamp(16px,1.35vw,22px)/1.65 "Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter3-dialogue i{position:absolute;right:24px;bottom:16px;width:0;height:0;border-right:10px solid transparent;border-left:10px solid transparent;border-top:12px solid #f5d77c;filter:drop-shadow(0 1px 3px #000);animation:chapter3-next .82s ease-in-out infinite}.chapter3-dialogue.last i{display:none}@keyframes chapter3-next{50%{opacity:.45;transform:translateY(6px)}}
       @media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter3-return{top:10px;right:10px;padding:8px 12px;font-size:12px}.chapter3-air{left:5vw;bottom:27vh;width:min(29vw,210px);max-height:48vh}.chapter3-delyuke{right:5vw;bottom:27vh;width:min(29vw,210px);max-height:48vh}.chapter3-dialogue{bottom:3.5vh;width:94vw;min-height:122px;padding:23px 16px 26px}.chapter3-dialogue b{left:18px;top:-15px;min-width:104px;padding:6px 12px;font-size:13px}.chapter3-dialogue p{margin:16px 8px 0;font-size:16px}.chapter3-dialogue i{right:17px;bottom:13px}}
@@ -128,7 +137,7 @@
     const music = root.querySelector('.chapter3-bgm');
     const air = root.querySelector('.chapter3-air');
     const delyuke = root.querySelector('.chapter3-delyuke');
-    let index = 0, evening = false, transitioning = false;
+    let index = 0, evening = false, transitioning = false, battleAir = false;
     const render = () => {
       const current = lines[index];
       if (current.evening && !evening) {
@@ -140,16 +149,26 @@
         bg.addEventListener('load', reveal, { once: true });
         bg.addEventListener('error', reveal, { once: true });
       }
+      if (current.airBattle) battleAir = true;
+      air.src = battleAir ? assets.airBattle : assets.air;
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
       if (current.speaker === 'エア') { air.hidden = false; air.classList.add('show'); }
       air.classList.toggle('talking', current.speaker === 'エア');
-      if (current.delyuke) { delyuke.hidden = false; delyuke.classList.add('show'); }
+      if (current.delyuke) {
+        delyuke.hidden = false;
+        delyuke.src = current.delyukeSword ? assets.delyukeSword : assets.delyuke;
+        delyuke.classList.add('show');
+      }
       delyuke.classList.toggle('talking', current.speaker === '？？？' || current.speaker === 'デリューク');
       dialogue.classList.toggle('last', index === lines.length - 1);
     };
-    dialogue.onclick = () => { if (!transitioning && index < lines.length - 1) { index += 1; render(); } };
+    dialogue.onclick = () => {
+      if (transitioning) return;
+      if (lines[index].battle) { startBattle(root, music); return; }
+      if (index < lines.length - 1) { index += 1; render(); }
+    };
     root.hidden = false;
     bg.style.opacity = '0';
     bg.src = assets.background;
@@ -159,11 +178,22 @@
     delyuke.hidden = true;
     delyuke.className = 'chapter3-delyuke';
     evening = false;
+    battleAir = false;
     dialogue.classList.remove('show');
     render();
     music.pause(); music.currentTime = 0; music.volume = 0.12; music.play().catch(() => {});
     requestAnimationFrame(() => { bg.style.opacity = '1'; fade.style.opacity = '0'; });
     window.setTimeout(() => dialogue.classList.add('show'), 900);
+  }
+
+  function startBattle(root, music) {
+    music.pause();
+    root.hidden = true;
+    document.body.classList.remove('story-active', 'story-cinematic');
+    let cards = document.querySelector('#chapter3BattleCards');
+    if (!cards) { cards = document.createElement('div'); cards.id = 'chapter3BattleCards'; document.body.append(cards); }
+    cards.innerHTML = `<img class="air" src="${assets.airBattle}" alt="エア"><img class="delyuke" src="${assets.delyukeSword}" alt="デリューク">`;
+    window.start?.();
   }
 
   window.startChapterThree = startChapterThree;
