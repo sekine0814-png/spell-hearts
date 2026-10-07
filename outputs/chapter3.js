@@ -77,6 +77,45 @@
     line('抜かせ、小娘。', 'デリューク', { evening: true, delyuke: true, delyukeSword: true, airBattle: true }),
     line('振りかざした二人の刃が重なった・・・！', '', { evening: true, delyuke: true, delyukeSword: true, airBattle: true, battle: true })
   ];
+  const victoryLines = [
+    line('ほう、やるな', 'デリューク'),
+    line('だから言ったでしょ、私のほうが強いって！', 'エア'),
+    line('確かに、一見押しているのはエアさんに見える。'),
+    line('しかし――目に見えて、息が上がっているのはエアさんの方だ。'),
+    line('デリュークと名乗った男は全く呼吸が乱れていない。\nそして、エアさんの攻め手を最小限の動きでいなしている。'),
+    line('ハァ・・・ハァ・・・くっ', 'エア'),
+    line('大した体感、そして瞬発力だ。', 'デリューク'),
+    line('だが――', 'デリューク'),
+    line('ガキィィィーーーーン・・・・'),
+    line('デリュークはエアさんが振りかぶった一振りの根本を捉え、\n剣を弾き飛ばした。'),
+    line('剣は舞うように吹き飛び、地へと突き刺さる。'),
+    line('惜しいな。エルナ流剣術・・・\nまだその真髄は掴めていないと見える', 'デリューク'),
+    line('なっ・・・！', 'エア'),
+    line('剣を弾き飛ばされたときより険しい表情が、\nエアさんの顔に浮かぶ。'),
+    line('なぜそれを・・・と言いた気な顔だな。', 'デリューク'),
+    line('眉一つ動かずデリュークは言う。'),
+    line('太刀筋を見れば解る。\nいや、解りやすいと言ったほうがいいか？', 'デリューク'),
+    line('明らかに地力が違う。'),
+    line('そして、デリュークは俺の方を見据える。'),
+    line('一瞬の緊張が走る。\nが、俺を一瞥するとエアさんに向き直る。'),
+    line('西の街、だったな。', 'デリューク'),
+    line('デリュークは剣を鞘に納めながら、そう言った。', '', { normal: true }),
+    line('え・・・', '主人公', { normal: true }),
+    line('情報提供、感謝する。', 'デリューク', { normal: true }),
+    line('俺とエアさんが歩いてきた方角を見つめ、歩き出した。', '', { normal: true }),
+    line('ちょ・・・ちょっと待って！', 'エア', { normal: true }),
+    line('エアさんが叫ぶように制止する。', '', { normal: true }),
+    line('どういうこと？ 連行とか、前哨基地とか', 'エア', { normal: true }),
+    line('フ・・・', 'デリューク', { normal: true }),
+    line('デリュークは如何にもお見通しだ、という笑みを浮かべ告げる。', '', { normal: true }),
+    line('剣を交えればわかる。\nお前達がどのような人間で、嘘を吐いているかどうかなど、な', 'デリューク', { normal: true }),
+    line('驚いているとも呆れているとも何とも言えない表情で、\nエアさんがデリュークを見つめている。\n恐らく、俺も全く同じ表情をしていたことだろう。', '', { normal: true }),
+    line('背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。', '', { normal: true }),
+    line('ぐっ・・・なんで・・・！', 'エア', { normal: true }),
+    line('吐き捨てるほど悔しそうなエアさんの声が聞こえる。', '', { normal: true }),
+    line('突き刺さった剣を引き抜くと、\n俺の方は見ずにエアさんが呟く。', '', { normal: true }),
+    line('キャンプ・・・張ろっか', 'エア', { normal: true })
+  ];
   const assets = {
     background: 'assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg',
     bgm: 'assets/藁の記憶.mp3',
@@ -85,7 +124,8 @@
     delyuke: 'assets/exec-ea55e498-d164-4f94-8b07-78a9d38615a8.png',
     delyukeSword: 'assets/exec-de0615d8-6dfe-4ee0-af48-a7ce0210f4e2.png',
     airBattle: 'assets/exec-aad00cca-1829-4589-bfe0-4928ffa9b89d.png',
-    battleBgm: 'assets/Battle_in_the_Moonlight.mp3'
+    battleBgm: 'assets/Battle_in_the_Moonlight.mp3',
+    aftermathBgm: 'assets/Echoes_Lost.mp3'
   };
   let scene;
 
@@ -226,6 +266,7 @@
       battleMusic.load();
       battleMusic.play().catch(() => {});
     }
+    watchDelyukeBattleResult(root, music);
     const oldFade = document.querySelector('#chapter3BattleFade');
     oldFade?.remove();
     const fade = document.createElement('div');
@@ -233,6 +274,99 @@
     document.body.append(fade);
     requestAnimationFrame(() => requestAnimationFrame(() => fade.classList.add('out')));
     window.setTimeout(() => fade.remove(), 780);
+  }
+
+  function watchDelyukeBattleResult(root, chapterMusic) {
+    let handled = false;
+    const check = () => {
+      if (handled) return;
+      const result = document.querySelector('#resultScreen');
+      if (!result?.classList.contains('show')) return;
+      const playerWon = Boolean(result.querySelector('.result-red'));
+      const playerLost = Boolean(result.querySelector('.result-blue, .result-draw'));
+      if (!playerWon && !playerLost) return;
+      handled = true;
+      observer.disconnect();
+      showDelyukeResult(result, playerWon, root, chapterMusic);
+    };
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    check();
+  }
+
+  function showDelyukeResult(result, won, root, chapterMusic) {
+    result.classList.add('show');
+    result.innerHTML = won
+      ? `<div class="result-stack"><div class="result-word result-red">VICTORY</div><div class="result-actions"><button class="result-retry" type="button" data-chapter3-continue>続ける</button></div></div>`
+      : `<div class="result-stack"><div class="result-word result-blue">DEFEAT</div><div class="result-actions"><button class="result-retry" type="button" data-chapter3-retry>もう一度戦う</button><button class="result-retry" type="button" data-chapter3-give-up>諦める</button></div></div>`;
+    if (won) {
+      result.querySelector('[data-chapter3-continue]').onclick = () => startAfterBattleStory(root, chapterMusic);
+    } else {
+      result.querySelector('[data-chapter3-retry]').onclick = () => startBattle(root, chapterMusic);
+      result.querySelector('[data-chapter3-give-up]').onclick = () => window.returnToTitle?.();
+    }
+  }
+
+  function startAfterBattleStory(root, chapterMusic) {
+    document.querySelector('#resultScreen')?.classList.remove('show');
+    const cards = document.querySelector('#chapter3BattleCards');
+    cards?.remove();
+    const battleMusic = document.querySelector('#battleBgm');
+    battleMusic?.pause();
+    if (battleMusic) battleMusic.currentTime = 0;
+    let aftermath = document.querySelector('#chapter3AftermathBgm');
+    if (!aftermath) {
+      aftermath = document.createElement('audio');
+      aftermath.id = 'chapter3AftermathBgm';
+      aftermath.loop = true;
+      aftermath.preload = 'metadata';
+      document.body.append(aftermath);
+    }
+    aftermath.pause();
+    aftermath.src = assets.aftermathBgm;
+    aftermath.currentTime = 0;
+    aftermath.volume = 0.12;
+    aftermath.play().catch(() => {});
+    chapterMusic.pause();
+
+    const bg = root.querySelector('.chapter3-background');
+    const fade = root.querySelector('.chapter3-fade');
+    const dialogue = root.querySelector('.chapter3-dialogue');
+    const speaker = dialogue.querySelector('b');
+    const text = dialogue.querySelector('p');
+    const air = root.querySelector('.chapter3-air');
+    const delyuke = root.querySelector('.chapter3-delyuke');
+    let index = 0;
+    root.hidden = false;
+    bg.src = assets.evening;
+    bg.style.opacity = '1';
+    fade.style.opacity = '0';
+    air.hidden = false;
+    air.src = assets.airBattle;
+    air.className = 'chapter3-air show';
+    delyuke.hidden = false;
+    delyuke.src = assets.delyukeSword;
+    delyuke.className = 'chapter3-delyuke show';
+    dialogue.classList.remove('scene-transition');
+    dialogue.classList.add('show');
+
+    const render = () => {
+      const current = victoryLines[index];
+      if (current.normal) delyuke.src = assets.delyuke;
+      speaker.hidden = !current.speaker;
+      speaker.textContent = current.speaker || '';
+      text.textContent = current.speaker ? `「${current.text}」` : current.text;
+      air.classList.toggle('talking', current.speaker === 'エア');
+      delyuke.classList.toggle('talking', current.speaker === 'デリューク');
+      dialogue.classList.toggle('last', index === victoryLines.length - 1);
+    };
+    dialogue.onclick = () => {
+      if (index < victoryLines.length - 1) {
+        index += 1;
+        render();
+      }
+    };
+    render();
   }
 
   window.startChapterThree = startChapterThree;
