@@ -190,10 +190,15 @@
     music.pause();
     root.hidden = true;
     document.body.classList.remove('story-active', 'story-cinematic');
+    // Chapter 3 is entered from the title's story menu.  Unlike the normal
+    // battle entry point, that menu does not dismiss the title screen itself.
+    // Hide it before starting the board so it cannot cover the battle.
+    document.querySelector('#titleScreen')?.classList.add('dismiss');
     let cards = document.querySelector('#chapter3BattleCards');
     if (!cards) { cards = document.createElement('div'); cards.id = 'chapter3BattleCards'; document.body.append(cards); }
     cards.innerHTML = `<img class="air" src="${assets.airBattle}" alt="エア"><img class="delyuke" src="${assets.delyukeSword}" alt="デリューク">`;
     window.start?.();
+    window.startBgm?.();
   }
 
   window.startChapterThree = startChapterThree;
