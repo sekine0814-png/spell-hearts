@@ -95,7 +95,7 @@
       <button class="chapter3-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
     document.body.append(scene);
     addStyle();
-    scene.querySelector('.chapter3-return').addEventListener('click', () => location.assign(location.pathname));
+    scene.querySelector('.chapter3-return').addEventListener('click', () => window.confirmReturnToTitle?.());
     return scene;
   }
 

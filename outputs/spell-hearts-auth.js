@@ -1469,7 +1469,7 @@ function showChapterOneEnd(scene){
     const received=claimStoryChapterReward('chapter-one',5),unlocked=unlockStoryChapter(2);
     if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
     if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice','2');
-    window.returnToTitle?.();
+    window.confirmReturnToTitle?.();
   };
 }
 function installStoryWolfResultHandler(){
@@ -1609,8 +1609,8 @@ function startChapterOne(){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-training-ground.webp" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
-    // 暗転・画像読込の途中でも、ここからは確認画面を経由せず必ず復帰できる。
-    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
+    // ストーリー中の離脱は、必ず確認画面を経由する。
+    scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
   }
   const sceneBackdrop=scene.querySelector('.chapter-scene-backdrop');
   const syncSceneBackdrop=()=>{
@@ -1680,7 +1680,7 @@ function startChapterTwoLegacy(){
     scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
     // Chapter 2 の背景読み込みが失敗・遅延しても、タイトルへ戻る操作は常に有効にする。
-    scene.querySelector('.chapter-return-title').onclick=()=>window.returnToTitle?.();
+    scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
   }
   const backdrop=scene.querySelector('.chapter-scene-backdrop'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),yuto=scene.querySelector('.chapter-two-yuto'),air=scene.querySelector('.chapter-two-air');
   // 背景は専用の img 一枚だけで管理する。CSS背景との二重管理は行わない。
@@ -1760,7 +1760,7 @@ function showChapterTwoEnd(){
   let end=document.querySelector('#chapterTwoEndScreen');
   if(!end){end=document.createElement('button');end.id='chapterTwoEndScreen';end.type='button';end.innerHTML='<span>Chapter 2 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
-  end.onclick=()=>window.returnToTitle?.();
+  end.onclick=()=>window.confirmReturnToTitle?.();
 }
 function startChapterTwoExpanded(){
   const panel=document.querySelector('#storyModePanel'),title=document.querySelector('#titleScreen');if(panel)panel.hidden=true;
@@ -2097,7 +2097,7 @@ function showChapterTwoEnd(){
   end.onclick=()=>{
     const received=claimStoryChapterReward('chapter-two',5);
     if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
-    window.returnToTitle?.();
+    window.confirmReturnToTitle?.();
   };
 }
 function installChapterTwoAirResultHandler(){
