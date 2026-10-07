@@ -181,28 +181,32 @@
     return true;
   }
 
-  function attachClashTrigger() {
-    const scene = document.querySelector('#chapterThreeScene');
-    const dialogue = scene?.querySelector('.chapter-three-dialogue');
-    if (!dialogue || dialogue.dataset.delyukeBattleHook === '1') return;
-    dialogue.dataset.delyukeBattleHook = '1';
-    dialogue.addEventListener('click', event => {
+  // 会話欄を作り直す実装でも必ず拾えるよう、最終メッセージのクリックは
+  // document のキャプチャ段階で判定する。これにより通常の「次の台詞へ」処理より
+  // 先に戦闘開始へ遷移する。
+  function installClashTrigger() {
+    if (document.documentElement.dataset.delyukeBattleHook === '1') return;
+    document.documentElement.dataset.delyukeBattleHook = '1';
+    document.addEventListener('click', event => {
+      const target = event.target instanceof Element ? event.target : null;
+      const dialogue = target?.closest?.('#chapterThreeScene .chapter-three-dialogue');
+      if (!dialogue || !window.startChapterThree) return;
       const text = dialogue.querySelector('p')?.textContent?.replace(/\s/g, '') || '';
-      if (!text.includes('振りかざした二人の刃が重なった・・・！')) return;
+      if (!text.includes('振りかざした二人の刃が重なった')) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      beginDelyukeBattle(scene);
+      beginDelyukeBattle(document.querySelector('#chapterThreeScene'));
     }, true);
   }
 
   function install() {
     addStyle();
     installResultHandler();
+    installClashTrigger();
     const originalStart = window.startChapterThree;
     if (typeof originalStart === 'function' && !originalStart.chapter3DelyukeBattleInstalled) {
       const wrappedStart = function (...args) {
         const result = originalStart.apply(this, args);
-        setTimeout(attachClashTrigger, 0);
         return result;
       };
       wrappedStart.chapter3DelyukeBattleInstalled = true;
