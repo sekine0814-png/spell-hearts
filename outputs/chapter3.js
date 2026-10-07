@@ -287,20 +287,25 @@
       if (!playerWon && !playerLost) return;
       handled = true;
       observer.disconnect();
+      window.clearInterval(poll);
       showDelyukeResult(result, playerWon, root, chapterMusic);
     };
     const observer = new MutationObserver(check);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    // The base battle renderer can update the result screen inside a delayed
+    // animation frame. Polling keeps this chapter-specific branch reliable.
+    const poll = window.setInterval(check, 100);
     check();
   }
 
   function showDelyukeResult(result, won, root, chapterMusic) {
     result.classList.add('show');
+    result.onclick = null;
     result.innerHTML = won
-      ? `<div class="result-stack"><div class="result-word result-red">VICTORY</div><div class="result-actions"><button class="result-retry" type="button" data-chapter3-continue>続ける</button></div></div>`
+      ? `<div class="result-stack"><div class="result-word result-red">VICTORY</div><div class="result-actions"><span class="result-retry">クリックして続ける</span></div></div>`
       : `<div class="result-stack"><div class="result-word result-blue">DEFEAT</div><div class="result-actions"><button class="result-retry" type="button" data-chapter3-retry>もう一度戦う</button><button class="result-retry" type="button" data-chapter3-give-up>諦める</button></div></div>`;
     if (won) {
-      result.querySelector('[data-chapter3-continue]').onclick = () => startAfterBattleStory(root, chapterMusic);
+      result.onclick = () => startAfterBattleStory(root, chapterMusic);
     } else {
       result.querySelector('[data-chapter3-retry]').onclick = () => startBattle(root, chapterMusic);
       result.querySelector('[data-chapter3-give-up]').onclick = () => window.returnToTitle?.();
