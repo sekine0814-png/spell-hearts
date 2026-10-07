@@ -245,3 +245,15 @@
   // 対戦中の見た目は入室時に確定する。アカウント同期の遅延で途中から
   // 通常カードへ差し替わったり、相手側の見た目が揺れたりしないようにする。
 })();
+
+// Chapter 3 is isolated from the main battle runtime.  The public game always
+// loads this client first, so load the Chapter 3 scene here instead of relying
+// on an HTML entrypoint that is not used by the deployed server.
+(() => {
+  if (window.__chapterThreeRebuildLoader) return;
+  window.__chapterThreeRebuildLoader = true;
+  const script = document.createElement('script');
+  script.src = 'chapter3-rebuild.js?v=2';
+  script.defer = true;
+  document.head.append(script);
+})();
