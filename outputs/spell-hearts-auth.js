@@ -7,69 +7,6 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const firebaseConfig={
   apiKey:'AIzaSyCP3E5ojlmFo9cp0sT4GY_MN81bMV4eSSc',
   authDomain:'spellhearts-3579a.firebaseapp.com',
@@ -80,138 +17,12 @@ const firebaseConfig={
   measurementId:'G-XH0X45FXF8'
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const firebaseApp=initializeApp(firebaseConfig);
 const auth=getAuth(firebaseApp);
 const db=getFirestore(firebaseApp);
 let currentUser=null;
 let modal=null;
 const gameOwnerEmail='sekine0814@gmail.com';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // 高解像度端末が desktop 表示として報告されても、実際のタッチ端末には横画面用の操作領域を適用する。
 function syncTouchLandscapeLayout(){
@@ -232,133 +43,7 @@ window.visualViewport?.addEventListener('resize',scheduleTouchLandscapeLayout,{p
 window.screen?.orientation?.addEventListener?.('change',scheduleTouchLandscapeLayout);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTouchLandscapeLayout,{once:true});else syncTouchLandscapeLayout();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function authMessage(error){
   const messages={
@@ -376,69 +61,6 @@ function authMessage(error){
   return messages[error?.code]||'ログインに失敗しました。もう一度試してください。';
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function updateLoginButton(){
   const button=document.querySelector('.title-login');
   if(!button)return;
@@ -446,69 +68,6 @@ function updateLoginButton(){
   button.textContent=currentUser.displayName||'冒険者';
   button.title='アカウント設定・ログアウト';
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function tokenKey(){return `spellHeartsTokens:${currentUser?.uid||'guest'}`;}
 function readTokens(){return Math.max(0,Number.parseInt(localStorage.getItem(tokenKey())||'0',10)||0);}
@@ -798,69 +357,6 @@ function resumeStoryMedia(){
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 const visualPreloads=new Set();
@@ -1191,200 +687,11 @@ function claimStoryChapterReward(chapter,amount){
   return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
 onAuthStateChanged(auth,user=>{currentUser=user;cosmeticProfile=readLocalCosmetics();updateLoginButton();renderTokenBalance();accountCosmeticsLoad=loadAccountCosmetics();});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function closeLogin(){modal?.remove();modal=null;}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function makeModal(){
   if(modal)return modal;
@@ -1468,69 +775,6 @@ function makeModal(){
   return modal;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 window.openSpellHeartsLogin=()=>{
   if(currentUser&&!currentUser.isAnonymous){
     if(confirm(`${currentUser.email} でログイン中です。ログアウトしますか？`))signOut(auth);
@@ -1538,69 +782,6 @@ window.openSpellHeartsLogin=()=>{
   }
   makeModal();
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 window.ensureSpellHeartsGuest=async()=>{
   if(currentUser)return true;
@@ -1616,69 +797,6 @@ window.ensureSpellHeartsGuest=async()=>{
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 window.getSpellHeartsNickname=()=>{
   if(currentUser?.displayName)return currentUser.displayName;
   let guest=localStorage.getItem('spellHeartsGuestNickname');
@@ -1692,69 +810,6 @@ function storyLineText(line){
   const spoken=line.spoken===true||(line.spoken!==false&&line.speaker!=='主人公');
   return spoken&&!/[「」]/.test(text)?`「${text}」`:text;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function applySoundLevels(){
   const bgm=Math.max(0,Math.min(100,Number(localStorage.getItem('spellHeartsBgmVolume')??28)));
@@ -1770,69 +825,6 @@ function applySoundLevels(){
   const aftermath=document.querySelector('#airAftermathBgm');if(aftermath)aftermath.volume=bgm/100;
   return {bgm,sfx};
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function makeSettings(){
   const title=document.querySelector('#titleScreen');
@@ -1856,69 +848,6 @@ function makeSettings(){
     range.oninput=()=>{localStorage.setItem(key,range.value);output.value=range.value;applySoundLevels();};
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function recordKey(){return `spellHeartsRecord:${currentUser?.uid||'guest'}`;}
 function readRecord(){try{return {...{wins:0,losses:0,draws:0},...JSON.parse(localStorage.getItem(recordKey())||'{}')};}catch{return {wins:0,losses:0,draws:0};}}
@@ -1964,13 +893,9 @@ function makeRecordButton(){
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
 function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
-function unlockedStoryChapter(){
-  const stored=Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1;
-  const chapterTwoFinished=!!(currentUser&&!currentUser.isAnonymous&&localStorage.getItem(`spellHeartsStoryReward:${currentUser.uid}:chapter-two`)==='claimed');
-  return Math.max(1,Math.min(3,Math.max(stored,chapterTwoFinished?3:1)));
-}
+function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
 function unlockStoryChapter(chapter){
-  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(3,Number(chapter)||1));
+  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(2,Number(chapter)||1));
   localStorage.setItem(storyProgressKey(),String(next));
   return next>before;
 }
@@ -3170,9 +2095,8 @@ function showChapterTwoEnd(){
   end.hidden=false;
   requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
-    const received=claimStoryChapterReward('chapter-two',5),unlocked=unlockStoryChapter(3);
+    const received=claimStoryChapterReward('chapter-two',5);
     if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
-    if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice','3');
     window.returnToTitle?.();
   };
 }
@@ -3212,174 +2136,15 @@ function openStoryMode(){
   }
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
   chapters.innerHTML=[1,2,3].map(chapter=>{
-    const available=chapter<=unlocked;
-    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':'新たな旅路';
+    const available=chapter===3||chapter<=unlocked;
+    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':'開始';
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?subtitle:'🔒 LOCKED'}</small></button>`;
   }).join('');
-  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':unlocked<3?'Chapter 2 をクリアすると、Chapter 3 が解放されます。':'すべての章が解放されています。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();if(button.dataset.storyChapter==='1')startChapterOne();else if(button.dataset.storyChapter==='2')startChapterTwoExpanded();else startChapterThree();});
+  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'Chapter 3 を選択できます。';
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();const chapter=button.dataset.storyChapter;if(chapter==='1')startChapterOne();else if(chapter==='2')startChapterTwoExpanded();else note.textContent='Chapter 3 は準備中です。';});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
-function startChapterThree(){
-  stopTitleBgm();
-  window.__chapterThreeAirBattleCard=false;
-  document.querySelector('#storyModePanel')?.setAttribute('hidden','');
-  let scene=document.querySelector('#chapterThreeScene');
-  if(!scene){
-    scene=document.createElement('section');scene.id='chapterThreeScene';scene.className='chapter-three-scene';
-    scene.innerHTML='<audio id="chapterThreeBgm" loop preload="auto" src="assets/藁の記憶.mp3"></audio><img class="chapter-three-backdrop" alt=""><div class="chapter-three-fade"></div><button type="button" class="chapter-three-return">タイトルに戻る</button><img class="chapter-three-air" alt="エア"><img class="chapter-three-delyuke" alt="デリューク" hidden><button type="button" class="chapter-three-dialogue" aria-label="会話を進める"><b class="chapter-three-speaker"></b><p></p><i>▼</i></button>';
-    document.body.append(scene);
-    const style=document.createElement('style');style.textContent='#chapterThreeScene{position:fixed;inset:0;z-index:260;overflow:hidden;background:#101714;color:#fff4cf;font-family:"Yu Mincho",serif;opacity:0;transition:none}#chapterThreeScene.scene-intro{opacity:1}#chapterThreeScene[hidden]{display:none}.chapter-three-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;filter:brightness(.78) saturate(.9);transition:opacity .8s ease,filter .35s ease}.chapter-three-scene.scene-backdrop-visible .chapter-three-backdrop{opacity:1}.chapter-three-fade{position:absolute;z-index:2;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .34s ease}.chapter-three-fade.active{opacity:1}.chapter-three-delyuke{position:absolute;z-index:1;right:11vw;top:16vh;width:min(20vw,310px);max-height:57vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);transition:opacity .3s ease,transform .3s ease}.chapter-three-delyuke[hidden]{display:none}.chapter-three-air{position:absolute;left:18.8vw;right:auto;top:20vh;bottom:auto;width:min(20vw,300px);max-height:55vh;object-fit:contain;filter:drop-shadow(0 10px 15px #0009);opacity:0;transform:scale(.94);transform-origin:center bottom;transition:opacity .42s ease,transform .32s ease}.chapter-three-air.is-speaking{transform:scale(1.045)}.chapter-three-scene.scene-present .chapter-three-air{opacity:1}.chapter-three-dialogue{opacity:0;pointer-events:none;transition:opacity .35s ease}.chapter-three-scene.scene-dialogue .chapter-three-dialogue{opacity:1;pointer-events:auto}.chapter-three-return{position:absolute;z-index:3;right:2.4vw;top:2.4vh;padding:11px 24px;border:1px solid #e1b948;border-radius:5px;background:#241806e8;color:#fff1bd;font:600 15px "Yu Mincho",serif;cursor:pointer}.chapter-three-dialogue{position:absolute;z-index:3;left:50%;bottom:5.5vh;transform:translateX(-50%);width:min(72vw,1080px);min-height:118px;padding:27px 74px 30px;border:1px solid #c79a31;background:#06080bd9;box-shadow:0 0 24px #0009;font-size:clamp(17px,1.5vw,24px);line-height:1.75}.chapter-three-dialogue b{position:absolute;left:25px;top:-25px;min-width:112px;padding:7px 16px;border:1px solid #c79a31;background:#211604;color:#f7dda0;text-align:center;font-size:15px;font-weight:600}.chapter-three-dialogue b[hidden]{display:none}.chapter-three-dialogue p{margin:0;white-space:pre-line}.chapter-three-dialogue i{position:absolute;right:22px;bottom:13px;color:#e8c352;font-style:normal;font-size:17px;animation:chapterThreeNext 1.1s ease-in-out infinite}@keyframes chapterThreeNext{50%{opacity:.3;transform:translateY(4px)}}.chapter-three-dialogue{bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;border-color:#d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;font:inherit;text-align:left;line-height:normal;cursor:pointer;appearance:none;user-select:none;-webkit-user-select:none;touch-action:manipulation;animation:chapter-dialogue-in .46s ease-out both}.chapter-three-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter-three-dialogue b{left:26px;top:-17px;min-width:130px;padding:7px 17px;border-color:#d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-shadow:0 1px 3px #000}.chapter-three-dialogue p{position:relative;margin:18px 20px 0;font:clamp(16px,1.35vw,22px)/1.65 "Yu Mincho",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter-three-dialogue i{right:24px;bottom:16px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c;color:transparent;font-size:0;filter:drop-shadow(0 1px 3px #000);animation:chapter-next-bob .82s ease-in-out infinite}.chapter-three-dialogue i:before{content:"";position:absolute;left:-10px;top:-18px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #f5d77c}@media(max-width:760px),(pointer:coarse) and (orientation:landscape){.chapter-three-air{left:5vw;right:auto;top:8vh;bottom:auto;width:min(28vw,210px);max-height:48vh}.chapter-three-dialogue{bottom:3.5vh;width:94vw;min-height:122px;padding:23px 16px 26px}.chapter-three-dialogue b{left:18px;top:-15px;min-width:104px;padding:6px 12px;font-size:13px}.chapter-three-dialogue p{margin:16px 8px 0;font-size:16px}.chapter-three-dialogue i{right:17px;bottom:13px}.chapter-three-return{right:2vw;top:2vh;padding:7px 13px;font-size:12px}}';document.head.append(style);
-    scene.querySelector('.chapter-three-backdrop').src='assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg';
-    scene.querySelector('.chapter-three-air').src='assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png';
-    scene.querySelector('.chapter-three-return').onclick=()=>{const bgm=scene.querySelector('#chapterThreeBgm');bgm?.pause();scene.hidden=true;document.body.classList.remove('story-active','story-cinematic');window.returnToTitle?.();};
-  }
-  const n=(...parts)=>parts.join(String.fromCharCode(10));
-  const lines=[
-    {text:n('エアさん曰く、王都までは徒歩で２～３日程かかるらしい。','街を出て半日ほど経っただろうか、','辺りは気持ちの良い風が吹く草原が広がっている。')},
-    {speaker:'エア',text:n('夜になると魔物が出るからね。','夕方にはキャンプを設営して、火を炊くよ。')},
-    {text:n('エアさんは言う。流石に冒険者、','知識も経験も豊富だ。')},
-    {speaker:'主人公',text:'・・・あの、聞きたいことがあるんですけど'},
-    {speaker:'エア',text:'なに？なんでも聞いてよ'},
-    {speaker:'主人公',text:n('夜になると魔物が活発になるのは訓練所でも習いましたし、','事実、街の近くをうろついていたのを何度か見たこともあります')},
-    {speaker:'主人公',text:'でも、昼間に魔物が人を襲うようなことってあるんでしょうか。'},
-    {text:'俺は思い出していた。そう、昨日の騒ぎのことだ。'},
-    {speaker:'エア',text:'無くはないね。魔物の種類にもよるけど'},
-    {text:'エアさんは表情を緩めず言う。'},
-    {speaker:'エア',text:'昨日のこと、気になってるんだね。'},
-    {text:'俺は頷く。'},
-    {speaker:'エア',text:n('昨日の魔物、覚えてる？','狼のような見た目で、体は痩せ細っていた。','長い間食料にありつけていなかった証拠だよ')},
-    {speaker:'エア',text:n('魔物が食糧難で姿を見せるのは珍しいんだ。','弱っているところを別の魔物に食べられてしまうからね')},
-    {speaker:'エア',text:n('つまりあの魔物の出現は、あの街の周辺で少し前から、','野生における食物連鎖が完全に停止していたことの裏返しなんだ')},
-    {speaker:'主人公',text:'食物連鎖の・・・停止'},
-    {speaker:'エア',text:n('そう。そして、この食物連鎖の停止なんだけど、','私も何度か見た経験がある。')},
-    {speaker:'エア',text:n('その全てが、','たったひとつの理由で起こっているんだ')},
-    {speaker:'主人公',text:'たったひとつ、ですか'},
-    {speaker:'エア',text:'そう。なんだと思う？'},
-    {speaker:'主人公',text:'・・・見当もつきません'},
-    {speaker:'エア',text:'人間だよ'},
-    {text:'一瞬、息が止まる。'},
-    {speaker:'主人公',text:'・・・人間？'},
-    {speaker:'エア',text:n('そう。魔物を含む食物連鎖の停止は、','人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。')},
-    {speaker:'主人公',text:'どうしてそんなこと、わかるんですか？'},
-    {speaker:'エア',text:n('現象としてはかなり珍しいよ。','ただ、いくつか報告事例があるんだ。','逆に、魔物だけで食物連鎖が崩壊した事例は無い。')},
-    {speaker:'エア',text:n('私もいくつか報告書を読んだけど、','どれも目を覆うような凄惨な事件ばかりだったよ。')},
-    {speaker:'主人公',text:'・・・そうなんですか'},
-    {speaker:'エア',text:'よく違和感を持ったね。冒険者に向いてるかもね'},
-    {text:n('少し微笑んでエアさんは言う。','しかし、その笑顔の奥に何か思うものがあるようにも感じた。')},
-    {speaker:'主人公',text:'人間・・・か'},
-    {text:'',evening:true},
-    {speaker:'エア',text:'そろそろキャンプを張るよ',evening:true},
-    {text:n('頷いて荷物を取り出す。','訓練所で野営の授業はあったので、設営はスムーズだ。'),evening:true},
-    {speaker:'エア',text:'へえ、やるじゃん！',evening:true},
-    {speaker:'主人公',text:'いえ・・・',evening:true},
-    {text:'少し照れくさい。',evening:true},
-    {text:'最後の杭に手をかけた、そのときだった。',evening:true},
-    {speaker:'？？？',text:'お前ら、ここで何をしている',evening:true,delyuke:'normal'},
-    {text:n('声に振り向くと、そこには如何にも手練れであろう風体の男性が','こちらを怪訝そうな眼差しで睨みつけていた。','かなりこちらを警戒しているようだ。'),evening:true,delyuke:'normal'},
-    {speaker:'エア',text:'私たちは西の村から出てきた旅の者だよ',evening:true,delyuke:'normal'},
-    {text:n('エアさんが言うが、男は表情ひとつ変えず','こちらを見据えている。'),evening:true,delyuke:'normal'},
-    {speaker:'？？？',text:'ここ最近、この周辺でサイクル・ハウトが観測されている。',evening:true,delyuke:'normal'},
-    {speaker:'主人公',text:'サイクル・・・？',evening:true,delyuke:'normal'},
-    {text:'言いかけて、フラッシュバックする。',evening:true,delyuke:'normal'},
-    {text:'（食物連鎖の――停止）',evening:true,delyuke:'normal'},
-    {text:'なるほど・・・そういうことか。',evening:true,delyuke:'normal'},
-    {speaker:'エア',text:n('それは私たちも観測したよ。','街中に飢餓状態の魔物が入り込んで来た。'),evening:true,delyuke:'normal'},
-    {speaker:'主人公',text:'・・・',evening:true,delyuke:'normal'},
-    {text:'こちらを見る男の目は変わらない。',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:n('私は王都騎士団のデリューク・ロイアルト。','旅証を見せてもらおう。'),evening:true,delyuke:'normal'},
-    {speaker:'エア',text:'旅証ね。待って',evening:true,delyuke:'normal'},
-    {text:'エアさんは荷物の中から写真付きの旅証を取り出し見せる。',evening:true,delyuke:'normal'},
-    {speaker:'エア',text:'はい。これでいいでしょ',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:'・・・写真、王都の印はあるな。いいだろう。',evening:true,delyuke:'normal'},
-    {speaker:'エア',text:'じゃあね、お疲れ様',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:'まだだ。貴様もだ',evening:true,delyuke:'normal'},
-    {text:n('当然、俺に向けられた言葉だ。','しかし、街を出てきたばかりの俺に旅証などあるはずもなかった。'),evening:true,delyuke:'normal'},
-    {speaker:'主人公',text:'私は・・・街から出てきたばかりで',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:'・・・怪しいな',evening:true,delyuke:'normal'},
-    {speaker:'エア',text:n('この人は私の連れだよ。','それに、アインクロッズより東のエリア以外では','旅証の提示は義務じゃないはずだけど？'),evening:true,delyuke:'normal'},
-    {text:'デリュークと名乗った男とエアさんが睨み合う。',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:n('取り調べを行う。','騎士団の前哨基地まで来てもらおう。'),evening:true,delyuke:'normal'},
-    {speaker:'エア',text:'はぁ？ 騎士団ごときにそんな権限あるわけないでしょ。',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:'貴様、口答えするのか',evening:true,delyuke:'normal'},
-    {text:'二人のテンションがヒートアップしてきているのが伝わってくる。',evening:true,delyuke:'normal'},
-    {speaker:'デリューク',text:n('今は緊急事態なのだ。','無理やりにでも・・・来てもらうぞ。'),evening:true,delyuke:'normal'},
-    {text:'男は剣を抜いた。',evening:true,delyuke:'sword'},
-    {speaker:'エア',text:n('そんな義理はないって言ってるでしょ。','やるなら相手になるよ。','私の方が強いと思うけど？'),evening:true,delyuke:'sword',airBattleEvening:true},
-    {speaker:'デリューク',text:'抜かせ、小娘。',evening:true,delyuke:'sword'},
-    {text:'振りかざした二人の刃が重なった・・・！',evening:true,delyuke:'sword'}
-  ];
-  const card=scene.querySelector('.chapter-three-air'),delyuke=scene.querySelector('.chapter-three-delyuke'),backdrop=scene.querySelector('.chapter-three-backdrop'),fade=scene.querySelector('.chapter-three-fade'),dialogue=scene.querySelector('.chapter-three-dialogue'),speaker=dialogue.querySelector('b'),body=dialogue.querySelector('p'),next=dialogue.querySelector('i'),bgm=scene.querySelector('#chapterThreeBgm');let index=0,eveningApplied=false;
-  const showLine=()=>{const line=lines[index];if(line.evening&&!eveningApplied){eveningApplied=true;fade.classList.add('active');window.setTimeout(()=>{const eveningSource='assets/862dbc28-ef1d-474f-becc-68ab30b979fd.jpg';let revealed=false;const revealEvening=()=>{if(revealed)return;revealed=true;requestAnimationFrame(()=>fade.classList.remove('active'));};backdrop.addEventListener('load',revealEvening,{once:true});backdrop.addEventListener('error',revealEvening,{once:true});backdrop.src=eveningSource;if(backdrop.complete&&backdrop.naturalWidth)revealEvening();},340);}if(line.airBattleEvening)window.__chapterThreeAirBattleCard=true;const airCardSource=window.__chapterThreeAirBattleCard?'assets/exec-aad00cca-1829-4589-bfe0-4928ffa9b89d.png':'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png';if(!card.src.endsWith(airCardSource))card.src=airCardSource;const talking=line.speaker==='エア',visible=scene.classList.contains('scene-dialogue');card.style.opacity=visible?(talking?'1':'.76'):'';card.classList.toggle('is-speaking',visible&&talking);delyuke.hidden=!line.delyuke;if(line.delyuke)delyuke.src=line.delyuke==='sword'?'assets/exec-de0615d8-6dfe-4ee0-af48-a7ce0210f4e2.png':'assets/exec-ea55e498-d164-4f94-8b07-78a9d38615a8.png';speaker.hidden=!line.speaker;speaker.textContent=line.speaker?(line.speaker==='主人公'?(window.storySpeakerName?.('主人公')||'主人公'):line.speaker):'';body.textContent=line.speaker?'「'+line.text+'」':line.text;next.hidden=index===lines.length-1;};
-  dialogue.onclick=()=>{if(index<lines.length-1){index++;showLine();}};
-  document.body.classList.add('story-active','story-cinematic');bgm.volume=.08;bgm.currentTime=0;bgm.play().catch(()=>{});const revealOpening=()=>{scene.hidden=false;scene.classList.remove('scene-intro','scene-backdrop-visible','scene-dialogue','scene-present');scene.classList.add('scene-intro');scene.style.opacity='1';scene.style.transition='none';backdrop.style.transition='none';backdrop.style.opacity='0';card.style.transition='none';card.style.opacity='0';dialogue.style.transition='none';dialogue.style.opacity='0';dialogue.style.pointerEvents='none';showLine();backdrop.style.opacity='0';card.style.opacity='0';dialogue.style.opacity='0';void scene.offsetWidth;requestAnimationFrame(()=>{backdrop.style.transition='opacity .8s ease,filter .35s ease';backdrop.style.opacity='1';});window.setTimeout(()=>{card.style.transition='opacity .42s ease,transform .32s ease';card.style.opacity='1';},850);window.setTimeout(()=>{scene.classList.add('scene-dialogue');showLine();dialogue.style.transition='opacity .35s ease';dialogue.style.opacity='1';dialogue.style.pointerEvents='auto';},1320);};if(backdrop.complete&&backdrop.naturalWidth)revealOpening();else{backdrop.addEventListener('load',revealOpening,{once:true});backdrop.addEventListener('error',revealOpening,{once:true});}
-}
-window.startChapterThree=startChapterThree;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function openTutorial(){
   let modal=document.querySelector('#tutorialPanel');
   if(!modal){
@@ -3486,69 +2251,6 @@ function installTitlePressMenu(){
   title.classList.remove('title-shell-loading');
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* 横画面で fixed 要素のタップ座標がずれる端末では、タイトル表示中だけ通常配置にする。 */
 function installMobileTitleViewportLock(){
   const title=document.querySelector('#titleScreen');
@@ -3580,69 +2282,6 @@ function makeBattleSettings(){
   new MutationObserver(syncBattleSettings).observe(title,{attributes:true,attributeFilter:['class']});syncBattleSettings();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 window.openSpellHeartsSettings=()=>document.querySelector('#titleSettings')?.click();
 // タイトルの起動を装飾機能から切り離す。個別機能の失敗でPRESS SCREENまで消えないようにする。
 for(const initialize of [makeSettings,makeTokenBalance,makeSummonButton,makeDressupButton,makeRecordButton,makeTutorialButton,installTitlePressMenu,installMobileTitleViewportLock,makeBattleSettings,preloadStorySelectSfx,installOpeningSpellDeckGuide,installLocalCosmeticSync,installAmplifyChargeSfx,installTitleBgm]){
@@ -3656,69 +2295,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const fanfare=document.querySelector('#winFanfare');
   if(fanfare)fanfare.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('spellHeartsSfxVolume')??70)/100*.82));
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const style=document.createElement('style');
 style.textContent=`
