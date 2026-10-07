@@ -144,9 +144,17 @@
       if (current.evening && !evening) {
         evening = true;
         transitioning = true;
+        // Keep the next line hidden until the sunset background has appeared.
+        dialogue.classList.remove('show');
         fade.style.opacity = '1';
         window.setTimeout(() => { bg.src = assets.evening; }, 390);
-        const reveal = () => { fade.style.opacity = '0'; transitioning = false; };
+        const reveal = () => {
+          fade.style.opacity = '0';
+          window.setTimeout(() => {
+            transitioning = false;
+            dialogue.classList.add('show');
+          }, 820);
+        };
         bg.addEventListener('load', reveal, { once: true });
         bg.addEventListener('error', reveal, { once: true });
       }
