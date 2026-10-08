@@ -6,6 +6,8 @@
     meadow: 'assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg',
     river: 'assets/99d34c2a-2be3-4154-8db7-da26576829e6.jpg',
     bridge: 'assets/4301dbbc-ec0a-4d05-b72a-f6728382a200.jpg',
+    cliffPath: 'assets/6b50e7c7-4a74-4727-8bad-ef1cea7f8faa.jpg',
+    village: 'assets/Remove_all_smoke_coming_from_2K_20261008170311.jpg',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png'
   };
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
@@ -27,7 +29,16 @@
     line('橋は中央から大きく崩れ、向こう岸へ渡れる状態ではなかった。', '', { air: true }),
     line('このままじゃ渡れませんね。', '主人公', { air: true }),
     line('うん。戻って、もっと浅い場所を探すしかないかな。遠回りにはなるけどね。', 'アイリス', { air: true }),
-    line('予定が狂ったことに焦りはしたが、立ち止まっていても仕方がない。僕たちは来た道とは別の細い道へと足を向けた。', '', { air: true })
+    line('予定が狂ったことに焦りはしたが、立ち止まっていても仕方がない。僕たちは来た道とは別の細い道へと足を向けた。', '', { air: true }),
+    line('迂回路に入るにつれて、道は徐々に険しくなっていった。', '', { air: true, background: 'cliffPath' }),
+    line('足元は石で丁寧に舗装されている。それでも、柵のない崖のすぐ脇を進むたび、背中が強張った。', '', { air: true }),
+    line('下を見ない方がいいですよね、これ。', '主人公', { air: true }),
+    line('うん。足元だけ見て、ゆっくり行こう。急ぐ必要はないからね。', 'アイリス', { air: true }),
+    line('平静を装うアイリスの声に励まされる。だが、一歩ごとに気を張り続けるせいで、心が少しずつすり減っていくのを感じた。', '', { air: true }),
+    line('……あ、この先に農村があったはず。そこで少し休ませてもらおうか。', 'アイリス', { air: true }),
+    line('休憩できる場所があるなら助かります。', '主人公', { air: true }),
+    line('崖道を抜け、木立の間をさらに進む。しばらくして、谷あいに屋根の連なる景色が見えてきた。', '', { air: true, background: 'village' }),
+    line('あった、ここだ。少しだけ寄らせてもらおう。', 'アイリス', { air: true })
   ];
   let scene;
 
