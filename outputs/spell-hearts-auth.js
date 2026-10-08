@@ -2139,7 +2139,7 @@ function openStoryMode(){
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?subtitle:'🔒 LOCKED'}</small></button>`;
   }).join('');
   note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'Chapter 3 を選択できます。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();const chapter=button.dataset.storyChapter;if(chapter==='1')startChapterOne();else if(chapter==='2')startChapterTwoExpanded();else if(chapter==='3')window.startChapterThree?.();else note.textContent='Chapter 4 は準備中です。';});
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();const chapter=button.dataset.storyChapter;if(chapter==='1')startChapterOne();else if(chapter==='2')startChapterTwoExpanded();else if(chapter==='3')window.startChapterThree?.();else window.startChapterFour?.();});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
