@@ -239,6 +239,8 @@
 
   function startBattle(root, music) {
     music.pause();
+    window.chapter3DelyukeBattleActive = true;
+    window.handleChapter3DelyukeBattleResult = (result, won) => showDelyukeResult(result, won, root, music);
     // Chapter 3 is entered from the title's story menu.  Suppress the title
     // immediately (rather than its normal fade) before the scene is hidden,
     // otherwise the title can flash for one frame during this handoff.
@@ -308,11 +310,12 @@
       result.onclick = () => startAfterBattleStory(root, chapterMusic);
     } else {
       result.querySelector('[data-chapter3-retry]').onclick = () => startBattle(root, chapterMusic);
-      result.querySelector('[data-chapter3-give-up]').onclick = () => window.returnToTitle?.();
+      result.querySelector('[data-chapter3-give-up]').onclick = () => { window.chapter3DelyukeBattleActive = false; window.returnToTitle?.(); };
     }
   }
 
   function startAfterBattleStory(root, chapterMusic) {
+    window.chapter3DelyukeBattleActive = false;
     document.querySelector('#resultScreen')?.classList.remove('show');
     const cards = document.querySelector('#chapter3BattleCards');
     cards?.remove();
