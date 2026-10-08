@@ -2135,7 +2135,7 @@ function openStoryMode(){
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
   chapters.innerHTML=[1,2,3].map(chapter=>{
     const available=chapter===3||chapter<=unlocked;
-    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':'開始';
+    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':'闘志';
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?subtitle:'🔒 LOCKED'}</small></button>`;
   }).join('');
   note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'Chapter 3 を選択できます。';
