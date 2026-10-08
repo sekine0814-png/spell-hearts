@@ -2133,13 +2133,13 @@ function openStoryMode(){
     panel.onclick=event=>{if(event.target===panel)panel.hidden=true;};
   }
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
-  chapters.innerHTML=[1,2,3].map(chapter=>{
-    const available=chapter===3||chapter<=unlocked;
-    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':'闘志';
+  chapters.innerHTML=[1,2,3,4].map(chapter=>{
+    const available=chapter===3||chapter===4||chapter<=unlocked;
+    const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':chapter===3?'闘志':'水辺の華';
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?subtitle:'🔒 LOCKED'}</small></button>`;
   }).join('');
   note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'Chapter 3 を選択できます。';
-  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();const chapter=button.dataset.storyChapter;if(chapter==='1')startChapterOne();else if(chapter==='2')startChapterTwoExpanded();else window.startChapterThree?.();});
+  chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();const chapter=button.dataset.storyChapter;if(chapter==='1')startChapterOne();else if(chapter==='2')startChapterTwoExpanded();else if(chapter==='3')window.startChapterThree?.();else note.textContent='Chapter 4 は準備中です。';});
   panel.hidden=false;
 }
 window.openStoryMode=openStoryMode;
