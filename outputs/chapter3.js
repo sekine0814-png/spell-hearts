@@ -303,11 +303,17 @@
   function showDelyukeResult(result, won, root, chapterMusic) {
     result.classList.add('show');
     result.onclick = null;
+    delete result.dataset.chapter3Advancing;
     result.innerHTML = won
       ? `<div class="result-stack"><div class="result-word result-red">RED WIN</div></div>`
       : `<div class="result-stack"><div class="result-word result-blue">DEFEAT</div><div class="result-actions"><button class="result-retry" type="button" data-chapter3-retry>もう一度戦う</button><button class="result-retry" type="button" data-chapter3-give-up>諦める</button></div></div>`;
     if (won) {
-      result.onclick = () => startAfterBattleStory(root, chapterMusic);
+      result.onclick = () => {
+        if (result.dataset.chapter3Advancing === 'true') return;
+        result.dataset.chapter3Advancing = 'true';
+        result.classList.remove('show');
+        window.setTimeout(() => startAfterBattleStory(root, chapterMusic), 620);
+      };
     } else {
       result.querySelector('[data-chapter3-retry]').onclick = () => startBattle(root, chapterMusic);
       result.querySelector('[data-chapter3-give-up]').onclick = () => { window.chapter3DelyukeBattleActive = false; window.returnToTitle?.(); };
