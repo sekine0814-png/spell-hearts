@@ -1886,10 +1886,8 @@ function chapterTwoFade(scene,source,done){
 }
 const chapterTwoFrameStyle=document.createElement('style');
 chapterTwoFrameStyle.textContent=`
-  /* 枠は別レイヤーにせず、画像そのものに付ける。差分の大きさが変わっても切れない。 */
-  .chapter-two-scene .chapter-two-air,.chapter-two-scene .chapter-two-yuto{box-sizing:border-box;clip-path:none!important;background:#120d08}
-  .chapter-two-scene .chapter-two-air{border:6px double #e3b94d;outline:2px solid #4b3210;box-shadow:inset 0 0 0 3px #24627a,inset 0 0 0 7px rgba(255,230,130,.75),0 0 13px rgba(197,150,49,.34)}
-  .chapter-two-scene .chapter-two-yuto{border:6px double #9e7645;outline:2px solid #3b2815;box-shadow:inset 0 0 0 3px #d1ac76,inset 0 0 0 7px rgba(55,36,18,.72),0 0 13px rgba(82,54,26,.3)}
+  /* 立ち絵の画像に含まれるカード枠だけを表示する。外側の追加額縁は使わない。 */
+  .chapter-two-scene .chapter-two-air,.chapter-two-scene .chapter-two-yuto{box-sizing:border-box;clip-path:none!important;background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important}
 `;
 document.head.append(chapterTwoFrameStyle);
 function setChapterTwoCardImage(card,source,fallback){
