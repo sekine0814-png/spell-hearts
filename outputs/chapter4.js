@@ -128,7 +128,7 @@
     root.hidden = false;
     music.pause();
     music.currentTime = 0;
-    music.volume = 0.12;
+    music.volume = 0.05;
     music.play().catch(() => {});
     bg.src = assets.meadow;
     fade.style.opacity = '1';
