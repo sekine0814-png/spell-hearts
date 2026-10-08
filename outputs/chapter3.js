@@ -114,7 +114,11 @@
     line('ぐっ・・・なんで・・・！', 'エア', { normal: true }),
     line('吐き捨てるほど悔しそうなエアさんの声が聞こえる。', '', { normal: true }),
     line('突き刺さった剣を引き抜くと、\n俺の方は見ずにエアさんが呟く。', '', { normal: true }),
-    line('キャンプ・・・張ろっか', 'エア', { normal: true })
+    line('キャンプ・・・張ろっか', 'エア', { normal: true }),
+    line('ハッとした俺は、左手に持ったままだった杭の存在を思い出す。', '', { hideAir: true }),
+    line('その後はキャンプの中で食事を取り、床についた。', '', { hideAir: true }),
+    line('食事を終える頃には笑顔を見せていたが、\n終始エアさんは気落ちしていたように見えた。\nあれだけの実力差を見せられれば、剣士として思うところもあったことだろう。', '', { hideAir: true }),
+    line('そして明日以降のことを考える。\nこのまま何もなく王都にたどり着けるか・・・\n恐らくそうは行かない気がすると想いながら、目を瞑った。', '', { hideAir: true, ending: true })
   ];
   const assets = {
     background: 'assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg',
@@ -155,6 +159,7 @@
     style.textContent = `
       #chapterThreeScene{position:fixed;z-index:500;inset:0;overflow:hidden;background:#020409;color:#f9ead0;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;isolation:isolate}
       #chapterThreeScene[hidden]{display:none}.chapter3-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;filter:brightness(.84) saturate(.88);transition:opacity .9s ease}.chapter3-fade{position:absolute;z-index:10;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity .8s ease}
+      #chapter3Ending{position:absolute;z-index:11;inset:0;display:grid;place-items:center;background:#000;color:#fff0b4;opacity:0;pointer-events:none;transition:opacity .9s ease}#chapter3Ending.show{opacity:1;pointer-events:auto}#chapter3Ending span{font:clamp(32px,5vw,70px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}
       .chapter3-return{position:absolute;z-index:6;top:14px;right:16px;padding:10px 18px;border:1px solid #d8ae4e;border-radius:4px;background:linear-gradient(180deg,rgba(81,57,18,.94),rgba(23,14,5,.97));color:#fff0ba;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.1em;cursor:pointer}
       .chapter3-air{position:absolute;z-index:2;left:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:0;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(-14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter3-air.show{opacity:.78}.chapter3-air.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
       .chapter3-delyuke{position:absolute;z-index:2;right:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:0;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter3-delyuke.show{opacity:.78}.chapter3-delyuke.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
@@ -170,6 +175,7 @@
     document.querySelector('#titleBgm')?.pause();
     document.querySelector('#storyModePanel')?.setAttribute('hidden', '');
     const root = makeScene();
+    root.querySelector('#chapter3Ending')?.remove();
     const bg = root.querySelector('.chapter3-background');
     const fade = root.querySelector('.chapter3-fade');
     const dialogue = root.querySelector('.chapter3-dialogue');
@@ -351,6 +357,7 @@
     const air = root.querySelector('.chapter3-air');
     const delyuke = root.querySelector('.chapter3-delyuke');
     let index = 0;
+    root.querySelector('#chapter3Ending')?.remove();
     root.hidden = false;
     bg.src = assets.evening;
     bg.style.opacity = '1';
@@ -368,6 +375,7 @@
       const current = victoryLines[index];
       if (current.normal) delyuke.src = assets.delyuke;
       if (current.hideDelyuke) delyuke.hidden = true;
+      if (current.hideAir) air.hidden = true;
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
@@ -376,12 +384,31 @@
       dialogue.classList.toggle('last', index === victoryLines.length - 1);
     };
     dialogue.onclick = () => {
+      if (victoryLines[index].ending) {
+        endChapterThree(root, dialogue, air, delyuke, aftermath);
+        return;
+      }
       if (index < victoryLines.length - 1) {
         index += 1;
         render();
       }
     };
     render();
+  }
+
+  function endChapterThree(root, dialogue, air, delyuke, music) {
+    dialogue.classList.remove('show');
+    air.hidden = true;
+    delyuke.hidden = true;
+    music.pause();
+    const ending = document.createElement('button');
+    ending.id = 'chapter3Ending';
+    ending.type = 'button';
+    ending.setAttribute('aria-label', 'タイトルに戻る');
+    ending.innerHTML = '<span>Chapter 3 終了</span>';
+    ending.onclick = () => window.returnToTitle?.();
+    root.append(ending);
+    requestAnimationFrame(() => ending.classList.add('show'));
   }
 
   window.startChapterThree = startChapterThree;
