@@ -78,21 +78,33 @@
 
     const render = () => {
       const current = lines[index];
-      if (current.background) {
-        changing = true;
-        fade.style.opacity = '1';
-        dialogue.classList.remove('show');
-        bg.src = assets[current.background];
-        const reveal = () => window.setTimeout(() => { fade.style.opacity = '0'; changing = false; dialogue.classList.add('show'); }, 720);
-        bg.addEventListener('load', reveal, { once: true });
-        bg.addEventListener('error', reveal, { once: true });
-      }
+      const applyContent = () => {
       air.hidden = !current.air;
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
       air.classList.toggle('talking', current.speaker === 'エア');
       dialogue.classList.toggle('last', index === lines.length - 1);
+      };
+      if (current.background) {
+        changing = true;
+        dialogue.classList.remove('show');
+        // 次の文章は、暗転で画面全体を覆ってから差し替える。
+        fade.style.opacity = '1';
+        window.setTimeout(() => {
+          applyContent();
+          bg.src = assets[current.background];
+          const reveal = () => window.setTimeout(() => {
+            fade.style.opacity = '0';
+            changing = false;
+            dialogue.classList.add('show');
+          }, 80);
+          bg.addEventListener('load', reveal, { once: true });
+          bg.addEventListener('error', reveal, { once: true });
+        }, 820);
+        return;
+      }
+      applyContent();
     };
     dialogue.onclick = () => {
       if (changing || index >= lines.length - 1) return;
