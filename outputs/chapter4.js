@@ -81,7 +81,7 @@
       const applyContent = () => {
       air.hidden = !current.air;
       speaker.hidden = !current.speaker;
-      speaker.textContent = current.speaker || '';
+      speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
       air.classList.toggle('talking', current.speaker === 'アイリス');
       dialogue.classList.toggle('last', index === lines.length - 1);

@@ -211,7 +211,7 @@
       if (current.airBattle) battleAir = true;
       air.src = battleAir ? assets.airBattle : assets.air;
       speaker.hidden = !current.speaker;
-      speaker.textContent = current.speaker || '';
+      speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
       if (current.speaker === 'アイリス') { air.hidden = false; air.classList.add('show'); }
       air.classList.toggle('talking', current.speaker === 'アイリス');
@@ -379,7 +379,7 @@
       if (current.hideDelyuke) delyuke.hidden = true;
       if (current.hideAir) air.hidden = true;
       speaker.hidden = !current.speaker;
-      speaker.textContent = current.speaker || '';
+      speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
       air.classList.toggle('talking', current.speaker === 'アイリス');
       delyuke.classList.toggle('talking', current.speaker === 'デリューク');
