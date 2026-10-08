@@ -110,7 +110,7 @@
     line('デリュークは如何にもお見通しだ、という笑みを浮かべ告げる。', '', { normal: true }),
     line('剣を交えればわかる。\nお前達がどのような人間で、嘘を吐いているかどうかなど、な', 'デリューク', { normal: true }),
     line('驚いているとも呆れているとも何とも言えない表情で、\nエアさんがデリュークを見つめている。\n恐らく、俺も全く同じ表情をしていたことだろう。', '', { normal: true }),
-    line('背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。', '', { normal: true }),
+    line('背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。', '', { normal: true, hideDelyuke: true }),
     line('ぐっ・・・なんで・・・！', 'エア', { normal: true }),
     line('吐き捨てるほど悔しそうなエアさんの声が聞こえる。', '', { normal: true }),
     line('突き刺さった剣を引き抜くと、\n俺の方は見ずにエアさんが呟く。', '', { normal: true }),
@@ -302,7 +302,7 @@
     result.classList.add('show');
     result.onclick = null;
     result.innerHTML = won
-      ? `<div class="result-stack"><div class="result-word result-red">VICTORY</div><div class="result-actions"><span class="result-retry">クリックして続ける</span></div></div>`
+      ? `<div class="result-stack"><div class="result-word result-red">RED WIN</div></div>`
       : `<div class="result-stack"><div class="result-word result-blue">DEFEAT</div><div class="result-actions"><button class="result-retry" type="button" data-chapter3-retry>もう一度戦う</button><button class="result-retry" type="button" data-chapter3-give-up>諦める</button></div></div>`;
     if (won) {
       result.onclick = () => startAfterBattleStory(root, chapterMusic);
@@ -358,6 +358,7 @@
     const render = () => {
       const current = victoryLines[index];
       if (current.normal) delyuke.src = assets.delyuke;
+      if (current.hideDelyuke) delyuke.hidden = true;
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
