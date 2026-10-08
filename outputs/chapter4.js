@@ -8,6 +8,7 @@
     bridge: 'assets/4301dbbc-ec0a-4d05-b72a-f6728382a200.jpg',
     cliffPath: 'assets/6b50e7c7-4a74-4727-8bad-ef1cea7f8faa.jpg',
     village: 'assets/Remove_all_smoke_coming_from_2K_20261008170311.jpg',
+    bgm: 'assets/新しい季節.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png'
   };
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
@@ -50,6 +51,7 @@
     scene.innerHTML = `
       <img class="chapter4-background" src="${assets.meadow}" alt="草原">
       <div class="chapter4-fade" aria-hidden="true"></div>
+      <audio class="chapter4-bgm" src="${assets.bgm}" loop preload="metadata"></audio>
       <button class="chapter4-return" type="button">タイトルに戻る</button>
       <img class="chapter4-air" src="${assets.air}" alt="アイリス" hidden>
       <button class="chapter4-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
@@ -83,6 +85,7 @@
     const dialogue = root.querySelector('.chapter4-dialogue');
     const speaker = dialogue.querySelector('b');
     const text = dialogue.querySelector('p');
+    const music = root.querySelector('.chapter4-bgm');
     const air = root.querySelector('.chapter4-air');
     let index = 0;
     let changing = false;
@@ -123,6 +126,10 @@
       render();
     };
     root.hidden = false;
+    music.pause();
+    music.currentTime = 0;
+    music.volume = 0.12;
+    music.play().catch(() => {});
     bg.src = assets.meadow;
     fade.style.opacity = '1';
     dialogue.classList.remove('show');
