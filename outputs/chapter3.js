@@ -4,120 +4,120 @@
 
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
   const lines = [
-    line('エアさん曰く、王都までは徒歩で２～３日程かかるらしい。'),
+    line('アイリスさん曰く、王都までは徒歩で２～３日程かかるらしい。'),
     line('街を出て半日ほど経っただろうか、\n辺りは気持ちの良い風が吹く草原が広がっている。'),
-    line('夜になると魔物が出るからね。\n夕方にはキャンプを設営して、火を炊くよ。', 'エア'),
-    line('エアさんは言う。流石に冒険者、\n知識も経験も豊富だ。'),
+    line('夜になると魔物が出るからね。\n夕方にはキャンプを設営して、火を炊くよ。', 'アイリス'),
+    line('アイリスさんは言う。流石に冒険者、\n知識も経験も豊富だ。'),
     line('・・・あの、聞きたいことがあるんですけど', '主人公'),
-    line('なに？なんでも聞いてよ', 'エア'),
+    line('なに？なんでも聞いてよ', 'アイリス'),
     line('夜になると魔物が活発になるのは訓練所でも習いましたし、\n事実、街の近くをうろついていたのを何度か見たこともあります', '主人公'),
     line('でも、昼間に魔物が人を襲うようなことってあるんでしょうか。', '主人公'),
-    line('俺は思い出していた。そう、昨日の騒ぎのことだ。'),
-    line('無くはないね。魔物の種類にもよるけど', 'エア'),
-    line('エアさんは表情を緩めず言う。'),
-    line('昨日のこと、気になってるんだね。', 'エア'),
-    line('俺は頷く。'),
-    line('昨日の魔物、覚えてる？\n狼のような見た目で、体は痩せ細っていた。\n長い間食料にありつけていなかった証拠だよ', 'エア'),
-    line('魔物が食糧難で姿を見せるのは珍しいんだ。\n弱っているところを別の魔物に食べられてしまうからね', 'エア'),
-    line('つまりあの魔物の出現は、あの街の周辺で少し前から、\n野生における食物連鎖が完全に停止していたことの裏返しなんだ', 'エア'),
+    line('僕は思い出していた。そう、昨日の騒ぎのことだ。'),
+    line('無くはないね。魔物の種類にもよるけど', 'アイリス'),
+    line('アイリスさんは表情を緩めず言う。'),
+    line('昨日のこと、気になってるんだね。', 'アイリス'),
+    line('僕は頷く。'),
+    line('昨日の魔物、覚えてる？\n狼のような見た目で、体は痩せ細っていた。\n長い間食料にありつけていなかった証拠だよ', 'アイリス'),
+    line('魔物が食糧難で姿を見せるのは珍しいんだ。\n弱っているところを別の魔物に食べられてしまうからね', 'アイリス'),
+    line('つまりあの魔物の出現は、あの街の周辺で少し前から、\n野生における食物連鎖が完全に停止していたことの裏返しなんだ', 'アイリス'),
     line('食物連鎖の・・・停止', '主人公'),
-    line('そう。そして、この食物連鎖の停止なんだけど、\n私も何度か見た経験がある。', 'エア'),
-    line('その全てが、\nたったひとつの理由で起こっているんだ', 'エア'),
+    line('そう。そして、この食物連鎖の停止なんだけど、\n私も何度か見た経験がある。', 'アイリス'),
+    line('その全てが、\nたったひとつの理由で起こっているんだ', 'アイリス'),
     line('たったひとつ、ですか', '主人公'),
-    line('そう。なんだと思う？', 'エア'),
+    line('そう。なんだと思う？', 'アイリス'),
     line('・・・見当もつきません', '主人公'),
-    line('人間だよ', 'エア'),
+    line('人間だよ', 'アイリス'),
     line('一瞬、息が止まる。'),
     line('・・・人間？', '主人公'),
-    line('そう。魔物を含む食物連鎖の停止は、\n人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。', 'エア'),
+    line('そう。魔物を含む食物連鎖の停止は、\n人間が特定の種を狩り尽くしたり、遺伝子操作したりすることでしか起こらないんだ。', 'アイリス'),
     line('どうしてそんなこと、わかるんですか？', '主人公'),
-    line('現象としてはかなり珍しいよ。\nただ、いくつか報告事例があるんだ。\n逆に、魔物だけで食物連鎖が崩壊した事例は無い。', 'エア'),
-    line('私もいくつか報告書を読んだけど、\nどれも目を覆うような凄惨な事件ばかりだったよ。', 'エア'),
+    line('現象としてはかなり珍しいよ。\nただ、いくつか報告事例があるんだ。\n逆に、魔物だけで食物連鎖が崩壊した事例は無い。', 'アイリス'),
+    line('私もいくつか報告書を読んだけど、\nどれも目を覆うような凄惨な事件ばかりだったよ。', 'アイリス'),
     line('・・・そうなんですか', '主人公'),
-    line('よく違和感を持ったね。冒険者に向いてるかもね', 'エア'),
-    line('少し微笑んでエアさんは言う。\nしかし、その笑顔の奥に何か思うものがあるようにも感じた。'),
+    line('よく違和感を持ったね。冒険者に向いてるかもね', 'アイリス'),
+    line('少し微笑んでアイリスさんは言う。\nしかし、その笑顔の奥に何か思うものがあるようにも感じた。'),
     line('人間・・・か', '主人公'),
-    line('そろそろキャンプを張るよ', 'エア', { evening: true }),
+    line('そろそろキャンプを張るよ', 'アイリス', { evening: true }),
     line('頷いて荷物を取り出す。\n訓練所で野営の授業はあったので、設営はスムーズだ。', '', { evening: true }),
-    line('へえ、やるじゃん！', 'エア', { evening: true }),
+    line('へえ、やるじゃん！', 'アイリス', { evening: true }),
     line('いえ・・・', '主人公', { evening: true }),
     line('少し照れくさい。', '', { evening: true }),
     line('最後の杭に手をかけた、そのときだった。', '', { evening: true }),
     line('お前ら、ここで何をしている', '？？？', { evening: true, delyuke: true }),
     line('声に振り向くと、そこには如何にも手練れであろう風体の男性が\nこちらを怪訝そうな眼差しで睨みつけていた。\nかなりこちらを警戒しているようだ。', '', { evening: true, delyuke: true }),
-    line('私たちは西の村から出てきた旅の者だよ', 'エア', { evening: true, delyuke: true }),
-    line('エアさんが言うが、男は表情ひとつ変えず\nこちらを見据えている。', '', { evening: true, delyuke: true }),
+    line('私たちは西の村から出てきた旅の者だよ', 'アイリス', { evening: true, delyuke: true }),
+    line('アイリスさんが言うが、男は表情ひとつ変えず\nこちらを見据えている。', '', { evening: true, delyuke: true }),
     line('ここ最近、この周辺でサイクル・ハウトが観測されている。', '？？？', { evening: true, delyuke: true }),
     line('サイクル・・・？', '主人公', { evening: true, delyuke: true }),
     line('言いかけて、フラッシュバックする。', '', { evening: true, delyuke: true }),
     line('（食物連鎖の――停止）', '', { evening: true, delyuke: true }),
     line('なるほど・・・そういうことか。', '', { evening: true, delyuke: true }),
-    line('それは私たちも観測したよ。\n街中に飢餓状態の魔物が入り込んで来た。', 'エア', { evening: true, delyuke: true }),
+    line('それは私たちも観測したよ。\n街中に飢餓状態の魔物が入り込んで来た。', 'アイリス', { evening: true, delyuke: true }),
     line('・・・', '主人公', { evening: true, delyuke: true }),
     line('こちらを見る男の目は変わらない。', '', { evening: true, delyuke: true }),
     line('私は王都騎士団のデリューク・ロイアルト。\n旅証を見せてもらおう。', 'デリューク', { evening: true, delyuke: true }),
-    line('旅証ね。待って', 'エア', { evening: true, delyuke: true }),
-    line('エアさんは荷物の中から写真付きの旅証を取り出し見せる。', '', { evening: true, delyuke: true }),
-    line('はい。これでいいでしょ', 'エア', { evening: true, delyuke: true }),
+    line('旅証ね。待って', 'アイリス', { evening: true, delyuke: true }),
+    line('アイリスさんは荷物の中から写真付きの旅証を取り出し見せる。', '', { evening: true, delyuke: true }),
+    line('はい。これでいいでしょ', 'アイリス', { evening: true, delyuke: true }),
     line('・・・写真、王都の印はあるな。いいだろう。', 'デリューク', { evening: true, delyuke: true }),
-    line('じゃあね、お疲れ様', 'エア', { evening: true, delyuke: true }),
+    line('じゃあね、お疲れ様', 'アイリス', { evening: true, delyuke: true }),
     line('まだだ。貴様もだ', 'デリューク', { evening: true, delyuke: true }),
-    line('当然、俺に向けられた言葉だ。\nしかし、街を出てきたばかりの俺に旅証などあるはずもなかった。', '', { evening: true, delyuke: true }),
+    line('当然、僕に向けられた言葉だ。\nしかし、街を出てきたばかりの僕に旅証などあるはずもなかった。', '', { evening: true, delyuke: true }),
     line('私は・・・街から出てきたばかりで', '主人公', { evening: true, delyuke: true }),
     line('・・・怪しいな', 'デリューク', { evening: true, delyuke: true }),
-    line('この人は私の連れだよ。\nそれに、アインクロッズより東のエリア以外では\n旅証の提示は義務じゃないはずだけど？', 'エア', { evening: true, delyuke: true }),
-    line('デリュークと名乗った男とエアさんが睨み合う。', '', { evening: true, delyuke: true }),
+    line('この人は私の連れだよ。\nそれに、アインクロッズより東のエリア以外では\n旅証の提示は義務じゃないはずだけど？', 'アイリス', { evening: true, delyuke: true }),
+    line('デリュークと名乗った男とアイリスさんが睨み合う。', '', { evening: true, delyuke: true }),
     line('取り調べを行う。\n騎士団の前哨基地まで来てもらおう。', 'デリューク', { evening: true, delyuke: true }),
-    line('はぁ？ 騎士団ごときにそんな権限あるわけないでしょ。', 'エア', { evening: true, delyuke: true }),
+    line('はぁ？ 騎士団ごときにそんな権限あるわけないでしょ。', 'アイリス', { evening: true, delyuke: true }),
     line('貴様、口答えするのか', 'デリューク', { evening: true, delyuke: true }),
     line('二人のテンションがヒートアップしてきているのが伝わってくる。', '', { evening: true, delyuke: true }),
     line('今は緊急事態なのだ。\n無理やりにでも・・・来てもらうぞ。', 'デリューク', { evening: true, delyuke: true }),
     line('男は剣を抜いた。', '', { evening: true, delyuke: true, delyukeSword: true }),
-    line('そんな義理はないって言ってるでしょ。\nやるなら相手になるよ。\n私の方が強いと思うけど？', 'エア', { evening: true, delyuke: true, delyukeSword: true, airBattle: true }),
+    line('そんな義理はないって言ってるでしょ。\nやるなら相手になるよ。\n私の方が強いと思うけど？', 'アイリス', { evening: true, delyuke: true, delyukeSword: true, airBattle: true }),
     line('抜かせ、小娘。', 'デリューク', { evening: true, delyuke: true, delyukeSword: true, airBattle: true }),
     line('振りかざした二人の刃が重なった・・・！', '', { evening: true, delyuke: true, delyukeSword: true, airBattle: true, battle: true })
   ];
   const victoryLines = [
     line('ほう、やるな', 'デリューク'),
-    line('だから言ったでしょ、私のほうが強いって！', 'エア'),
-    line('確かに、一見押しているのはエアさんに見える。'),
-    line('しかし――目に見えて、息が上がっているのはエアさんの方だ。'),
-    line('デリュークと名乗った男は全く呼吸が乱れていない。\nそして、エアさんの攻め手を最小限の動きでいなしている。'),
-    line('ハァ・・・ハァ・・・くっ', 'エア'),
+    line('だから言ったでしょ、私のほうが強いって！', 'アイリス'),
+    line('確かに、一見押しているのはアイリスさんに見える。'),
+    line('しかし――目に見えて、息が上がっているのはアイリスさんの方だ。'),
+    line('デリュークと名乗った男は全く呼吸が乱れていない。\nそして、アイリスさんの攻め手を最小限の動きでいなしている。'),
+    line('ハァ・・・ハァ・・・くっ', 'アイリス'),
     line('大した体感、そして瞬発力だ。', 'デリューク'),
     line('だが――', 'デリューク'),
     line('ガキィィィーーーーン・・・・'),
-    line('デリュークはエアさんが振りかぶった一振りの根本を捉え、\n剣を弾き飛ばした。'),
+    line('デリュークはアイリスさんが振りかぶった一振りの根本を捉え、\n剣を弾き飛ばした。'),
     line('剣は舞うように吹き飛び、地へと突き刺さる。'),
     line('惜しいな。エルナ流剣術・・・\nまだその真髄は掴めていないと見える', 'デリューク'),
-    line('なっ・・・！', 'エア'),
-    line('剣を弾き飛ばされたときより険しい表情が、\nエアさんの顔に浮かぶ。'),
+    line('なっ・・・！', 'アイリス'),
+    line('剣を弾き飛ばされたときより険しい表情が、\nアイリスさんの顔に浮かぶ。'),
     line('なぜそれを・・・と言いた気な顔だな。', 'デリューク'),
     line('眉一つ動かずデリュークは言う。'),
     line('太刀筋を見れば解る。\nいや、解りやすいと言ったほうがいいか？', 'デリューク'),
     line('明らかに地力が違う。'),
-    line('そして、デリュークは俺の方を見据える。'),
-    line('一瞬の緊張が走る。\nが、俺を一瞥するとエアさんに向き直る。'),
+    line('そして、デリュークは僕の方を見据える。'),
+    line('一瞬の緊張が走る。\nが、僕を一瞥するとアイリスさんに向き直る。'),
     line('西の街、だったな。', 'デリューク'),
     line('デリュークは剣を鞘に納めながら、そう言った。', '', { normal: true }),
     line('え・・・', '主人公', { normal: true }),
     line('情報提供、感謝する。', 'デリューク', { normal: true }),
-    line('俺とエアさんが歩いてきた方角を見つめ、歩き出した。', '', { normal: true }),
-    line('ちょ・・・ちょっと待って！', 'エア', { normal: true }),
-    line('エアさんが叫ぶように制止する。', '', { normal: true }),
-    line('どういうこと？ 連行とか、前哨基地とか', 'エア', { normal: true }),
+    line('僕とアイリスさんが歩いてきた方角を見つめ、歩き出した。', '', { normal: true }),
+    line('ちょ・・・ちょっと待って！', 'アイリス', { normal: true }),
+    line('アイリスさんが叫ぶように制止する。', '', { normal: true }),
+    line('どういうこと？ 連行とか、前哨基地とか', 'アイリス', { normal: true }),
     line('フ・・・', 'デリューク', { normal: true }),
     line('デリュークは如何にもお見通しだ、という笑みを浮かべ告げる。', '', { normal: true }),
     line('剣を交えればわかる。\nお前達がどのような人間で、嘘を吐いているかどうかなど、な', 'デリューク', { normal: true }),
-    line('驚いているとも呆れているとも何とも言えない表情で、\nエアさんがデリュークを見つめている。\n恐らく、俺も全く同じ表情をしていたことだろう。', '', { normal: true }),
+    line('驚いているとも呆れているとも何とも言えない表情で、\nアイリスさんがデリュークを見つめている。\n恐らく、僕も全く同じ表情をしていたことだろう。', '', { normal: true }),
     line('背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。', '', { normal: true, hideDelyuke: true }),
-    line('ぐっ・・・なんで・・・！', 'エア', { normal: true }),
-    line('吐き捨てるほど悔しそうなエアさんの声が聞こえる。', '', { normal: true }),
-    line('突き刺さった剣を引き抜くと、\n俺の方は見ずにエアさんが呟く。', '', { normal: true }),
-    line('キャンプ・・・張ろっか', 'エア', { normal: true }),
-    line('ハッとした俺は、左手に持ったままだった杭の存在を思い出す。', '', { hideAir: true }),
+    line('ぐっ・・・なんで・・・！', 'アイリス', { normal: true }),
+    line('吐き捨てるほど悔しそうなアイリスさんの声が聞こえる。', '', { normal: true }),
+    line('突き刺さった剣を引き抜くと、\n僕の方は見ずにアイリスさんが呟く。', '', { normal: true }),
+    line('キャンプ・・・張ろっか', 'アイリス', { normal: true }),
+    line('ハッとした僕は、左手に持ったままだった杭の存在を思い出す。', '', { hideAir: true }),
     line('その後はキャンプの中で食事を取り、床についた。', '', { hideAir: true }),
-    line('食事を終える頃には笑顔を見せていたが、\n終始エアさんは気落ちしていたように見えた。\nあれだけの実力差を見せられれば、剣士として思うところもあったことだろう。', '', { hideAir: true }),
+    line('食事を終える頃には笑顔を見せていたが、\n終始アイリスさんは気落ちしていたように見えた。\nあれだけの実力差を見せられれば、剣士として思うところもあったことだろう。', '', { hideAir: true }),
     line('そして明日以降のことを考える。\nこのまま何もなく王都にたどり着けるか・・・\n恐らくそうは行かない気がすると想いながら、目を瞑った。', '', { hideAir: true, ending: true })
   ];
   const assets = {
@@ -143,7 +143,7 @@
       <div class="chapter3-fade" aria-hidden="true"></div>
       <audio class="chapter3-bgm" src="${assets.bgm}" loop preload="metadata"></audio>
       <button class="chapter3-return" type="button">タイトルに戻る</button>
-      <img class="chapter3-air" src="${assets.air}" alt="エア" hidden>
+      <img class="chapter3-air" src="${assets.air}" alt="アイリス" hidden>
       <img class="chapter3-delyuke" src="${assets.delyuke}" alt="デリューク" hidden>
       <button class="chapter3-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
     document.body.append(scene);
@@ -213,8 +213,8 @@
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
-      if (current.speaker === 'エア') { air.hidden = false; air.classList.add('show'); }
-      air.classList.toggle('talking', current.speaker === 'エア');
+      if (current.speaker === 'アイリス') { air.hidden = false; air.classList.add('show'); }
+      air.classList.toggle('talking', current.speaker === 'アイリス');
       if (current.delyuke) {
         delyuke.hidden = false;
         delyuke.src = current.delyukeSword ? assets.delyukeSword : assets.delyuke;
@@ -263,7 +263,7 @@
     document.body.classList.remove('story-active', 'story-cinematic');
     let cards = document.querySelector('#chapter3BattleCards');
     if (!cards) { cards = document.createElement('div'); cards.id = 'chapter3BattleCards'; document.body.append(cards); }
-    cards.innerHTML = `<img class="air" src="${assets.airBattle}" alt="エア"><img class="delyuke" src="${assets.delyukeSword}" alt="デリューク">`;
+    cards.innerHTML = `<img class="air" src="${assets.airBattle}" alt="アイリス"><img class="delyuke" src="${assets.delyukeSword}" alt="デリューク">`;
     window.start?.();
     // The normal start() chooses a random arena.  This encounter always uses
     // the sunset grassland carried over from the Chapter 3 scene.
@@ -381,7 +381,7 @@
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
-      air.classList.toggle('talking', current.speaker === 'エア');
+      air.classList.toggle('talking', current.speaker === 'アイリス');
       delyuke.classList.toggle('talking', current.speaker === 'デリューク');
       dialogue.classList.toggle('last', index === victoryLines.length - 1);
     };

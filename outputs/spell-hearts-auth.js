@@ -1168,7 +1168,7 @@ function tutorialFinishRound(nextRound,next){
 function tutorialRoundOne(){
   // CPU 側の謀略があいこ説明へ割り込まないよう、各ラウンドの伏せ札を固定する。
   if(typeof g!=='undefined'){g.p.spell='pursuit';g.c.spell='block';window.render?.();}
-  tutorialDialogue('では実戦だ。グーを選んでみろ。俺はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
+  tutorialDialogue('では実戦だ。グーを選んでみろ。僕はチョキを出す。',()=>tutorialPick('rock','scissors',()=>{
     tutorialDialogue('見事だ。グーはチョキに勝つ。ここでは、追い打ちを使える。',()=>{
       tutorialDialogue('スペルカードは、使っても使わなくてもいい。\n使わない場合は、バトルカード山札の「OK！」を押すんだ。',()=>{
         tutorialDialogue('今回は追い打ちを使ってみろ。',()=>tutorialUseSpell(()=>{
@@ -1180,7 +1180,7 @@ function tutorialRoundOne(){
 }
 function tutorialRoundTwo(){
   if(typeof g!=='undefined'){g.p.spell='block';g.c.spell='pursuit';window.render?.();}
-  tutorialDialogue('次はチョキだ。俺のグーには負けるが、\nブロックを使えば被害を抑えられる。',()=>tutorialPick('scissors','rock',()=>{
+  tutorialDialogue('次はチョキだ。僕のグーには負けるが、\nブロックを使えば被害を抑えられる。',()=>tutorialPick('scissors','rock',()=>{
     tutorialDialogue('惜しい。チョキはグーに負ける。だが、ここでブロックの出番だ。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('ブロックは負けたときに使える。\n受けるダメージを1減らせる。',()=>tutorialFinishRound(3,tutorialRoundThree));
     }));
@@ -1188,7 +1188,7 @@ function tutorialRoundTwo(){
 }
 function tutorialRoundThree(){
   if(typeof g!=='undefined'){g.p.spell='scheme';g.c.spell='pursuit';window.render?.();}
-  tutorialDialogue('最後はパーだ。俺もパーを出すから、あいこになる。',()=>tutorialPick('paper','paper',()=>{
+  tutorialDialogue('最後はパーだ。僕もパーを出すから、あいこになる。',()=>tutorialPick('paper','paper',()=>{
     tutorialDialogue('あいこでは互いに1ダメージを受ける。\nここでは謀略を使ってみよう。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('謀略はあいこのときに使える。\n自分だけダメージを受けずに済む。',tutorialBeginAmplifyLesson);
     }));
@@ -1200,7 +1200,7 @@ function tutorialBeginAmplifyLesson(){
     if(typeof g!=='undefined'){g.p.deck=['scheme','block','pursuit'];g.c.deck=['pursuit','block','scheme'];}
     setTimeout(()=>tutorialDialogue('まずは、スペルカードをドローして追い打ちを用意しよう。',()=>tutorialFocus('#pSpell',()=>{
       window.drawInitial?.();
-      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n俺はグーを出す。',()=>{
+      setTimeout(()=>tutorialDialogue('準備完了だ。次はアンプリファイアを出してみろ。\n僕はグーを出す。',()=>{
         window.openBattle?.();setTimeout(()=>tutorialPick('amplify','rock',tutorialExplainAmplify),350);
       }),680);
     })),500);
@@ -1216,7 +1216,7 @@ function tutorialExplainAmplify(){
   });
 }
 function tutorialAmplifiedPursuit(){
-  tutorialDialogue('次はパーだ。俺のグーに勝って、\n強化された追い打ちを使ってみろ。',()=>tutorialPick('paper','rock',()=>{
+  tutorialDialogue('次はパーだ。僕のグーに勝って、\n強化された追い打ちを使ってみろ。',()=>tutorialPick('paper','rock',()=>{
     tutorialDialogue('パーの5ダメージに、強化追い打ちの3ダメージが加わる。\n合計8ダメージだ。',()=>tutorialUseSpell(()=>{
       tutorialDialogue('残りHPは2。次の一手で決めよう。',()=>tutorialFinishRound(3,tutorialFinalStrike));
     }));
@@ -1264,13 +1264,13 @@ function tutorialReturnToStory(){
     intro?.classList.remove('show');if(intro)intro.hidden=true;
     const npc=scene.querySelector('.chapter-npc-card'),dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
     const epilogue=[
-      {speaker:'ユート',text:'流石だ。筋がいいぞ。'},
-      {speaker:'ユート',text:'これからお前も戦場に出たり、誰かを守ったりすることもあるだろう。'},
-      {speaker:'ユート',text:'そんなときは、今の戦い方を思い出すんだぞ。'},
-      {speaker:'主人公',text:'・・・はい、ユート先輩！'}
+      {speaker:'マルク',text:'流石だ。筋がいいぞ。'},
+      {speaker:'マルク',text:'これからお前も戦場に出たり、誰かを守ったりすることもあるだろう。'},
+      {speaker:'マルク',text:'そんなときは、今の戦い方を思い出すんだぞ。'},
+      {speaker:'主人公',text:'・・・はい、マルク先輩！'}
     ];
     let lineIndex=0;
-    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='ユート';speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
+    const renderEpilogue=()=>{let line=epilogue[lineIndex],npcSpeaking=line.speaker==='マルク';speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);npc.classList.toggle('speaker-active',npcSpeaking);npc.classList.toggle('speaker-idle',!npcSpeaking);dialogue.dataset.ended=String(lineIndex===epilogue.length-1);};
     scene.hidden=false;scene.dataset.transitioning='false';scene.classList.remove('leaving');scene.classList.add('preparing','show');
     npc.hidden=false;npc.classList.remove('speaker-idle');npc.classList.add('speaker-active','enter');
     dialogue.hidden=false;dialogue.onclick=()=>{if(lineIndex<epilogue.length-1){lineIndex+=1;renderEpilogue();}else beginVillageEncounter(scene);};renderEpilogue();
@@ -1311,19 +1311,19 @@ function beginVillageEncounter(scene){
       {speaker:'主人公',text:'すると、狼のような魔物がこちらを向いた。',wolf:true},
       {speaker:'魔物',text:'「グルルルルル……」',wolf:true},
       {speaker:'主人公',text:'大きな体、虚ろな目。いかにも不気味だが、よく見るとかなり痩せ細っている。\n長い間、何も食べていないのだろう。',wolf:true},
-      {speaker:'主人公',text:'しかし油断はできない。訓練で習った通り、魔物には十分気をつけなければ。\nなにより戦闘が始まれば、俺にとっては初めての実戦経験になる。',wolf:true},
+      {speaker:'主人公',text:'しかし油断はできない。訓練で習った通り、魔物には十分気をつけなければ。\nなにより戦闘が始まれば、僕にとっては初めての実戦経験になる。',wolf:true},
       {speaker:'主人公',text:'目を見据え、お互い動かない時間が続く。\n――と、その時。',wolf:true},
       {speaker:'街の人々',text:'「うわああああっ！」\n「また魔物が来たぞ！」',wolf:true},
       {speaker:'主人公',text:'なんだって！？ コイツ一匹じゃなかったのか……！\n後方で叫び声が聞こえる。早く、眼の前の魔物を倒して向かわなければ……。',wolf:true},
       {speaker:'主人公',text:'しかし、緊張した体は言うことを聞いてくれない。\n剣に手をかけているのが精一杯だ。',wolf:true},
       {speaker:'主人公',text:'「ど……どうする！」\n万事休すか……！',wolf:true},
       {speaker:'？？？',text:'「キミ！」',wolf:true,warrior:true},
-      {speaker:'主人公',text:'透き通るような声が響く。それは間違いなく俺へ向けられたものだった。',wolf:true,warrior:true},
+      {speaker:'主人公',text:'透き通るような声が響く。それは間違いなく僕へ向けられたものだった。',wolf:true,warrior:true},
       {speaker:'？？？',text:'キミ、戦える？',wolf:true,warrior:true},
-      {speaker:'主人公',text:'僅かな時間を置いて質問の意図を理解した俺は、\n「っ……戦えます！」',wolf:true,warrior:true},
+      {speaker:'主人公',text:'僅かな時間を置いて質問の意図を理解した僕は、\n「っ……戦えます！」',wolf:true,warrior:true},
       {speaker:'？？？',text:'よし、ここは任せるよ！ 私は向こうへ！',wolf:true,warrior:true},
       {speaker:'主人公',text:'言うと、彼女はどよめく街中へ駆け出していった。\n向き直る。魔物は前足をギリギリと鳴らし、いつ襲いかかってきてもおかしくない。',wolf:true,warrior:false},
-      {speaker:'主人公',text:'「いくぞ……！」\n俺は剣を抜いた。瞬間、魔物がこちらへ勢いよく駆け出してきた。',wolf:true,warrior:false}
+      {speaker:'主人公',text:'「いくぞ……！」\n僕は剣を抜いた。瞬間、魔物がこちらへ勢いよく駆け出してきた。',wolf:true,warrior:false}
     ];
     let index=0;
     const renderLine=()=>{
@@ -1364,7 +1364,7 @@ function beginVillageBattle(scene){
     let intro=document.querySelector('#villageBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='villageBattleIntro';
-      intro.innerHTML='<button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……ユート先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      intro.innerHTML='<button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……マルク先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.querySelector('.chapter-speaker').textContent=storySpeakerName('主人公');
@@ -1407,8 +1407,8 @@ function beginWolfAftermath(){
     let wolf=scene.querySelector('.story-wolf-card'),warrior=scene.querySelector('.story-warrior-card'),yuto=scene.querySelector('.chapter-npc-card');
     const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p');
     if(!wolf){wolf=document.createElement('img');wolf.className='chapter-story-card story-wolf-card';scene.append(wolf);}wolf.src='assets/story-wolf-monster.webp';wolf.alt='狼のような魔物';
-    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';scene.append(warrior);}warrior.src='assets/story-woman-warrior.webp';warrior.alt='エア・ノエル';
-    yuto.src='assets/story-senior-warrior.webp';yuto.alt='ユート先輩';
+    if(!warrior){warrior=document.createElement('img');warrior.className='chapter-story-card story-warrior-card';scene.append(warrior);}warrior.src='assets/story-woman-warrior.webp';warrior.alt='アイリス・エルナ';
+    yuto.src='assets/story-senior-warrior.webp';yuto.alt='マルク先輩';
     const lines=[
       {speaker:'魔物',text:'「グアアアアッ！！」',wolf:true},
       {speaker:'主人公',text:'「これで……終わりだっ！」',wolf:true},
@@ -1421,7 +1421,7 @@ function beginWolfAftermath(){
       {speaker:'？？？',text:'「ハァーーッ！！」',warrior:true},
       {speaker:'主人公',text:'気高く、しかし力強い叫びと共に、剣が風を纏って魔物の体を切り裂いていた。',warrior:true},
       {speaker:'主人公',text:'周りを見ると、5体もの魔物たちが息絶えていた。',warrior:true},
-      {speaker:'主人公',text:'走ってきた俺は緊張と戦闘でクタクタだったが、女性は汗一つかいていなかった。何者なんだ、あの人……。',warrior:true},
+      {speaker:'主人公',text:'走ってきた僕は緊張と戦闘でクタクタだったが、女性は汗一つかいていなかった。何者なんだ、あの人……。',warrior:true},
       {speaker:'主人公',text:'女性は剣をしまい、こちらに気づくと険しい表情を緩め、笑顔を向けた。',warrior:true,smile:true},
       {speaker:'？？？',text:'あ……キミ！ 大丈夫だった？',warrior:true},
       {speaker:'主人公',text:'はい、なんとか……。',warrior:true,spoken:true},
@@ -1429,19 +1429,19 @@ function beginWolfAftermath(){
       {speaker:'主人公',text:'それはこっちのセリフだ。あれだけの魔物を相手にして、盾にすら傷一つ付いていない。',warrior:true,spoken:false},
       {speaker:'主人公',text:'いえ、こちらこそありがとうございました。お強いんですね。',warrior:true,spoken:true},
       {speaker:'？？？',text:'まあこのくらいならね。今ちょうど外から帰ってきたところだったんだ。間に合ってよかった。',warrior:true},
-      {speaker:'ユート',text:'おーい、大丈夫か！',warrior:true,yuto:true},
-      {speaker:'？？？',text:'ユート！ 久しぶりじゃないか。',warrior:true,yuto:true},
-      {speaker:'主人公',text:'どうやらユート先輩との知り合いらしい。旧知の仲なのだろうか。',warrior:true,yuto:true},
-      {speaker:'ユート',text:'帰ってきてたのか！',warrior:true,yuto:true},
-      {speaker:'主人公',text:'女性は俺達二人に向き直ると、俺に自己紹介をしてくれた。',warrior:true,yuto:true},
-      {speaker:'？？？',text:'私の名前はエア。エア・ノエルだよ。よろしくね。',warrior:true,yuto:true},
-      {speaker:'ユート',text:'訓練校まで一緒だった、俺の友達だ。',warrior:true,yuto:true},
-      {speaker:'ユート',text:'二人とも、よく頑張ったな。とりあえず戦いの後片付けをしないとな。',warrior:true,yuto:true},
-      {speaker:'主人公',text:'俺達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true,night:true},
-      {speaker:'ユート',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true,night:true},
-      {speaker:'エア',text:'ほんと？ やったー！',warrior:true,yuto:true,night:true},
+      {speaker:'マルク',text:'おーい、大丈夫か！',warrior:true,yuto:true},
+      {speaker:'？？？',text:'マルク！ 久しぶりじゃないか。',warrior:true,yuto:true},
+      {speaker:'主人公',text:'どうやらマルク先輩との知り合いらしい。旧知の仲なのだろうか。',warrior:true,yuto:true},
+      {speaker:'マルク',text:'帰ってきてたのか！',warrior:true,yuto:true},
+      {speaker:'主人公',text:'女性は僕達二人に向き直ると、僕に自己紹介をしてくれた。',warrior:true,yuto:true},
+      {speaker:'？？？',text:'私の名前はアイリス。アイリス・エルナだよ。よろしくね。',warrior:true,yuto:true},
+      {speaker:'マルク',text:'訓練校まで一緒だった、僕の友達だ。',warrior:true,yuto:true},
+      {speaker:'マルク',text:'二人とも、よく頑張ったな。とりあえず戦いの後片付けをしないとな。',warrior:true,yuto:true},
+      {speaker:'主人公',text:'僕達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true,night:true},
+      {speaker:'マルク',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は僕の奢りだ！',warrior:true,yuto:true,night:true},
+      {speaker:'アイリス',text:'ほんと？ やったー！',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true,night:true,spoken:true},
-      {speaker:'主人公',text:'俺達は夜の街へと歩き出した。',warrior:true,yuto:true,night:true},
+      {speaker:'主人公',text:'僕達は夜の街へと歩き出した。',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'このときは気づく由もない。',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'この戦いが、全ての始まりであったことを……。',warrior:true,yuto:true,night:true}
     ];
@@ -1452,8 +1452,8 @@ function beginWolfAftermath(){
       if(line.smile){warrior.src='assets/story-woman-warrior-smile.webp';stopVillageDangerBgm();startAirSmileBgm();}
       warrior.classList.toggle('smile-card',warrior.src.includes('story-woman-warrior-smile.webp'));
       wolf.classList.toggle('speaker-active',line.speaker==='魔物');wolf.classList.toggle('speaker-idle',line.wolf&&line.speaker!=='魔物');
-      warrior.classList.toggle('speaker-active',line.speaker==='？？？'||line.speaker==='エア');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='？？？'&&line.speaker!=='エア');
-      yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',line.yuto&&line.speaker!=='ユート');
+      warrior.classList.toggle('speaker-active',line.speaker==='？？？'||line.speaker==='アイリス');warrior.classList.toggle('speaker-idle',line.warrior&&line.speaker!=='？？？'&&line.speaker!=='アイリス');
+      yuto.classList.toggle('speaker-active',line.speaker==='マルク');yuto.classList.toggle('speaker-idle',line.yuto&&line.speaker!=='マルク');
       dialogue.dataset.ended=String(index===lines.length-1);
     };
     scene.hidden=false;scene.classList.remove('leaving');scene.classList.add('preparing','show','village-scene');dialogue.hidden=false;renderLine();
@@ -1514,11 +1514,11 @@ function installStoryWolfBattleRules(){
 }
 setTimeout(installStoryWolfBattleRules,0);
 function tutorialFinalStrike(){
-  tutorialDialogue('最後はチョキだ。俺はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
+  tutorialDialogue('最後はチョキだ。僕はパーを出す。\n勝って、決着をつけよう。',()=>tutorialPick('scissors','paper',()=>{
     if(typeof g!=='undefined'){g.c.hp=0;g.phase='spell';window.render?.();}
-    tutorialDialogue('よくやった。これで俺のHPは0だ。\n本来ならここで勝利となる。',()=>{
+    tutorialDialogue('よくやった。これで僕のHPは0だ。\n本来ならここで勝利となる。',()=>{
       tutorialDialogue('強化ブロックは、受けるダメージを0にして、\nさらに自分のHPを1回復する。',()=>{
-        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n俺に2ダメージを与える強力な一手だ。',()=>{
+        tutorialDialogue('強化謀略は、あいこのダメージを防ぐだけでなく、\n僕に2ダメージを与える強力な一手だ。',()=>{
           tutorialDialogue('よくやった、これで訓練は終了だ。',tutorialReturnToStory);
         });
       });
@@ -1574,7 +1574,7 @@ function beginChapterOneTutorial(scene){
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
-      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="ユート先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">ユート</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="マルク先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">マルク</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.hidden=false;
@@ -1597,17 +1597,17 @@ function startChapterOne(){
   stopTitleBgm();stopChapterOneBgm();startChapterOneBgm();
   const lines=[
     {speaker:'主人公',text:'……よし。次は、もう少し踏み込みを深くして――'},
-    {speaker:'ユート',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
-    {speaker:'主人公',text:'ユート先輩。うん、昨日の型がどうにも決まらなくて。',spoken:true},
-    {speaker:'ユート',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
-    {speaker:'ユート',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
+    {speaker:'マルク',text:'お、今日も精が出るな。朝からずっとやってたのか？'},
+    {speaker:'主人公',text:'マルク先輩。うん、昨日の型がどうにも決まらなくて。',spoken:true},
+    {speaker:'マルク',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
+    {speaker:'マルク',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
     {speaker:'主人公',text:'なるほど……先に当てにいこうとしてた。',spoken:true},
-    {speaker:'ユート',text:'その通り。今日は俺が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
+    {speaker:'マルク',text:'その通り。今日は僕が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
   ];
   let scene=document.querySelector('#chapterOneScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterOneScene';scene.className='chapter-one-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-training-ground.webp" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="ユート先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-training-ground.webp" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card" src="assets/story-senior-warrior.webp" alt="マルク先輩" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
     // ストーリー中の離脱は、必ず確認画面を経由する。
     scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
@@ -1623,7 +1623,7 @@ function startChapterOne(){
   const dialogue=scene.querySelector('.chapter-dialogue'),speaker=scene.querySelector('.chapter-speaker'),copy=dialogue.querySelector('p'),npc=scene.querySelector('.chapter-npc-card');
   let currentLine=0;
   const renderLine=()=>{
-    const line=lines[currentLine],npcSpeaking=line.speaker==='ユート',wasHidden=npc.hidden;
+    const line=lines[currentLine],npcSpeaking=line.speaker==='マルク',wasHidden=npc.hidden;
     speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
     npc.hidden=currentLine===0;
     if(!npc.hidden&&wasHidden){npc.classList.remove('enter');void npc.offsetWidth;npc.classList.add('enter');}
@@ -1654,30 +1654,30 @@ function startChapterTwoLegacy(){
   preloadVisualsSequentiallyWhenIdle(['assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-battle.png','assets/story-woman-warrior.webp','assets/story-senior-warrior.webp','assets/story-woman-warrior-smile.webp'],1200);
   stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();stopAirAftermathBgm();startTavernBgm();
   const lines=[
-    {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
-    {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
-    {speaker:'ユート',text:'そしてこっちが、最近うちの訓練校に入った後輩。真面目で、少し無茶をする。',yuto:true,air:true},
-    {speaker:'エア',text:'ふふ、さっきの戦いを見れば分かるよ。はじめまして。これからよろしくね。',yuto:true,air:true},
-    {speaker:'主人公',text:'よろしくお願いします、エアさん。',yuto:true,air:true,spoken:true},
-    {speaker:'ユート',text:'昔からエアは目立ってたんだ。訓練校でも剣の腕は飛び抜けてたし、困ってる奴を放っておけない。',yuto:true,air:true},
-    {speaker:'エア',text:'ユートだって同じだよ。訓練の帰りに、怪我をした私を背負って保健室まで運んでくれたでしょう？',yuto:true,air:true},
-    {speaker:'ユート',text:'あれはお前が勝手に屋根から落ちただけだ。昔の話を掘り返すなよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'街の騒ぎが収まり、僕たちはマルク先輩の行きつけだという酒場で夕食を取ることになった。'},
+    {speaker:'マルク',text:'改めて紹介するよ。こっちがアイリス・エルナ。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
+    {speaker:'マルク',text:'そしてこっちが、最近うちの訓練校に入った後輩。真面目で、少し無茶をする。',yuto:true,air:true},
+    {speaker:'アイリス',text:'ふふ、さっきの戦いを見れば分かるよ。はじめまして。これからよろしくね。',yuto:true,air:true},
+    {speaker:'主人公',text:'よろしくお願いします、アイリスさん。',yuto:true,air:true,spoken:true},
+    {speaker:'マルク',text:'昔からアイリスは目立ってたんだ。訓練校でも剣の腕は飛び抜けてたし、困ってる奴を放っておけない。',yuto:true,air:true},
+    {speaker:'アイリス',text:'マルクだって同じだよ。訓練の帰りに、怪我をした私を背負って保健室まで運んでくれたでしょう？',yuto:true,air:true},
+    {speaker:'マルク',text:'あれはお前が勝手に屋根から落ちただけだ。昔の話を掘り返すなよ。',yuto:true,air:true},
     {speaker:'主人公',text:'二人のやり取りに、長い付き合いがあることがよく伝わってきた。'},
-    {speaker:'主人公',text:'それで、エアさんは今もこの町に？',air:true},
-    {speaker:'エア',text:'ううん。訓練校を出てから王都へ行ったの。剣を磨きながら、冒険者として仕事を受けていたんだ。',air:true},
-    {speaker:'エア',text:'護衛に遺跡探索、魔物退治。色々やったよ。失敗もたくさんしたけど、その分だけ強くなれたと思う。',air:true},
-    {speaker:'ユート',text:'王都でそこまでやってきたのか。相変わらず大したもんだな。',yuto:true,air:true},
+    {speaker:'主人公',text:'それで、アイリスさんは今もこの町に？',air:true},
+    {speaker:'アイリス',text:'ううん。訓練校を出てから王都へ行ったの。剣を磨きながら、冒険者として仕事を受けていたんだ。',air:true},
+    {speaker:'アイリス',text:'護衛に遺跡探索、魔物退治。色々やったよ。失敗もたくさんしたけど、その分だけ強くなれたと思う。',air:true},
+    {speaker:'マルク',text:'王都でそこまでやってきたのか。相変わらず大したもんだな。',yuto:true,air:true},
     {speaker:'主人公',text:'王都の兵士や冒険者……。昔から、いつか自分もそうなれたらと思っていた。',spoken:false},
-    {speaker:'ユート',text:'そういえば、そうだったな。お前、王都の話になると目を輝かせるもんな。',yuto:true},
-    {speaker:'エア',text:'王都の仕事は厳しいよ。でも、それでも行ってみたいなら……一度、見に来る？',air:true},
+    {speaker:'マルク',text:'そういえば、そうだったな。お前、王都の話になると目を輝かせるもんな。',yuto:true},
+    {speaker:'アイリス',text:'王都の仕事は厳しいよ。でも、それでも行ってみたいなら……一度、見に来る？',air:true},
     {speaker:'主人公',text:'急にそんなことを言われて、言葉に詰まった。憧れはある。でも、この町を離れる決心が今すぐつくわけでもない。'},
-    {speaker:'ユート',text:'まあ、答えを急ぐことはない。よく考えて、自分で決めろよ。',yuto:true},
+    {speaker:'マルク',text:'まあ、答えを急ぐことはない。よく考えて、自分で決めろよ。',yuto:true},
     {speaker:'主人公',text:'その夜、酒場を出たあとも、王都という言葉がずっと頭から離れなかった。'}
   ];
   let scene=document.querySelector('#chapterTwoScene');
   if(!scene){
     scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';
-    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="マルク先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="アイリス・エルナ" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
     document.body.append(scene);
     // Chapter 2 の背景読み込みが失敗・遅延しても、タイトルへ戻る操作は常に有効にする。
     scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();
@@ -1694,8 +1694,8 @@ function startChapterTwoLegacy(){
     const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
     speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
     yuto.hidden=!showYuto;air.hidden=!showAir;
-    yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='ユート');
-    air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
+    yuto.classList.toggle('speaker-active',line.speaker==='マルク');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='マルク');
+    air.classList.toggle('speaker-active',line.speaker==='アイリス');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='アイリス');
     dialogue.dataset.ended=String(index===lines.length-1);
     // 「はっ！」が画面に出る操作と同じユーザー操作で、一度だけ剣戟を鳴らす。
     if(line.sparringSfx===true)playSparringClashSfx();
@@ -1726,8 +1726,8 @@ function chapterTwoDialogue(scene,lines,done){
     const line=lines[index],showYuto=!!line.yuto,showAir=!!line.air;
     speaker.textContent=storySpeakerName(line.speaker);copy.textContent=storyLineText(line);
     yuto.hidden=!showYuto;air.hidden=!showAir;
-    yuto.classList.toggle('speaker-active',line.speaker==='ユート');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='ユート');
-    air.classList.toggle('speaker-active',line.speaker==='エア');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='エア');
+    yuto.classList.toggle('speaker-active',line.speaker==='マルク');yuto.classList.toggle('speaker-idle',showYuto&&line.speaker!=='マルク');
+    air.classList.toggle('speaker-active',line.speaker==='アイリス');air.classList.toggle('speaker-idle',showAir&&line.speaker!=='アイリス');
     dialogue.dataset.ended=String(index===lines.length-1);
   };
   dialogue.hidden=false;dialogue.onclick=()=>{if(index<lines.length-1){index+=1;render();}else{dialogue.onclick=null;done?.();}};render();
@@ -1753,7 +1753,7 @@ function beginChapterTwoAirBattle(scene,after){
     window.start?.();window.setBattleBackdrop?.('story-training-ground.webp');window.startBgm?.();
     let opponent=document.querySelector('#storyAirOpponentCard');
     if(!opponent){opponent=document.createElement('img');opponent.id='storyAirOpponentCard';opponent.className='story-battle-opponent-card';document.body.append(opponent);}
-    opponent.src='assets/story-woman-warrior.webp';opponent.alt='エア・ノエル';opponent.hidden=false;
+    opponent.src='assets/story-woman-warrior.webp';opponent.alt='アイリス・エルナ';opponent.hidden=false;
   });
 }
 function showChapterTwoEnd(){
@@ -1768,19 +1768,19 @@ function startChapterTwoExpanded(){
   preloadStoryVisuals(['assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-training-ground.webp','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-air-tavern-v2.png']);
   stopTitleBgm();stopChapterOneBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();startTavernBgm();
   let scene=document.querySelector('#chapterTwoScene');
-  if(!scene){scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="ユート先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="エア・ノエル" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();}
+  if(!scene){scene=document.createElement('section');scene.id='chapterTwoScene';scene.className='chapter-one-scene chapter-two-scene';scene.innerHTML='<img class="chapter-scene-backdrop" src="assets/story-tavern.jpg" alt="" aria-hidden="true" fetchpriority="high"><button class="chapter-return-title" type="button">タイトルに戻る</button><img class="chapter-npc-card chapter-two-yuto" src="assets/story-yuto-tavern-v2.png" alt="マルク先輩" hidden><img class="chapter-story-card chapter-two-air" src="assets/story-air-tavern-v2.png" alt="アイリス・エルナ" hidden><button class="chapter-dialogue" type="button" hidden aria-label="会話を進める"><span class="chapter-speaker"></span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';document.body.append(scene);scene.querySelector('.chapter-return-title').onclick=()=>window.confirmReturnToTitle?.();}
   const resetCards=()=>{scene.querySelector('.chapter-two-yuto').hidden=true;scene.querySelector('.chapter-two-air').hidden=true;};
   const tavern=[
-    {speaker:'主人公',text:'街の騒ぎが収まり、俺たちはユート先輩の行きつけだという酒場で夕食を取ることになった。'},
-    {speaker:'ユート',text:'改めて紹介するよ。こっちがエア・ノエル。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
-    {speaker:'エア',text:'はじめまして。これからよろしくね。',yuto:true,air:true},
-    {speaker:'ユート',text:'昔からエアは目立ってたんだ。訓練校でも剣の腕は飛び抜けてたし、困ってる奴を放っておけない。',yuto:true,air:true},
-    {speaker:'エア',text:'訓練校を出てからは王都へ行ったの。剣を磨きながら、冒険者として色んな仕事を受けていたんだ。',air:true},
+    {speaker:'主人公',text:'街の騒ぎが収まり、僕たちはマルク先輩の行きつけだという酒場で夕食を取ることになった。'},
+    {speaker:'マルク',text:'改めて紹介するよ。こっちがアイリス・エルナ。訓練校の頃からの腐れ縁だ。',yuto:true,air:true},
+    {speaker:'アイリス',text:'はじめまして。これからよろしくね。',yuto:true,air:true},
+    {speaker:'マルク',text:'昔からアイリスは目立ってたんだ。訓練校でも剣の腕は飛び抜けてたし、困ってる奴を放っておけない。',yuto:true,air:true},
+    {speaker:'アイリス',text:'訓練校を出てからは王都へ行ったの。剣を磨きながら、冒険者として色んな仕事を受けていたんだ。',air:true},
     {speaker:'主人公',text:'王都の兵士や冒険者……。昔から、いつか自分もそうなれたらと思っていた。'},
-    {speaker:'ユート',text:'そういえば、そうだったな。お前、王都の話になると目を輝かせるもんな。',yuto:true},
-    {speaker:'エア',text:'王都の仕事は厳しいよ。でも、それでも行ってみたいなら……一度、見に来る？',air:true},
+    {speaker:'マルク',text:'そういえば、そうだったな。お前、王都の話になると目を輝かせるもんな。',yuto:true},
+    {speaker:'アイリス',text:'王都の仕事は厳しいよ。でも、それでも行ってみたいなら……一度、見に来る？',air:true},
     {speaker:'主人公',text:'急にそんなことを言われて、言葉に詰まった。憧れはある。でも、この町を離れる決心が今すぐつくわけでもない。'},
-    {speaker:'ユート',text:'まあ、答えを急ぐことはない。よく考えて、自分で決めろよ。',yuto:true}
+    {speaker:'マルク',text:'まあ、答えを急ぐことはない。よく考えて、自分で決めろよ。',yuto:true}
   ];
   const homeNight=[
     {speaker:'主人公',text:'（王都かぁ……）'},
@@ -1792,35 +1792,35 @@ function startChapterTwoExpanded(){
     {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
   ];
   const sparring=[
-    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true},
-    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true},
-    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true}
+    {speaker:'主人公',text:'演習場に着くと、アイリスさんとマルク先輩が手合わせをしていた。',yuto:true,air:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにアイリスさんの方が上だ。',yuto:true,air:true},
+    {speaker:'主人公',text:'追い詰められているマルク先輩を見て、アイリスさんの強さに改めて驚いた。',yuto:true,air:true}
   ];
   const proposal=[
-    {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
-    {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
-    {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
-    {speaker:'エア',text:'まだ平和ではあるけど、不安を口にする人もいる。仕事は増えているし、今はチャンスかもしれないね。',yuto:true,air:true},
-    {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
-    {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
-    {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
+    {speaker:'マルク',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
+    {speaker:'アイリス',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
+    {speaker:'マルク',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
+    {speaker:'アイリス',text:'まだ平和ではあるけど、不安を口にする人もいる。仕事は増えているし、今はチャンスかもしれないね。',yuto:true,air:true},
+    {speaker:'マルク',text:'決めるのはやはりお前だ。……ものは試しに、アイリスと手合わせしてみたらどうだ？',yuto:true,air:true},
+    {speaker:'アイリス',text:'私はいいよ。やってみる？',air:true},
+    {speaker:'主人公',text:'アイリスさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
     {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true}
+    {speaker:'アイリス',text:'うん。じゃあ、いくよ！',air:true}
   ];
   const aftermath=[
-    {speaker:'エア',text:'やるね……キミ！',air:true},
+    {speaker:'アイリス',text:'やるね……キミ！',air:true},
     {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true},
-    {speaker:'エア',text:'それなら……！',air:true},
-    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
-    {speaker:'ユート',text:'そこまで！',yuto:true,air:true},
-    {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
-    {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
-    {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
-    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
+    {speaker:'アイリス',text:'それなら……！',air:true},
+    {speaker:'主人公',text:'アイリスさんは見たことのない、特殊な構えを取った。',yuto:true,air:true},
+    {speaker:'マルク',text:'そこまで！',yuto:true,air:true},
+    {speaker:'主人公',text:'ハッとしたように、アイリスさんは手を下ろした。',yuto:true,air:true},
+    {speaker:'マルク',text:'やりすぎだ、アイリス。',yuto:true,air:true},
+    {speaker:'アイリス',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったアイリスさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
+    {speaker:'アイリス',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
     {speaker:'主人公',text:'王都に、行ってみたいです……！',yuto:true,air:true,spoken:true},
-    {speaker:'ユート',text:'なら、実戦経験を積むがてら、王都へ帰るエアと旅してみたらどうだ？',yuto:true,air:true},
-    {speaker:'エア',text:'私はいいよ。一緒に行こうか。',air:true}
+    {speaker:'マルク',text:'なら、実戦経験を積むがてら、王都へ帰るアイリスと旅してみたらどうだ？',yuto:true,air:true},
+    {speaker:'アイリス',text:'私はいいよ。一緒に行こうか。',air:true}
   ];
   const packing=[
     {speaker:'主人公',text:'家に戻り、旅に必要な荷物をまとめた。'},
@@ -1828,12 +1828,12 @@ function startChapterTwoExpanded(){
     {speaker:'主人公',text:'それでも迷いはなかった。新しい一歩を踏み出すと決めた。'}
   ];
   const departure=[
-    {speaker:'ユート',text:'忘れ物はないか？',yuto:true,air:true},
-    {speaker:'エア',text:'大丈夫だよ。',yuto:true,air:true},
+    {speaker:'マルク',text:'忘れ物はないか？',yuto:true,air:true},
+    {speaker:'アイリス',text:'大丈夫だよ。',yuto:true,air:true},
     {speaker:'主人公',text:'はい。大丈夫です。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'じゃあ行こうか。',yuto:true,air:true},
-    {speaker:'ユート',text:'お前ならできる。気をつけて行けよ。',yuto:true,air:true},
-    {speaker:'主人公',text:'ユート先輩に背中を押され、俺はエアさんと共に街の外へ歩き出した。'}
+    {speaker:'アイリス',text:'じゃあ行こうか。',yuto:true,air:true},
+    {speaker:'マルク',text:'お前ならできる。気をつけて行けよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'マルク先輩に背中を押され、僕はアイリスさんと共に街の外へ歩き出した。'}
   ];
   const show=(lines,done)=>chapterTwoDialogue(scene,lines,done);
   const home=()=>{stopTavernBgm();fadeChapterTwo(scene,'assets/story-home-night.jpg',()=>{resetCards();show(homeNight,()=>fadeChapterTwo(scene,'assets/story-home-morning.jpg',()=>show(homeMorning,()=>fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>show(sparring,()=>fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>show(proposal,()=>beginChapterTwoAirBattle(scene,()=>{document.body.classList.add('story-cinematic');fadeChapterTwo(scene,'assets/story-training-ground.webp',()=>{scene.hidden=false;scene.classList.add('preparing','show');show(aftermath,()=>fadeChapterTwo(scene,'assets/story-home-morning.jpg',()=>{resetCards();show(packing,()=>fadeChapterTwo(scene,'assets/story-town-gate.jpg',()=>show(departure,showChapterTwoEnd)));}));});})))))));});};
@@ -1919,10 +1919,10 @@ function chapterTwoPlayLines(scene,lines,done){
     copy.textContent=storyLineText(line);
     yuto.hidden=!line.yuto;
     air.hidden=!line.air;
-    yuto.classList.toggle('speaker-active',line.speaker==='ユート');
-    yuto.classList.toggle('speaker-idle',!!line.yuto&&line.speaker!=='ユート');
-    air.classList.toggle('speaker-active',line.speaker==='エア');
-    air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='エア');
+    yuto.classList.toggle('speaker-active',line.speaker==='マルク');
+    yuto.classList.toggle('speaker-idle',!!line.yuto&&line.speaker!=='マルク');
+    air.classList.toggle('speaker-active',line.speaker==='アイリス');
+    air.classList.toggle('speaker-idle',!!line.air&&line.speaker!=='アイリス');
     dialogue.dataset.ended=String(index===lines.length-1);
     // セリフを送って「はっ！」を表示した、その同じクリックで一度だけ鳴らす。
     if(line.sparringSfx===true)playSparringClashSfx();
@@ -1953,22 +1953,22 @@ function chapterTwoHomePrelude(scene){
     {speaker:'主人公',text:'装備を整え、演習場へ向かった。'}
   ];
   const training=[
-    {speaker:'主人公',text:'演習場に着くと、エアさんとユート先輩が手合わせをしていた。',yuto:true,air:true,sparring:true},
-    {speaker:'エア',text:'はっ！',yuto:true,air:true,sparring:true,sparringSfx:true},
-    {speaker:'ユート',text:'まだまだ！',yuto:true,air:true,sparring:true},
-    {speaker:'エア',text:'やるね、ユート。',yuto:true,air:true,sparring:true},
-    {speaker:'ユート',text:'そっちこそ、隙がないな！',yuto:true,air:true,sparring:true},
-    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにエアさんの方が上だ。',yuto:true,air:true,sparring:true},
-    {speaker:'主人公',text:'追い詰められているユート先輩を見て、エアさんの強さに改めて驚いた。',yuto:true,air:true,sparring:true},
-    {speaker:'ユート',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
-    {speaker:'エア',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
-    {speaker:'ユート',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
-    {speaker:'エア',text:'まだ平和ではあるけど、不安を口にする人もいる。仕事は増えているし、今はチャンスかもしれないね。',yuto:true,air:true},
-    {speaker:'ユート',text:'決めるのはやはりお前だ。……ものは試しに、エアと手合わせしてみたらどうだ？',yuto:true,air:true},
-    {speaker:'エア',text:'私はいいよ。やってみる？',air:true},
-    {speaker:'主人公',text:'エアさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
+    {speaker:'主人公',text:'演習場に着くと、アイリスさんとマルク先輩が手合わせをしていた。',yuto:true,air:true,sparring:true},
+    {speaker:'アイリス',text:'はっ！',yuto:true,air:true,sparring:true,sparringSfx:true},
+    {speaker:'マルク',text:'まだまだ！',yuto:true,air:true,sparring:true},
+    {speaker:'アイリス',text:'やるね、マルク。',yuto:true,air:true,sparring:true},
+    {speaker:'マルク',text:'そっちこそ、隙がないな！',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'二人の実力は拮抗している。けれど、ほんのわずかにアイリスさんの方が上だ。',yuto:true,air:true,sparring:true},
+    {speaker:'主人公',text:'追い詰められているマルク先輩を見て、アイリスさんの強さに改めて驚いた。',yuto:true,air:true,sparring:true},
+    {speaker:'マルク',text:'お、来たか。ちょうどいいところだった。',yuto:true,air:true},
+    {speaker:'アイリス',text:'おはよう。昨日の王都の話、少し考えた？',yuto:true,air:true},
+    {speaker:'マルク',text:'最近の王都は魔物たちの活動が活発でな。兵士も、冒険者ギルドに登録する腕利きも増えている。',yuto:true,air:true},
+    {speaker:'アイリス',text:'まだ平和ではあるけど、不安を口にする人もいる。仕事は増えているし、今はチャンスかもしれないね。',yuto:true,air:true},
+    {speaker:'マルク',text:'決めるのはやはりお前だ。……ものは試しに、アイリスと手合わせしてみたらどうだ？',yuto:true,air:true},
+    {speaker:'アイリス',text:'私はいいよ。やってみる？',air:true},
+    {speaker:'主人公',text:'アイリスさんの強さは見ている。物怖じしたけれど、同時に自分の実力を試してみたいとも思った。',yuto:true,air:true},
     {speaker:'主人公',text:'では、お願いします。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
+    {speaker:'アイリス',text:'うん。じゃあ、いくよ！',air:true,airBattle:true}
   ];
   chapterTwoFade(scene,'assets/story-home-night.jpg',()=>{
     chapterTwoPlayLines(scene,night,()=>{
@@ -2013,13 +2013,13 @@ function beginChapterTwoAirBattle(scene){
     applySoundLevels();
     // 曲は会話のクリック中に起動済み。再生失敗時だけここで再試行する。
     if(!window.storyAirBattleBgmStarted||battleMusic?.paused)startWolfBattleBgm();
-    // エア戦でも狼戦と同じく、相手の戦闘用カードを盤面右側に表示する。
+    // アイリス戦でも狼戦と同じく、相手の戦闘用カードを盤面右側に表示する。
     let opponent=document.querySelector('#storyAirOpponentCard');
     if(!opponent){
       opponent=document.createElement('img');
       opponent.id='storyAirOpponentCard';
       opponent.className='story-battle-opponent-card';
-      opponent.alt='エア・ノエル';
+      opponent.alt='アイリス・エルナ';
       document.body.append(opponent);
     }
     opponent.src='assets/story-woman-warrior.webp';
@@ -2036,24 +2036,24 @@ function chapterTwoAfterAirBattle(){
   if(opponent)opponent.hidden=true;
   window.stopBgm?.();
   document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');
-  // エア戦の決着を押した瞬間から、Chapter 2 終了まで KIRI をループする。
+  // アイリス戦の決着を押した瞬間から、Chapter 2 終了まで KIRI をループする。
   startAirAftermathBgm();
   const scene=document.querySelector('#chapterTwoScene');
   if(!scene)return;
   const aftermath=[
-    {speaker:'エア',text:'やるね……キミ！',air:true,airBattle:true},
+    {speaker:'アイリス',text:'やるね……キミ！',air:true,airBattle:true},
     {speaker:'主人公',text:'息が上がる。身体はもう、かなり消耗していた。',air:true,airBattle:true},
-    {speaker:'エア',text:'それなら……！',air:true,airBattle:true},
-    {speaker:'主人公',text:'エアさんは見たことのない、特殊な構えを取った。',yuto:true,air:true,airBattle:true},
-    {speaker:'ユート',text:'そこまで！',yuto:true,air:true,airBattle:true},
-    {speaker:'主人公',text:'ハッとしたように、エアさんは手を下ろした。',yuto:true,air:true},
-    {speaker:'ユート',text:'やりすぎだ、エア。',yuto:true,air:true},
-    {speaker:'エア',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
-    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったエアさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
+    {speaker:'アイリス',text:'それなら……！',air:true,airBattle:true},
+    {speaker:'主人公',text:'アイリスさんは見たことのない、特殊な構えを取った。',yuto:true,air:true,airBattle:true},
+    {speaker:'マルク',text:'そこまで！',yuto:true,air:true,airBattle:true},
+    {speaker:'主人公',text:'ハッとしたように、アイリスさんは手を下ろした。',yuto:true,air:true},
+    {speaker:'マルク',text:'やりすぎだ、アイリス。',yuto:true,air:true},
+    {speaker:'アイリス',text:'ご、ごめん。でも、思っていたよりずっと洗練されている技だった。危なかったよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'ありがとうございました……。本気を出していなかったアイリスさんに気づき、実力の差を痛感した。',yuto:true,air:true,spoken:true},
+    {speaker:'アイリス',text:'見くびっていたよ。その実力なら、王都で十分やっていける。ただ、実戦経験はまだ足りないかな。',air:true},
     {speaker:'主人公',text:'王都に、行ってみたいです……！',yuto:true,air:true,spoken:true},
-    {speaker:'ユート',text:'なら、実戦経験を積むがてら、王都へ帰るエアと旅してみたらどうだ？',yuto:true,air:true},
-    {speaker:'エア',text:'私はいいよ。一緒に行こうか。',air:true}
+    {speaker:'マルク',text:'なら、実戦経験を積むがてら、王都へ帰るアイリスと旅してみたらどうだ？',yuto:true,air:true},
+    {speaker:'アイリス',text:'私はいいよ。一緒に行こうか。',air:true}
   ];
   document.body.classList.add('story-cinematic');
   chapterTwoFade(scene,'assets/story-training-ground.webp',()=>{
@@ -2071,12 +2071,12 @@ function chapterTwoPacking(scene){
     {speaker:'主人公',text:'それでも迷いはなかった。新しい一歩を踏み出すと決めた。'}
   ];
   const departure=[
-    {speaker:'ユート',text:'忘れ物はないか？',yuto:true,air:true},
-    {speaker:'エア',text:'大丈夫だよ。',yuto:true,air:true},
+    {speaker:'マルク',text:'忘れ物はないか？',yuto:true,air:true},
+    {speaker:'アイリス',text:'大丈夫だよ。',yuto:true,air:true},
     {speaker:'主人公',text:'はい。大丈夫です。',yuto:true,air:true,spoken:true},
-    {speaker:'エア',text:'じゃあ行こうか。',yuto:true,air:true},
-    {speaker:'ユート',text:'お前ならできる。気をつけて行けよ。',yuto:true,air:true},
-    {speaker:'主人公',text:'ユート先輩に背中を押され、俺はエアさんと共に街の外へ歩き出した。'}
+    {speaker:'アイリス',text:'じゃあ行こうか。',yuto:true,air:true},
+    {speaker:'マルク',text:'お前ならできる。気をつけて行けよ。',yuto:true,air:true},
+    {speaker:'主人公',text:'マルク先輩に背中を押され、僕はアイリスさんと共に街の外へ歩き出した。'}
   ];
   chapterTwoFade(scene,'assets/story-home-morning.jpg',()=>{
     yuto.hidden=true;air.hidden=true;

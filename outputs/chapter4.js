@@ -10,24 +10,24 @@
   };
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
   const lines = [
-    line('翌朝。朝露の残る草原を、俺たちは王都へ向けて歩き始めた。'),
+    line('翌朝。朝露の残る草原を、僕たちは王都へ向けて歩き始めた。'),
     line('昨日の一件があったにもかかわらず、道中は不思議なくらい穏やかだった。'),
-    line('足取り、悪くないね。昨日の野営で少しは慣れた？', 'エア', { air: true }),
-    line('はい。エアさんが手際よく教えてくれたおかげです。', '主人公', { air: true }),
-    line('ふふっ。じゃあ、次はもう少し難しいことも任せちゃおうかな。', 'エア', { air: true }),
+    line('足取り、悪くないね。昨日の野営で少しは慣れた？', 'アイリス', { air: true }),
+    line('はい。アイリスさんが手際よく教えてくれたおかげです。', '主人公', { air: true }),
+    line('ふふっ。じゃあ、次はもう少し難しいことも任せちゃおうかな。', 'アイリス', { air: true }),
     line('冗談めかした声に、思わず笑ってしまう。昨日までの重苦しさが、少しだけ遠のいた気がした。', '', { air: true }),
     line('しばらく歩くと、草原の向こうに陽光を弾く大きな川が見えてきた。', '', { air: true, background: 'river' }),
     line('わあ……。ずいぶん大きな川ですね。', '主人公', { air: true }),
-    line('あれはセルグ川。この先しばらくは、あの川沿いを進むよ。', 'エア', { air: true }),
-    line('山の中に入ったところに橋が架かってるから、そこを渡れば王都への道に戻れる。', 'エア', { air: true }),
+    line('あれはセルグ川。この先しばらくは、あの川沿いを進むよ。', 'アイリス', { air: true }),
+    line('山の中に入ったところに橋が架かってるから、そこを渡れば王都への道に戻れる。', 'アイリス', { air: true }),
     line('地図を確かめる仕草にも、迷いはない。旅慣れた彼女が隣にいることが、今は心強かった。', '', { air: true }),
-    line('川の流れを横目に、俺たちはさらに歩を進めた。', '', { air: true }),
+    line('川の流れを横目に、僕たちはさらに歩を進めた。', '', { air: true }),
     line('やがて山道の入口にたどり着く。そこには、谷をまたぐはずの橋が見えていた。', '', { air: true, background: 'bridge' }),
-    line('……あちゃー。これは、ちょっと困ったね。', 'エア', { air: true }),
+    line('……あちゃー。これは、ちょっと困ったね。', 'アイリス', { air: true }),
     line('橋は中央から大きく崩れ、向こう岸へ渡れる状態ではなかった。', '', { air: true }),
     line('このままじゃ渡れませんね。', '主人公', { air: true }),
-    line('うん。戻って、もっと浅い場所を探すしかないかな。遠回りにはなるけどね。', 'エア', { air: true }),
-    line('予定が狂ったことに焦りはしたが、立ち止まっていても仕方がない。俺たちは来た道とは別の細い道へと足を向けた。', '', { air: true })
+    line('うん。戻って、もっと浅い場所を探すしかないかな。遠回りにはなるけどね。', 'アイリス', { air: true }),
+    line('予定が狂ったことに焦りはしたが、立ち止まっていても仕方がない。僕たちは来た道とは別の細い道へと足を向けた。', '', { air: true })
   ];
   let scene;
 
@@ -40,7 +40,7 @@
       <img class="chapter4-background" src="${assets.meadow}" alt="草原">
       <div class="chapter4-fade" aria-hidden="true"></div>
       <button class="chapter4-return" type="button">タイトルに戻る</button>
-      <img class="chapter4-air" src="${assets.air}" alt="エア" hidden>
+      <img class="chapter4-air" src="${assets.air}" alt="アイリス" hidden>
       <button class="chapter4-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
     document.body.append(scene);
     installStyle();
@@ -83,7 +83,7 @@
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker || '';
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
-      air.classList.toggle('talking', current.speaker === 'エア');
+      air.classList.toggle('talking', current.speaker === 'アイリス');
       dialogue.classList.toggle('last', index === lines.length - 1);
       };
       if (current.background) {
