@@ -17,7 +17,8 @@
     lilianaHome: 'assets/9f651d54-4f40-43ae-ba68-927002b32109.jpg',
     home: 'assets/c306cbbd-f24e-4a09-ae25-00b9d922ad29.jpg',
     battleBgm: 'assets/愚直の螺旋律_2.mp3',
-    air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png'
+    air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png',
+    airBattle: 'assets/exec-aad00cca-1829-4589-bfe0-4928ffa9b89d.png'
   };
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
   const lines = [
@@ -54,7 +55,7 @@
     line('近くの家へ、僕たちは歩みを進める。', '', { air: true }),
     line('ガキィーーン！！', '', { air: true, impact: true, stopMusic: true }),
     line('一瞬早く反応したのは、アイリスさんだった。', '', { air: true }),
-    line('っ……く！', 'アイリス', { air: true }),
+    line('っ……く！', 'アイリス', { air: true, airBattle: true }),
     line('畳み掛けるように、その拳はアイリスさんの構えた盾を追撃する。', '', { air: true }),
     line('な、なに！？', 'アイリス', { air: true }),
     line('反撃を予感したであろうその少女は、身を翻すとバク宙を決めて距離を取った。', '', { air: true }),
@@ -167,11 +168,14 @@
     let index = 0;
     let changing = false;
     let merielIntroduced = false;
+    let airBattle = false;
 
     const render = () => {
       const current = lines[index];
       const applyContent = () => {
+      if (current.airBattle) airBattle = true;
       air.hidden = !current.air;
+      air.src = airBattle ? assets.airBattle : assets.air;
       meriel.hidden = !current.meriel;
       liliana.hidden = true;
       speaker.hidden = !current.speaker;
@@ -249,6 +253,8 @@
     };
     root.hidden = false;
     air.hidden = true;
+    airBattle = false;
+    air.src = assets.air;
     meriel.hidden = true;
     meriel.src = assets.meriel;
     meriel.classList.remove('home');
