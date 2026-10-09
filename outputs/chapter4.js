@@ -352,7 +352,9 @@
     const render = () => {
       const current = aftermathLines[index];
       const applyContent = () => {
-        air.hidden = true;
+        // 決着直後の会話では、アイリスを左に残して三人の状況を見せる。
+        // 室内へ入った後は、左側をリリアーナの位置として使うため隠す。
+        air.hidden = Boolean(current.home);
         meriel.hidden = !current.meriel;
         liliana.hidden = !current.liliana;
         meriel.src = current.home ? assets.merielHome : assets.meriel;
@@ -364,6 +366,7 @@
         speaker.hidden = !current.speaker;
         speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
         text.textContent = current.speaker ? `「${current.text}」` : current.text;
+        air.classList.toggle('talking', current.speaker === 'アイリス');
         meriel.classList.toggle('talking', current.speaker === 'メリール' || current.speakerCard === 'meriel');
         liliana.classList.toggle('talking', current.speaker === 'リリアーナ' || current.speakerCard === 'liliana');
         dialogue.classList.toggle('last', Boolean(current.ending));
