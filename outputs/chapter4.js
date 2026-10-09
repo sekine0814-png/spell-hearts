@@ -12,6 +12,10 @@
     impact: 'assets/ロボットを強く殴る2.mp3',
     merielAppear: 'assets/セキ.mp3',
     meriel: 'assets/Enhance_the_image_quality_to_2K_20261008180750.jpg',
+    merielHome: 'assets/meriel-home-smile.png',
+    lilianaAlert: 'assets/liliana-alert.png',
+    lilianaHome: 'assets/9f651d54-4f40-43ae-ba68-927002b32109.jpg',
+    home: 'assets/c306cbbd-f24e-4a09-ae25-00b9d922ad29.jpg',
     battleBgm: 'assets/愚直の螺旋律_2.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png'
   };
@@ -73,6 +77,35 @@
     line('そして眼光鋭く、カタパルトのようにこちらへ一息で突っ込んでくる。', '', { air: true, meriel: true }),
     line('しょうがない、やるよ！！', 'アイリス', { air: true, meriel: true, battle: true })
   ];
+  const aftermathLines = [
+    line('激しく戦闘していると、村の方から鋭い声が飛んだ。', ''),
+    line('メル！ やめなさい！', 'リリアーナ', { meriel: true, liliana: true }),
+    line('リリ！ こいつら、橋を壊した奴らだよ！！', 'メリール', { meriel: true, liliana: true }),
+    line('メリールは、こちらを睨みつけたまま叫んだ。', '', { meriel: true, liliana: true }),
+    line('よく見なさい。その方たちが、本当にそんなことをするように見えますか？', 'リリアーナ', { meriel: true, liliana: true }),
+    line('誤解だよ。僕たちは橋を渡ろうとして、壊れているのを見つけただけなんだ。', '主人公', { meriel: true, liliana: true }),
+    line('私たちも困っているの。壊した人を知っているなら、話を聞かせてほしいくらいだよ。', 'アイリス', { meriel: true, liliana: true }),
+    line('二人の声を聞き、メリールの拳から少しずつ力が抜けていく。', '', { meriel: true, liliana: true }),
+    line('……メル。謝りなさい。', 'リリアーナ', { meriel: true, liliana: true }),
+    line('ご、ごめんなさい……。', 'メリール', { meriel: true, liliana: true }),
+    line('橋を壊した人たちだと思い込んでいたんだ。村のみんなが、すごく困ってるから……。', 'メリール', { meriel: true, liliana: true }),
+    line('事情があるのは分かりました。大丈夫です。', '主人公', { meriel: true, liliana: true }),
+    line('ごめんなさいね。よかったら、うちで少し休んでいって。', 'リリアーナ', { meriel: true, liliana: true }),
+    line('招きに甘え、僕たちは家の中へ通された。', '', { background: 'home', home: true, meriel: true, liliana: true }),
+    line('改めて自己紹介するね。私はリリアーナ。みんなからはリリって呼ばれてるわ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('メリール。さっきは、本当にごめん。', 'メリール', { home: true, meriel: true, liliana: true }),
+    line('私たちは家族ではないの。身寄りのなかったメリールを、私が引き取って一緒に暮らしているのよ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんだ。だから橋が壊れてから、取引も通行も難しくなってしまって……。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('橋が壊れた日、村の者が二人の怪しげな人影を見たという話も聞いている。メリールが焦るのも、無理はなかった。', '', { home: true, meriel: true, liliana: true }),
+    line('今夜はゆっくり休みましょう。食事も寝床も用意するから。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('温かな夕食をいただき、久しぶりに屋根の下で床についた。', '', { home: true, meriel: true, liliana: true }),
+    line('翌朝。朝食を囲みながら、アイリスさんが静かに口を開いた。', '', { home: true, meriel: true, liliana: true }),
+    line('休ませてもらったお礼に、王都に着いたら建築を生業にしている知り合いへ橋のことを頼んでみるよ。', 'アイリス', { home: true, meriel: true, liliana: true }),
+    line('本当ですか！？', 'メリール', { home: true, meriel: true, liliana: true }),
+    line('ありがとう……本当にありがとう。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('二人に見送られ、僕たちは再び王都への道へ歩き出した。', '', { home: true, meriel: true, liliana: true }),
+    line('二人の人影、か……。', '主人公', { home: true, meriel: true, liliana: true, ending: true })
+  ];
   let scene;
 
   function createScene() {
@@ -89,6 +122,7 @@
       <button class="chapter4-return" type="button">タイトルに戻る</button>
       <img class="chapter4-air" src="${assets.air}" alt="アイリス" hidden>
       <img class="chapter4-meriel" src="${assets.meriel}" alt="？？？" hidden>
+      <img class="chapter4-liliana" src="${assets.lilianaAlert}" alt="リリアーナ" hidden>
       <button class="chapter4-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
     document.body.append(scene);
     installStyle();
@@ -106,9 +140,11 @@
       .chapter4-return{position:absolute;z-index:6;top:14px;right:16px;padding:10px 18px;border:1px solid #d8ae4e;border-radius:4px;background:linear-gradient(180deg,rgba(81,57,18,.94),rgba(23,14,5,.97));color:#fff0ba;font:15px Georgia,"Yu Mincho",serif;letter-spacing:.1em;cursor:pointer}
       .chapter4-air{position:absolute;z-index:2;left:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:.78;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(-14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter4-air[hidden]{display:none}.chapter4-air.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
       .chapter4-meriel{position:absolute;z-index:2;right:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:.78;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter4-meriel[hidden]{display:none}.chapter4-meriel.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
+      .chapter4-liliana{position:absolute;z-index:2;right:3vw;bottom:35vh;width:min(18vw,225px);max-height:55vh;object-fit:contain;opacity:.82;pointer-events:none;filter:brightness(.7) saturate(.76) drop-shadow(0 10px 14px #0009);transform:translateX(14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter4-liliana[hidden]{display:none}.chapter4-liliana.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.05);filter:brightness(1.07) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}.chapter4-liliana.home{left:22vw;right:auto;bottom:36vh;width:min(22vw,285px);max-height:59vh;transform:translateX(-14px) scale(.92)}.chapter4-liliana.home.talking{transform:translateX(0) scale(1.06)}.chapter4-meriel.home{right:22vw;bottom:36vh}
       #chapter4BattleCards{position:fixed;z-index:138;inset:0;pointer-events:none}#chapter4BattleCards img{position:absolute;right:3vw;bottom:30vh;width:min(23vw,300px);max-height:66vh;object-fit:contain;filter:drop-shadow(0 8px 14px #0009)}#chapter4BattleFade{position:fixed;z-index:170;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity .7s ease}#chapter4BattleFade.out{opacity:0}
+      #chapter4Ending{position:absolute;z-index:11;inset:0;display:grid;place-items:center;border:0;background:#000;color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .9s ease}#chapter4Ending.show{opacity:1}#chapter4Ending span{font:clamp(32px,5vw,70px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}
       .chapter4-dialogue{position:absolute;z-index:5;left:50%;bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;transform:translate(-50%,16px);border:1px solid #d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;opacity:0;pointer-events:none;text-align:left;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:opacity .35s ease,transform .35s ease}.chapter4-dialogue.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}.chapter4-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter4-dialogue b{position:absolute;z-index:1;left:26px;top:-17px;min-width:120px;padding:7px 17px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-align:center}.chapter4-dialogue p{position:relative;margin:16px 20px 0;white-space:pre-line;font:clamp(16px,1.35vw,22px)/1.65 "Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter4-dialogue i{position:absolute;right:24px;bottom:16px;width:0;height:0;border-right:10px solid transparent;border-left:10px solid transparent;border-top:12px solid #f5d77c;filter:drop-shadow(0 1px 3px #000);animation:chapter4-next .82s ease-in-out infinite}.chapter4-dialogue.last i{display:none}@keyframes chapter4-next{50%{opacity:.45;transform:translateY(6px)}}
-      @media (pointer:coarse) and (orientation:landscape){.chapter4-return{top:7px;right:9px;padding:5px 9px;font-size:10px}.chapter4-air,.chapter4-meriel{bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}.chapter4-air{left:7vw}.chapter4-meriel{right:7vw}#chapter4BattleCards img{right:1vw;bottom:23vh;width:min(22vw,200px);max-height:54vh}.chapter4-dialogue{bottom:8px;width:min(60vw,760px);min-height:94px;padding:15px 20px 18px}.chapter4-dialogue b{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}.chapter4-dialogue p{margin:9px 6px 0;font-size:clamp(11px,2vh,14px);line-height:1.45;letter-spacing:.035em}.chapter4-dialogue i{right:13px;bottom:9px;transform:scale(.68)}}
+      @media (pointer:coarse) and (orientation:landscape){.chapter4-return{top:7px;right:9px;padding:5px 9px;font-size:10px}.chapter4-air,.chapter4-meriel{bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}.chapter4-air{left:7vw}.chapter4-meriel{right:7vw}.chapter4-liliana{right:1vw;bottom:27vh;width:min(14vw,125px);max-height:48vh}.chapter4-liliana.home{left:7vw;right:auto;bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}#chapter4BattleCards img{right:1vw;bottom:23vh;width:min(22vw,200px);max-height:54vh}.chapter4-dialogue{bottom:8px;width:min(60vw,760px);min-height:94px;padding:15px 20px 18px}.chapter4-dialogue b{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}.chapter4-dialogue p{margin:9px 6px 0;font-size:clamp(11px,2vh,14px);line-height:1.45;letter-spacing:.035em}.chapter4-dialogue i{right:13px;bottom:9px;transform:scale(.68)}}
     `;
     document.head.append(style);
   }
@@ -127,6 +163,7 @@
     const merielAppear = root.querySelector('.chapter4-meriel-appear');
     const air = root.querySelector('.chapter4-air');
     const meriel = root.querySelector('.chapter4-meriel');
+    const liliana = root.querySelector('.chapter4-liliana');
     let index = 0;
     let changing = false;
     let merielIntroduced = false;
@@ -136,6 +173,7 @@
       const applyContent = () => {
       air.hidden = !current.air;
       meriel.hidden = !current.meriel;
+      liliana.hidden = true;
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
@@ -180,14 +218,7 @@
       merielAppear.pause();
       merielAppear.currentTime = 0;
       // 最後の会話クリック中に起動して、モバイルでも戦闘曲の再生許可を得る。
-      const battleMusic = document.querySelector('#battleBgm');
-      if (battleMusic) {
-        battleMusic.pause();
-        battleMusic.src = assets.battleBgm;
-        battleMusic.volume = 0.06;
-        battleMusic.load();
-        battleMusic.play().catch(() => {});
-      }
+      startMerielBattleMusic();
       window.setTimeout(() => {
         const title = document.querySelector('#titleScreen');
         if (title) {
@@ -198,11 +229,8 @@
         }
         root.hidden = true;
         document.body.classList.remove('story-active', 'story-cinematic');
-        let cards = document.querySelector('#chapter4BattleCards');
-        if (!cards) { cards = document.createElement('div'); cards.id = 'chapter4BattleCards'; document.body.append(cards); }
-        cards.innerHTML = `<img src="${assets.meriel}" alt="メリール">`;
-        window.start?.();
-        window.setBattleBackdrop?.(assets.village.replace(/^assets\//, ''));
+        setupMerielBattleBoard();
+        watchMerielBattleResult(root);
         const oldFade = document.querySelector('#chapter4BattleFade');
         oldFade?.remove();
         const battleFade = document.createElement('div');
@@ -220,6 +248,13 @@
       render();
     };
     root.hidden = false;
+    air.hidden = true;
+    meriel.hidden = true;
+    meriel.src = assets.meriel;
+    meriel.classList.remove('home');
+    liliana.hidden = true;
+    liliana.src = assets.lilianaAlert;
+    liliana.classList.remove('home');
     music.pause();
     music.currentTime = 0;
     music.volume = 0.05;
@@ -230,6 +265,158 @@
     render();
     requestAnimationFrame(() => { fade.style.opacity = '0'; });
     window.setTimeout(() => dialogue.classList.add('show'), 850);
+  }
+
+  function startMerielBattleMusic() {
+    const battleMusic = document.querySelector('#battleBgm');
+    if (!battleMusic) return;
+    battleMusic.pause();
+    battleMusic.src = assets.battleBgm;
+    battleMusic.volume = 0.06;
+    battleMusic.load();
+    battleMusic.play().catch(() => {});
+  }
+
+  function setupMerielBattleBoard() {
+    let cards = document.querySelector('#chapter4BattleCards');
+    if (!cards) { cards = document.createElement('div'); cards.id = 'chapter4BattleCards'; document.body.append(cards); }
+    cards.innerHTML = `<img src="${assets.meriel}" alt="メリール">`;
+    const result = document.querySelector('#resultScreen');
+    result?.classList.remove('show');
+    if (result) delete result.dataset.chapter4Advancing;
+    window.start?.();
+    window.setBattleBackdrop?.(assets.village.replace(/^assets\//, ''));
+  }
+
+  function watchMerielBattleResult(root) {
+    let handled = false;
+    const check = () => {
+      if (handled) return;
+      const result = document.querySelector('#resultScreen');
+      if (!result?.classList.contains('show')) return;
+      const won = Boolean(result.querySelector('.result-red'));
+      const lost = Boolean(result.querySelector('.result-blue, .result-draw'));
+      if (!won && !lost) return;
+      handled = true;
+      observer.disconnect();
+      window.clearInterval(poll);
+      showMerielResult(result, won, root);
+    };
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    const poll = window.setInterval(check, 100);
+    check();
+  }
+
+  function showMerielResult(result, won, root) {
+    result.classList.add('show');
+    result.onclick = null;
+    result.innerHTML = won
+      ? '<div class="result-stack"><div class="result-word result-red">RED WIN</div></div>'
+      : '<div class="result-stack"><div class="result-word result-blue">DEFEAT</div><div class="result-actions"><button class="result-retry" type="button" data-meriel-retry>もう一度戦う</button><button class="result-retry" type="button" data-meriel-give-up>諦める</button></div></div>';
+    if (won) {
+      result.onclick = () => {
+        if (result.dataset.chapter4Advancing === 'true') return;
+        result.dataset.chapter4Advancing = 'true';
+        result.classList.remove('show');
+        window.setTimeout(() => startMerielAftermath(root), 620);
+      };
+      return;
+    }
+    result.querySelector('[data-meriel-retry]').onclick = () => {
+      startMerielBattleMusic();
+      setupMerielBattleBoard();
+      watchMerielBattleResult(root);
+    };
+    result.querySelector('[data-meriel-give-up]').onclick = () => window.returnToTitle?.();
+  }
+
+  function startMerielAftermath(root) {
+    document.querySelector('#chapter4BattleCards')?.remove();
+    document.querySelector('#resultScreen')?.classList.remove('show');
+    const battleMusic = document.querySelector('#battleBgm');
+    battleMusic?.pause();
+    if (battleMusic) battleMusic.currentTime = 0;
+    document.body.classList.add('story-active', 'story-cinematic');
+    const bg = root.querySelector('.chapter4-background');
+    const fade = root.querySelector('.chapter4-fade');
+    const dialogue = root.querySelector('.chapter4-dialogue');
+    const speaker = dialogue.querySelector('b');
+    const text = dialogue.querySelector('p');
+    const air = root.querySelector('.chapter4-air');
+    const meriel = root.querySelector('.chapter4-meriel');
+    const liliana = root.querySelector('.chapter4-liliana');
+    let index = 0;
+    let changing = false;
+
+    const render = () => {
+      const current = aftermathLines[index];
+      const applyContent = () => {
+        air.hidden = true;
+        meriel.hidden = !current.meriel;
+        liliana.hidden = !current.liliana;
+        meriel.src = current.home ? assets.merielHome : assets.meriel;
+        liliana.src = current.home ? assets.lilianaHome : assets.lilianaAlert;
+        meriel.classList.toggle('home', Boolean(current.home));
+        liliana.classList.toggle('home', Boolean(current.home));
+        speaker.hidden = !current.speaker;
+        speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
+        text.textContent = current.speaker ? `「${current.text}」` : current.text;
+        meriel.classList.toggle('talking', current.speaker === 'メリール');
+        liliana.classList.toggle('talking', current.speaker === 'リリアーナ');
+        dialogue.classList.toggle('last', Boolean(current.ending));
+      };
+      if (current.background) {
+        changing = true;
+        dialogue.classList.remove('show');
+        fade.style.opacity = '1';
+        window.setTimeout(() => {
+          applyContent();
+          bg.src = assets[current.background];
+          const reveal = () => window.setTimeout(() => {
+            fade.style.opacity = '0';
+            changing = false;
+            dialogue.classList.add('show');
+          }, 80);
+          bg.addEventListener('load', reveal, { once: true });
+          bg.addEventListener('error', reveal, { once: true });
+        }, 820);
+        return;
+      }
+      applyContent();
+    };
+
+    dialogue.onclick = () => {
+      if (changing) return;
+      if (aftermathLines[index].ending) { endChapterFour(root, dialogue, meriel, liliana); return; }
+      index += 1;
+      render();
+    };
+    root.querySelector('#chapter4Ending')?.remove();
+    root.hidden = false;
+    bg.src = assets.village;
+    fade.style.opacity = '1';
+    dialogue.classList.remove('show');
+    render();
+    requestAnimationFrame(() => { fade.style.opacity = '0'; });
+    window.setTimeout(() => dialogue.classList.add('show'), 850);
+  }
+
+  function endChapterFour(root, dialogue, meriel, liliana) {
+    dialogue.classList.remove('show');
+    meriel.hidden = true;
+    liliana.hidden = true;
+    const ending = document.createElement('button');
+    ending.id = 'chapter4Ending';
+    ending.type = 'button';
+    ending.setAttribute('aria-label', 'タイトルに戻る');
+    ending.innerHTML = '<span>Chapter 4 終了</span>';
+    ending.onclick = () => {
+      window.completeStoryChapter?.('chapter-four');
+      window.confirmReturnToTitle?.();
+    };
+    root.append(ending);
+    requestAnimationFrame(() => ending.classList.add('show'));
   }
 
   window.startChapterFour = startChapterFour;
