@@ -186,7 +186,12 @@
     const music = root.querySelector('.chapter3-bgm');
     const air = root.querySelector('.chapter3-air');
     const delyuke = root.querySelector('.chapter3-delyuke');
-    let index = 0, evening = false, transitioning = false, battleAir = false;
+    let index = 0, evening = false, transitioning = false, battleAir = false, battleDelyuke = false;
+    const setCardSource = (card, source) => {
+      if (card.dataset.chapter3Source === source) return;
+      card.dataset.chapter3Source = source;
+      card.src = source;
+    };
     const render = () => {
       const current = lines[index];
       if (current.evening && !evening) {
@@ -209,7 +214,9 @@
         bg.addEventListener('error', reveal, { once: true });
       }
       if (current.airBattle) battleAir = true;
-      air.src = battleAir ? assets.airBattle : assets.air;
+      if (current.delyukeSword) battleDelyuke = true;
+      // 抜刀・戦闘差分は、一度表示したらバトル開始まで通常差分で上書きしない。
+      setCardSource(air, battleAir ? assets.airBattle : assets.air);
       speaker.hidden = !current.speaker;
       speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
       text.textContent = current.speaker ? `「${current.text}」` : current.text;
@@ -217,7 +224,7 @@
       air.classList.toggle('talking', current.speaker === 'アイリス');
       if (current.delyuke) {
         delyuke.hidden = false;
-        delyuke.src = current.delyukeSword ? assets.delyukeSword : assets.delyuke;
+        setCardSource(delyuke, battleDelyuke ? assets.delyukeSword : assets.delyuke);
         delyuke.classList.add('show');
       }
       delyuke.classList.toggle('talking', current.speaker === '？？？' || current.speaker === 'デリューク');
@@ -238,6 +245,10 @@
     delyuke.className = 'chapter3-delyuke';
     evening = false;
     battleAir = false;
+    battleDelyuke = false;
+    // バトル直前の二枚は会話中に先読みしておく。画像の読込待ちで差分が
+    // 通常カードのまま見える端末を防ぐ。
+    [assets.airBattle, assets.delyukeSword].forEach(source => { const image = new Image(); image.src = source; });
     dialogue.classList.remove('show');
     render();
     music.pause(); music.currentTime = 0; music.volume = 0.12; music.play().catch(() => {});
