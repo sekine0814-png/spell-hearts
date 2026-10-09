@@ -46,7 +46,7 @@
     line('そのあたりのお宅に声をかけてみましょうか。', '主人公', { air: true }),
     line('そうだね。まずは事情を話して――', 'アイリス', { air: true }),
     line('近くの家へ、僕たちは歩みを進める。', '', { air: true }),
-    line('ガキィーーン！！', '', { air: true, impact: true }),
+    line('ガキィーーン！！', '', { air: true, impact: true, stopMusic: true }),
     line('一瞬早く反応したのは、アイリスさんだった。', '', { air: true }),
     line('っ……く！', 'アイリス', { air: true }),
     line('畳み掛けるように、その拳はアイリスさんの構えた盾を追撃する。', '', { air: true }),
@@ -58,7 +58,7 @@
     line('ハァーーーッ！！', '？？？', { air: true, meriel: true }),
     line('思うが早いか、今度は目の合った僕へ少女が飛び込んでくる。', '', { air: true, meriel: true }),
     line('いわゆるガントレットという武器だろうか。身軽な動きで、拳を主体にした戦闘スタイルのようだ。', '', { air: true, meriel: true }),
-    line('ドゴオッッ！！！', '', { air: true, meriel: true, impact: true }),
+    line('ドゴオッッ！！！', '', { air: true, meriel: true }),
     line('……っく！', '主人公', { air: true, meriel: true }),
     line('ボーッと考えている場合じゃない！ 応戦がやっとだ。この子……強い！', '', { air: true, meriel: true }),
     line('落ち着いて！ 私たちは敵じゃないよ！', 'アイリス', { air: true, meriel: true }),
@@ -137,6 +137,7 @@
       air.classList.toggle('talking', current.speaker === 'アイリス');
       meriel.classList.toggle('talking', current.speaker === '？？？');
       if (current.impact) { impact.currentTime = 0; impact.volume = 0.34; impact.play().catch(() => {}); }
+      if (current.stopMusic) { music.pause(); music.currentTime = 0; }
       dialogue.classList.toggle('last', index === lines.length - 1 && !current.battle);
       };
       if (current.background) {
