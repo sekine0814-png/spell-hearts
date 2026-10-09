@@ -408,7 +408,10 @@
     ending.type = 'button';
     ending.setAttribute('aria-label', 'タイトルに戻る');
     ending.innerHTML = '<span>Chapter 3 終了</span>';
-    ending.onclick = () => window.returnToTitle?.();
+    ending.onclick = () => {
+      window.completeStoryChapter?.('chapter-three', 4);
+      window.confirmReturnToTitle?.();
+    };
     root.append(ending);
     requestAnimationFrame(() => ending.classList.add('show'));
   }

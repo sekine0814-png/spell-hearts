@@ -686,6 +686,7 @@ function claimStoryChapterReward(chapter,amount){
   localStorage.setItem(rewardKey,'claimed');
   return true;
 }
+window.claimStoryChapterReward=claimStoryChapterReward;
 
 let accountCosmeticsLoad=Promise.resolve();
 window.waitForSpellHeartsCosmetics=()=>accountCosmeticsLoad;
@@ -893,12 +894,19 @@ function makeRecordButton(){
   const button=document.createElement('button');button.id='recordButton';button.className='room-record';button.type='button';button.textContent='戦 績';button.onclick=openRecord;form.append(button);
 }
 function storyProgressKey(){return `spellHeartsStoryProgress:${currentUser?.uid||'guest'}`;}
-function unlockedStoryChapter(){return Math.max(1,Math.min(2,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
+function unlockedStoryChapter(){return Math.max(1,Math.min(4,Number.parseInt(localStorage.getItem(storyProgressKey())||'1',10)||1));}
 function unlockStoryChapter(chapter){
-  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(2,Number(chapter)||1));
+  const before=unlockedStoryChapter(),next=Math.max(before,Math.min(4,Number(chapter)||1));
   localStorage.setItem(storyProgressKey(),String(next));
   return next>before;
 }
+window.completeStoryChapter=(chapter,nextChapter)=>{
+  const received=claimStoryChapterReward(chapter,5);
+  const unlocked=Number.isFinite(Number(nextChapter))?unlockStoryChapter(nextChapter):false;
+  if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+  if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice',String(nextChapter));
+  return {received,unlocked};
+};
 function playStoryModeSelectSfx(){
   let sound=document.querySelector('#storyModeSelectSfx');
   if(!sound){sound=document.createElement('audio');sound.id='storyModeSelectSfx';sound.src='assets/story-mode-select.mp3';sound.preload='none';document.body.append(sound);}
@@ -1466,9 +1474,7 @@ function showChapterOneEnd(scene){
   if(!end){end=document.createElement('button');end.id='chapterOneEndScreen';end.type='button';end.innerHTML='<span>Chapter 1 END</span><small>タイトルに戻る</small>';document.body.append(end);}
   end.hidden=false;requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
-    const received=claimStoryChapterReward('chapter-one',5),unlocked=unlockStoryChapter(2);
-    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
-    if(unlocked)sessionStorage.setItem('spellHeartsChapterUnlockNotice','2');
+    window.completeStoryChapter?.('chapter-one',2);
     window.confirmReturnToTitle?.();
   };
 }
@@ -2093,8 +2099,7 @@ function showChapterTwoEnd(){
   end.hidden=false;
   requestAnimationFrame(()=>end.classList.add('show'));
   end.onclick=()=>{
-    const received=claimStoryChapterReward('chapter-two',5);
-    if(received)sessionStorage.setItem('spellHeartsStoryRewardNotice','5');
+    window.completeStoryChapter?.('chapter-two',3);
     window.confirmReturnToTitle?.();
   };
 }
@@ -2134,11 +2139,11 @@ function openStoryMode(){
   }
   const unlocked=unlockedStoryChapter(),chapters=panel.querySelector('.story-chapters'),note=panel.querySelector('.story-mode-note');
   chapters.innerHTML=[1,2,3,4].map(chapter=>{
-    const available=chapter===3||chapter===4||chapter<=unlocked;
+    const available=chapter<=unlocked;
     const subtitle=chapter===1?'始まりの日':chapter===2?'邂逅':chapter===3?'闘志':'水辺の華';
     return `<button type="button" class="story-chapter ${available?'available':'locked'}" ${available?'':'disabled'} data-story-chapter="${chapter}"><span class="story-chapter-number">Chapter ${chapter}</span><small>${available?subtitle:'🔒 LOCKED'}</small></button>`;
   }).join('');
-  note.textContent=unlocked<2?'Chapter 1 をクリアすると、次の章が解放されます。':'Chapter 3 を選択できます。';
+  note.textContent=unlocked>=4?'すべてのChapterが解放されています。':`Chapter ${unlocked} をクリアすると、Chapter ${unlocked+1} が解放されます。`;
   chapters.querySelectorAll('.story-chapter.available').forEach(button=>button.onclick=()=>{playChapterOneSelectSfx();const chapter=button.dataset.storyChapter;if(chapter==='1')startChapterOne();else if(chapter==='2')startChapterTwoExpanded();else if(chapter==='3')window.startChapterThree?.();else window.startChapterFour?.();});
   panel.hidden=false;
 }
