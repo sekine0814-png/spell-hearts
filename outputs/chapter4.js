@@ -18,7 +18,7 @@
     home: 'assets/c306cbbd-f24e-4a09-ae25-00b9d922ad29.jpg',
     battleBgm: 'assets/愚直の螺旋律_2.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png',
-    airBattle: 'assets/exec-aad00cca-1829-4589-bfe0-4928ffa9b89d.png'
+    airBattle: 'assets/iris-battle-day.png'
   };
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
   const lines = [
@@ -80,25 +80,25 @@
   ];
   const aftermathLines = [
     line('激しく戦闘していると、村の方から鋭い声が飛んだ。', ''),
-    line('やめてください！', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('やめなさい！', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
     line('こいつら、橋を壊した奴らだよ！！', '？？？', { meriel: true, liliana: true, speakerCard: 'meriel' }),
     line('少女は、こちらを睨みつけたまま叫んだ。', '', { meriel: true, liliana: true }),
-    line('よく見てください。その方たちが、本当にそんなことをするように見えますか？', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('よく見なさい。その方たちが、本当にそんなことをするように見えますか？', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
     line('誤解だよ。僕たちは橋を渡ろうとして、壊れているのを見つけただけなんだ。', '主人公', { meriel: true, liliana: true }),
     line('私たちも困っているの。壊した人を知っているなら、話を聞かせてほしいくらいだよ。', 'アイリス', { meriel: true, liliana: true }),
     line('二人の声を聞き、少女の拳から少しずつ力が抜けていく。', '', { meriel: true, liliana: true }),
-    line('……謝ってください。', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('……謝りなさい。', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
     line('ご、ごめん……。', '？？？', { meriel: true, liliana: true, speakerCard: 'meriel' }),
     line('橋を壊した人たちだと思い込んでいたんだ。村のみんなが、すごく困ってるから……。', '？？？', { meriel: true, liliana: true, speakerCard: 'meriel' }),
     line('事情があるのは分かりました。大丈夫です。', '主人公', { meriel: true, liliana: true }),
-    line('ごめんなさい。よかったら、うちで少し休んでいってください。', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('ごめんなさいね。よかったら、うちで少し休んでいって。', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
     line('招きに甘え、僕たちは家の中へ通された。', '', { background: 'home', home: true, meriel: true, liliana: true }),
-    line('改めて自己紹介しますね。私はリリアーナです。みんなからはリリと呼ばれています。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('改めて自己紹介するね。私はリリアーナ。みんなからはリリって呼ばれてるわ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('メリールだよ。さっきは、本当にごめん。', 'メリール', { home: true, meriel: true, liliana: true }),
-    line('私たちは家族ではないんです。身寄りのなかったメリールを、私が引き取って一緒に暮らしています。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
-    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんです。だから橋が壊れてから、取引も通行も難しくなってしまって……。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('私たちは家族ではないの。身寄りのなかったメリールを、私が引き取って一緒に暮らしているのよ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんだ。だから橋が壊れてから、取引も通行も難しくなってしまって……。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('橋が壊れた日、村の者が二人の怪しげな人影を見たという話も聞いている。メリールが焦るのも、無理はなかった。', '', { home: true, meriel: true, liliana: true }),
-    line('今夜はゆっくり休んでください。食事も寝床も用意しますから。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('今夜はゆっくり休みましょう。食事も寝床も用意するから。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('温かな夕食をいただき、久しぶりに屋根の下で床についた。', '', { home: true, meriel: true, liliana: true }),
     line('翌朝。朝食を囲みながら、アイリスさんが静かに口を開いた。', '', { home: true, meriel: true, liliana: true, morning: true }),
     line('休ませてもらったお礼に、王都に着いたら建築を生業にしている知り合いへ橋のことを頼んでみるよ。', 'アイリス', { home: true, meriel: true, liliana: true }),
