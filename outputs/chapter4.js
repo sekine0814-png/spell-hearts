@@ -10,6 +10,7 @@
     village: 'assets/Remove_all_smoke_coming_from_2K_20261008170311.jpg',
     bgm: 'assets/新しい季節.mp3',
     impact: 'assets/ロボットを強く殴る2.mp3',
+    merielAppear: 'assets/セキ.mp3',
     meriel: 'assets/Enhance_the_image_quality_to_2K_20261008180750.jpg',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png'
   };
@@ -83,6 +84,7 @@
       <div class="chapter4-fade" aria-hidden="true"></div>
       <audio class="chapter4-bgm" src="${assets.bgm}" loop preload="metadata"></audio>
       <audio class="chapter4-impact" src="${assets.impact}" preload="auto"></audio>
+      <audio class="chapter4-meriel-appear" src="${assets.merielAppear}" preload="auto"></audio>
       <button class="chapter4-return" type="button">タイトルに戻る</button>
       <img class="chapter4-air" src="${assets.air}" alt="アイリス" hidden>
       <img class="chapter4-meriel" src="${assets.meriel}" alt="？？？" hidden>
@@ -121,10 +123,12 @@
     const text = dialogue.querySelector('p');
     const music = root.querySelector('.chapter4-bgm');
     const impact = root.querySelector('.chapter4-impact');
+    const merielAppear = root.querySelector('.chapter4-meriel-appear');
     const air = root.querySelector('.chapter4-air');
     const meriel = root.querySelector('.chapter4-meriel');
     let index = 0;
     let changing = false;
+    let merielIntroduced = false;
 
     const render = () => {
       const current = lines[index];
@@ -137,6 +141,12 @@
       air.classList.toggle('talking', current.speaker === 'アイリス');
       meriel.classList.toggle('talking', current.speaker === '？？？');
       if (current.impact) { impact.currentTime = 0; impact.volume = 0.34; impact.play().catch(() => {}); }
+      if (current.meriel && !merielIntroduced) {
+        merielIntroduced = true;
+        merielAppear.currentTime = 0;
+        merielAppear.volume = 0.4;
+        merielAppear.play().catch(() => {});
+      }
       if (current.stopMusic) { music.pause(); music.currentTime = 0; }
       dialogue.classList.toggle('last', index === lines.length - 1 && !current.battle);
       };
