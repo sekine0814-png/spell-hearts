@@ -145,7 +145,7 @@
       if (current.meriel && !merielIntroduced) {
         merielIntroduced = true;
         merielAppear.currentTime = 0;
-        merielAppear.volume = 0.4;
+        merielAppear.volume = 0.08;
         merielAppear.play().catch(() => {});
       }
       if (current.stopMusic) { music.pause(); music.currentTime = 0; }
@@ -177,6 +177,8 @@
       dialogue.classList.remove('show');
       fade.style.opacity = '1';
       music.pause();
+      merielAppear.pause();
+      merielAppear.currentTime = 0;
       // 最後の会話クリック中に起動して、モバイルでも戦闘曲の再生許可を得る。
       const battleMusic = document.querySelector('#battleBgm');
       if (battleMusic) {
