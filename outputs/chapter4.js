@@ -12,7 +12,7 @@
     impact: 'assets/ロボットを強く殴る2.mp3',
     merielAppear: 'assets/セキ.mp3',
     meriel: 'assets/Enhance_the_image_quality_to_2K_20261008180750.jpg',
-    merielHome: 'assets/meriel-home-smile.png',
+    merielHome: 'assets/meriel-home-smile-v3.png',
     lilianaAlert: 'assets/liliana-alert.png',
     lilianaHome: 'assets/9f651d54-4f40-43ae-ba68-927002b32109.jpg',
     home: 'assets/c306cbbd-f24e-4a09-ae25-00b9d922ad29.jpg',
