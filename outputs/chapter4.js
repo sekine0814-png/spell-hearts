@@ -12,6 +12,7 @@
     impact: 'assets/ロボットを強く殴る2.mp3',
     merielAppear: 'assets/セキ.mp3',
     meriel: 'assets/Enhance_the_image_quality_to_2K_20261008180750.jpg',
+    battleBgm: 'assets/愚直の螺旋律_2.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png'
   };
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
@@ -176,6 +177,15 @@
       dialogue.classList.remove('show');
       fade.style.opacity = '1';
       music.pause();
+      // 最後の会話クリック中に起動して、モバイルでも戦闘曲の再生許可を得る。
+      const battleMusic = document.querySelector('#battleBgm');
+      if (battleMusic) {
+        battleMusic.pause();
+        battleMusic.src = assets.battleBgm;
+        battleMusic.volume = 0.06;
+        battleMusic.load();
+        battleMusic.play().catch(() => {});
+      }
       window.setTimeout(() => {
         const title = document.querySelector('#titleScreen');
         if (title) {
@@ -191,7 +201,6 @@
         cards.innerHTML = `<img src="${assets.meriel}" alt="メリール">`;
         window.start?.();
         window.setBattleBackdrop?.(assets.village.replace(/^assets\//, ''));
-        window.startBgm?.();
         const oldFade = document.querySelector('#chapter4BattleFade');
         oldFade?.remove();
         const battleFade = document.createElement('div');
