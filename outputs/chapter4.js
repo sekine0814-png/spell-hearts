@@ -17,6 +17,7 @@
     lilianaHome: 'assets/9f651d54-4f40-43ae-ba68-927002b32109.jpg',
     home: 'assets/c306cbbd-f24e-4a09-ae25-00b9d922ad29.jpg',
     battleBgm: 'assets/愚直の螺旋律_2.mp3',
+    aftermathBgm: 'assets/野山.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png',
     airBattle: 'assets/iris-battle-day.png'
   };
@@ -127,7 +128,10 @@
       <button class="chapter4-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
     document.body.append(scene);
     installStyle();
-    scene.querySelector('.chapter4-return').onclick = () => window.confirmReturnToTitle?.();
+    scene.querySelector('.chapter4-return').onclick = () => {
+      stopChapter4AftermathBgm(scene);
+      window.confirmReturnToTitle?.();
+    };
     return scene;
   }
 
@@ -343,6 +347,7 @@
     const battleMusic = document.querySelector('#battleBgm');
     battleMusic?.pause();
     if (battleMusic) battleMusic.currentTime = 0;
+    startChapter4AftermathBgm(root);
     document.body.classList.add('story-active', 'story-cinematic');
     const bg = root.querySelector('.chapter4-background');
     const fade = root.querySelector('.chapter4-fade');
@@ -416,6 +421,29 @@
     window.setTimeout(() => dialogue.classList.add('show'), 850);
   }
 
+  function startChapter4AftermathBgm(root) {
+    let music = root.querySelector('.chapter4-aftermath-bgm');
+    if (!music) {
+      music = document.createElement('audio');
+      music.className = 'chapter4-aftermath-bgm';
+      music.src = assets.aftermathBgm;
+      music.loop = true;
+      music.preload = 'auto';
+      root.append(music);
+    }
+    music.pause();
+    music.currentTime = 0;
+    music.volume = 0.05;
+    music.play().catch(() => {});
+  }
+
+  function stopChapter4AftermathBgm(root) {
+    const music = root?.querySelector('.chapter4-aftermath-bgm');
+    if (!music) return;
+    music.pause();
+    music.currentTime = 0;
+  }
+
   function endChapterFour(root, dialogue, meriel, liliana) {
     dialogue.classList.remove('show');
     meriel.hidden = true;
@@ -426,6 +454,7 @@
     ending.setAttribute('aria-label', 'タイトルに戻る');
     ending.innerHTML = '<span>Chapter 4 終了</span>';
     ending.onclick = () => {
+      stopChapter4AftermathBgm(root);
       window.completeStoryChapter?.('chapter-four');
       window.confirmReturnToTitle?.();
     };
