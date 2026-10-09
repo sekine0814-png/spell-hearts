@@ -79,29 +79,29 @@
   ];
   const aftermathLines = [
     line('激しく戦闘していると、村の方から鋭い声が飛んだ。', ''),
-    line('メル！ やめなさい！', 'リリアーナ', { meriel: true, liliana: true }),
-    line('リリ！ こいつら、橋を壊した奴らだよ！！', 'メリール', { meriel: true, liliana: true }),
-    line('メリールは、こちらを睨みつけたまま叫んだ。', '', { meriel: true, liliana: true }),
-    line('よく見なさい。その方たちが、本当にそんなことをするように見えますか？', 'リリアーナ', { meriel: true, liliana: true }),
+    line('やめてください！', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('こいつら、橋を壊した奴らだよ！！', '？？？', { meriel: true, liliana: true, speakerCard: 'meriel' }),
+    line('少女は、こちらを睨みつけたまま叫んだ。', '', { meriel: true, liliana: true }),
+    line('よく見てください。その方たちが、本当にそんなことをするように見えますか？', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
     line('誤解だよ。僕たちは橋を渡ろうとして、壊れているのを見つけただけなんだ。', '主人公', { meriel: true, liliana: true }),
     line('私たちも困っているの。壊した人を知っているなら、話を聞かせてほしいくらいだよ。', 'アイリス', { meriel: true, liliana: true }),
-    line('二人の声を聞き、メリールの拳から少しずつ力が抜けていく。', '', { meriel: true, liliana: true }),
-    line('……メル。謝りなさい。', 'リリアーナ', { meriel: true, liliana: true }),
-    line('ご、ごめんなさい……。', 'メリール', { meriel: true, liliana: true }),
-    line('橋を壊した人たちだと思い込んでいたんだ。村のみんなが、すごく困ってるから……。', 'メリール', { meriel: true, liliana: true }),
+    line('二人の声を聞き、少女の拳から少しずつ力が抜けていく。', '', { meriel: true, liliana: true }),
+    line('……謝ってください。', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('ご、ごめん……。', '？？？', { meriel: true, liliana: true, speakerCard: 'meriel' }),
+    line('橋を壊した人たちだと思い込んでいたんだ。村のみんなが、すごく困ってるから……。', '？？？', { meriel: true, liliana: true, speakerCard: 'meriel' }),
     line('事情があるのは分かりました。大丈夫です。', '主人公', { meriel: true, liliana: true }),
-    line('ごめんなさいね。よかったら、うちで少し休んでいって。', 'リリアーナ', { meriel: true, liliana: true }),
+    line('ごめんなさい。よかったら、うちで少し休んでいってください。', '？？？', { meriel: true, liliana: true, speakerCard: 'liliana' }),
     line('招きに甘え、僕たちは家の中へ通された。', '', { background: 'home', home: true, meriel: true, liliana: true }),
-    line('改めて自己紹介するね。私はリリアーナ。みんなからはリリって呼ばれてるわ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
-    line('メリール。さっきは、本当にごめん。', 'メリール', { home: true, meriel: true, liliana: true }),
-    line('私たちは家族ではないの。身寄りのなかったメリールを、私が引き取って一緒に暮らしているのよ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
-    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんだ。だから橋が壊れてから、取引も通行も難しくなってしまって……。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('改めて自己紹介しますね。私はリリアーナです。みんなからはリリと呼ばれています。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('メリールだよ。さっきは、本当にごめん。', 'メリール', { home: true, meriel: true, liliana: true }),
+    line('私たちは家族ではないんです。身寄りのなかったメリールを、私が引き取って一緒に暮らしています。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんです。だから橋が壊れてから、取引も通行も難しくなってしまって……。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('橋が壊れた日、村の者が二人の怪しげな人影を見たという話も聞いている。メリールが焦るのも、無理はなかった。', '', { home: true, meriel: true, liliana: true }),
-    line('今夜はゆっくり休みましょう。食事も寝床も用意するから。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('今夜はゆっくり休んでください。食事も寝床も用意しますから。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('温かな夕食をいただき、久しぶりに屋根の下で床についた。', '', { home: true, meriel: true, liliana: true }),
-    line('翌朝。朝食を囲みながら、アイリスさんが静かに口を開いた。', '', { home: true, meriel: true, liliana: true }),
+    line('翌朝。朝食を囲みながら、アイリスさんが静かに口を開いた。', '', { home: true, meriel: true, liliana: true, morning: true }),
     line('休ませてもらったお礼に、王都に着いたら建築を生業にしている知り合いへ橋のことを頼んでみるよ。', 'アイリス', { home: true, meriel: true, liliana: true }),
-    line('本当ですか！？', 'メリール', { home: true, meriel: true, liliana: true }),
+    line('本当に！？', 'メリール', { home: true, meriel: true, liliana: true }),
     line('ありがとう……本当にありがとう。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('二人に見送られ、僕たちは再び王都への道へ歩き出した。', '', { home: true, meriel: true, liliana: true }),
     line('二人の人影、か……。', '主人公', { home: true, meriel: true, liliana: true, ending: true })
@@ -122,7 +122,7 @@
       <button class="chapter4-return" type="button">タイトルに戻る</button>
       <img class="chapter4-air" src="${assets.air}" alt="アイリス" hidden>
       <img class="chapter4-meriel" src="${assets.meriel}" alt="？？？" hidden>
-      <img class="chapter4-liliana" src="${assets.lilianaAlert}" alt="リリアーナ" hidden>
+      <img class="chapter4-liliana" src="${assets.lilianaAlert}" alt="？？？" hidden>
       <button class="chapter4-dialogue" type="button" aria-label="会話を進める"><b hidden></b><p></p><i aria-hidden="true">▼</i></button>`;
     document.body.append(scene);
     installStyle();
@@ -357,29 +357,34 @@
         liliana.hidden = !current.liliana;
         meriel.src = current.home ? assets.merielHome : assets.meriel;
         liliana.src = current.home ? assets.lilianaHome : assets.lilianaAlert;
+        meriel.alt = current.home ? 'メリール' : '？？？';
+        liliana.alt = current.home ? 'リリアーナ' : '？？？';
         meriel.classList.toggle('home', Boolean(current.home));
         liliana.classList.toggle('home', Boolean(current.home));
         speaker.hidden = !current.speaker;
         speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
         text.textContent = current.speaker ? `「${current.text}」` : current.text;
-        meriel.classList.toggle('talking', current.speaker === 'メリール');
-        liliana.classList.toggle('talking', current.speaker === 'リリアーナ');
+        meriel.classList.toggle('talking', current.speaker === 'メリール' || current.speakerCard === 'meriel');
+        liliana.classList.toggle('talking', current.speaker === 'リリアーナ' || current.speakerCard === 'liliana');
         dialogue.classList.toggle('last', Boolean(current.ending));
       };
-      if (current.background) {
+      if (current.background || current.morning) {
         changing = true;
         dialogue.classList.remove('show');
         fade.style.opacity = '1';
         window.setTimeout(() => {
           applyContent();
-          bg.src = assets[current.background];
           const reveal = () => window.setTimeout(() => {
             fade.style.opacity = '0';
             changing = false;
             dialogue.classList.add('show');
           }, 80);
+          // 同じ家の背景のまま翌朝へ移る場合も、必ず一度完全に暗転させる。
+          // 画像を再読み込みせずに幕だけ開くため、キャッシュ状態に左右されない。
+          if (current.morning) { reveal(); return; }
           bg.addEventListener('load', reveal, { once: true });
           bg.addEventListener('error', reveal, { once: true });
+          bg.src = assets[current.background];
         }, 820);
         return;
       }
