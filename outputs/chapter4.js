@@ -67,7 +67,7 @@
     line('思うが早いか、今度は目の合った僕へ少女が飛び込んでくる。', '', { air: true, meriel: true }),
     line('いわゆるガントレットという武器だろうか。身軽な動きで、拳を主体にした戦闘スタイルのようだ。', '', { air: true, meriel: true }),
     line('ドゴオッッ！！！', '', { air: true, meriel: true }),
-    line('……っく！', '主人公', { air: true, meriel: true }),
+    line('ぐっ・・・！', '主人公', { air: true, meriel: true }),
     line('ボーッと考えている場合じゃない！ 応戦がやっとだ。この子……強い！', '', { air: true, meriel: true }),
     line('落ち着いて！ 私たちは敵じゃないよ！', 'アイリス', { air: true, meriel: true }),
     line('アイリスさんが叫んでいる。無闇に攻撃しにこないところを見ると、僕と同じく彼女の「悪意の無さ」に気づいているようだ。', '', { air: true, meriel: true }),
@@ -75,7 +75,7 @@
     line('やめて！', 'アイリス', { air: true, meriel: true }),
     line('アイリスさんが盾を構えてこちらへ向かってくる。踏み込むや、シールドバッシュで少女を押し返した。', '', { air: true, meriel: true }),
     line('反撃もこちらの意志も、少女は意に介さない。', '', { air: true, meriel: true }),
-    line('さらに、少女が気合いを入れるような構えを取ったかと思うと、ガントレットから白いオーラのようなものが溢れ出てくる。', '', { air: true, meriel: true }),
+    line('シールドバッシュに押されて翻った少女が気合いを入れるような構えを取ったかと思うと、ガントレットから白いオーラのようなものが溢れ出てくる。', '', { air: true, meriel: true }),
     line('そして眼光鋭く、カタパルトのようにこちらへ一息で突っ込んでくる。', '', { air: true, meriel: true }),
     line('しょうがない、やるよ！！', 'アイリス', { air: true, meriel: true, battle: true })
   ];
@@ -97,8 +97,9 @@
     line('招きに甘え、僕たちは家の中へ通された。', '', { background: 'home', home: true, meriel: true, liliana: true }),
     line('改めて自己紹介するね。私はリリアーナ。みんなからはリリって呼ばれてるわ。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('メリールだよ。さっきは、本当にごめん。', 'メリール', { home: true, meriel: true, liliana: true }),
-    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんだ。だから橋が壊れてから、取引も通行も難しくなってしまって……。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
+    line('ここは王都と米や野菜をやり取りして、生計を立てている農村なんです。だから橋が壊れてから、取引も通行も難しくなってしまって・・・。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('橋が壊れてた日、村の人が、二人の怪しい人影を見たって言ってたんだ。', 'メリール', { home: true, meriel: true, liliana: true }),
+    line('なるほど、それで僕たち二人をその怪しい人影と勘違いしたのか。', '', { home: true, meriel: true, liliana: true }),
     line('とにかく今夜はゆっくり休みましょう。食事も寝床も用意しますからね。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('温かな夕食をいただき、久しぶりに屋根の下で床についた。', '', { home: true, meriel: true, liliana: true }),
     line('翌朝。朝食を囲みながら、アイリスさんが静かに口を開いた。', '', { home: true, meriel: true, liliana: true, morning: true }),
