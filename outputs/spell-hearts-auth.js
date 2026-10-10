@@ -2125,7 +2125,6 @@ window.startChapterTwo=startChapterTwoExpanded;
 // 会話欄以外を押しても読み進められるようにする。ボタンや入力欄は従来通り
 // その操作を優先し、会話欄を直接押した場合も既存の onclick に任せる。
 document.addEventListener('click',event=>{
-  if(!document.body.classList.contains('story-cinematic'))return;
   const target=event.target;
   if(target?.closest?.('button,a,input,select,textarea,label,[role="button"]'))return;
   const dialogue=document.querySelector('#chapterOneScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterTwoScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterThreeScene:not([hidden]) .chapter3-dialogue.show,#chapterFourScene:not([hidden]) .chapter4-dialogue.show');
