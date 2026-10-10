@@ -420,6 +420,8 @@ const naturalLineBreak = text => {
         air.hidden = Boolean(current.home) || hideCards;
         meriel.hidden = !current.meriel || hideCards;
         liliana.hidden = !current.liliana || hideCards;
+        // 見送りでは直前の戦闘差分を引き継がず、旅装のアイリスに戻す。
+        if (farewell) air.src = assets.air;
         meriel.src = farewell ? assets.merielFarewell : (current.home ? assets.merielHome : assets.meriel);
         liliana.src = farewell ? assets.lilianaFarewell : (current.home ? assets.lilianaHome : assets.lilianaAlert);
         meriel.alt = current.home ? 'メリール' : '？？？';
