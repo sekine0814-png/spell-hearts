@@ -102,12 +102,24 @@
     line('なるほど、それで僕たち二人をその怪しい人影と勘違いしたのか。', '', { home: true, meriel: true, liliana: true }),
     line('とにかく今夜はゆっくり休みましょう。食事も寝床も用意しますからね。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
     line('温かな夕食をいただき、久しぶりに屋根の下で床についた。', '', { home: true, meriel: true, liliana: true }),
-    line('翌朝。朝食を囲みながら、アイリスさんが静かに口を開いた。', '', { home: true, meriel: true, liliana: true, morning: true }),
-    line('休ませてもらったお礼に、王都に着いたら建築を生業にしている知り合いへ橋のことを頼んでみるよ。', 'アイリス', { home: true, meriel: true, liliana: true }),
-    line('本当に！？', 'メリール', { home: true, meriel: true, liliana: true }),
-    line('ありがとう……本当にありがとう。', 'リリアーナ', { home: true, meriel: true, liliana: true }),
-    line('二人に見送られ、僕たちは再び王都への道へ歩き出した。', '', { home: true, meriel: true, liliana: true }),
-    line('二人の人影、か……。', '主人公', { home: true, meriel: true, liliana: true, ending: true })
+    line('翌朝。', '', { home: true, meriel: true, liliana: true, morning: true }),
+    line('おはよう、よく眠れた？', 'リリ', { home: true, meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('おはよー！', 'メル', { home: true, meriel: true, liliana: true, speakerCard: 'meriel' }),
+    line('おはようございます。', '主人公', { home: true, meriel: true, liliana: true }),
+    line('朝食を用意してありますからね。準備ができたらいらして下さいね。', 'リリ', { home: true, meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('ありがとうございます！', 'アイリス', { home: true, meriel: true, liliana: true }),
+    line('朝食をご馳走になっていると、ふとアイリスさんが口を開いた。', '', { home: true, meriel: true, liliana: true, transition: true }),
+    line('私、王都で働いているんですけど、建築を生業にしている人に知り合いがいるんです。', 'アイリス', { home: true, meriel: true, liliana: true }),
+    line('これから王都に向かうので、着いたら橋のこと話してみますね。', 'アイリス', { home: true, meriel: true, liliana: true }),
+    line('ほんと！？', 'メル', { home: true, meriel: true, liliana: true, speakerCard: 'meriel' }),
+    line('本当ですか・・・！', 'リリ', { home: true, meriel: true, liliana: true, speakerCard: 'liliana' }),
+    line('二人が笑顔になる。こういうとき、顔が利く冒険者は頼りになる。', '', { home: true, meriel: true, liliana: true }),
+    line('お世話になりました。お米も野菜も、とても美味しかったです！', '主人公', { background: 'village', meriel: true, liliana: true }),
+    line('あんな美味しいもの、なくなっちゃたまらないね！', 'アイリス', { meriel: true, liliana: true }),
+    line('リリアーナさんとメリールは笑顔で送り出してくれた。', '', { meriel: true, liliana: true }),
+    line('二人で手を振り、王都への道に向き直る。', ''),
+    line('それにしても。', ''),
+    line('二人の人影――か', '', { ending: true })
   ];
   let scene;
 
@@ -383,9 +395,14 @@
         liliana.classList.toggle('talking', current.speaker === 'リリアーナ' || current.speakerCard === 'liliana');
         dialogue.classList.toggle('last', Boolean(current.ending));
       };
-      if (current.background || current.morning) {
+      if (current.background || current.morning || current.transition) {
         changing = true;
         dialogue.classList.remove('show');
+        if (current.morning) {
+          air.hidden = true;
+          meriel.hidden = true;
+          liliana.hidden = true;
+        }
         fade.style.opacity = '1';
         window.setTimeout(() => {
           applyContent();
@@ -396,7 +413,7 @@
           }, 80);
           // 同じ家の背景のまま翌朝へ移る場合も、必ず一度完全に暗転させる。
           // 画像を再読み込みせずに幕だけ開くため、キャッシュ状態に左右されない。
-          if (current.morning) { reveal(); return; }
+          if (current.morning || current.transition) { reveal(); return; }
           bg.addEventListener('load', reveal, { once: true });
           bg.addEventListener('error', reveal, { once: true });
           bg.src = assets[current.background];
