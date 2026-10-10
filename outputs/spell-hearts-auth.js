@@ -2122,6 +2122,15 @@ setTimeout(installChapterTwoAirResultHandler,0);
    呼んでタイトル初期化を止めないよう、現在動作する導入シーンを入口にする。 */
 function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
+// 会話欄以外を押しても読み進められるようにする。ボタンや入力欄は従来通り
+// その操作を優先し、会話欄を直接押した場合も既存の onclick に任せる。
+document.addEventListener('click',event=>{
+  if(!document.body.classList.contains('story-cinematic'))return;
+  const target=event.target;
+  if(target?.closest?.('button,a,input,select,textarea,label,[role="button"]'))return;
+  const dialogue=document.querySelector('#chapterOneScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterTwoScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterThreeScene:not([hidden]) .chapter3-dialogue.show,#chapterFourScene:not([hidden]) .chapter4-dialogue.show');
+  if(dialogue)dialogue.click();
+});
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
     window.openSpellHeartsLogin?.();
@@ -2197,13 +2206,13 @@ function makeTutorialButton(){
   menu.insertBefore(button,menu.querySelector('.push-screen'));
 }
 function startCpuBattleFromTitle(){
-  /* Firebase / 着せ替えの同期を待つとユーザー操作の有効期限が切れ、ブラウザが
-     BGM と SE をまとめて拒否する。クリックの瞬間に音声を一度だけ許可する。 */
+  /* 認証・着せ替え同期を待つとユーザー操作の有効期限が切れ、ブラウザが
+     BGM を自動再生扱いにする。盤面と曲はクリックの瞬間に開始する。 */
   window.primeSpellHeartsAudio?.();
-  const begin=()=>window.restartCpuMatch?.();
+  window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
-  const beginWithCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.()).finally(begin);
-  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)beginWithCosmetics();});else beginWithCosmetics();
+  const syncCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.());
+  if(guest&&typeof guest.then==='function')guest.then(ok=>{if(ok!==false)syncCosmetics();});else syncCosmetics();
 }
 function installTitlePressMenu(){
   const title=document.querySelector('#titleScreen'),menu=title?.querySelector('.title-menu');

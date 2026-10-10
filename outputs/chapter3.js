@@ -251,7 +251,7 @@
     [assets.airBattle, assets.delyukeSword].forEach(source => { const image = new Image(); image.src = source; });
     dialogue.classList.remove('show');
     render();
-    music.pause(); music.currentTime = 0; music.volume = 0.12; music.play().catch(() => {});
+    music.pause(); music.currentTime = 0; music.volume = 0.05; music.play().catch(() => {});
     requestAnimationFrame(() => { bg.style.opacity = '1'; fade.style.opacity = '0'; });
     window.setTimeout(() => dialogue.classList.add('show'), 900);
   }
