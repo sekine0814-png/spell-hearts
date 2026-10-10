@@ -2124,11 +2124,20 @@ function startChapterTwoExpanded(){return startChapterTwoLegacy();}
 window.startChapterTwo=startChapterTwoExpanded;
 // 会話欄以外を押しても読み進められるようにする。ボタンや入力欄は従来通り
 // その操作を優先し、会話欄を直接押した場合も既存の onclick に任せる。
+const activeStoryDialogue=()=>document.querySelector('#chapterOneScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterTwoScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterThreeScene:not([hidden]) .chapter3-dialogue.show,#chapterFourScene:not([hidden]) .chapter4-dialogue.show');
 document.addEventListener('click',event=>{
   const target=event.target;
   if(target?.closest?.('button,a,input,select,textarea,label,[role="button"]'))return;
-  const dialogue=document.querySelector('#chapterOneScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterTwoScene:not([hidden]) .chapter-dialogue:not([hidden]),#chapterThreeScene:not([hidden]) .chapter3-dialogue.show,#chapterFourScene:not([hidden]) .chapter4-dialogue.show');
+  const dialogue=activeStoryDialogue();
   if(dialogue)dialogue.click();
+},true);
+// 物語の背景や文章をドラッグしても文字選択に入らず、次のクリックを確実に
+// 会話送りとして扱えるようにする。
+document.addEventListener('selectstart',event=>{
+  if(activeStoryDialogue())event.preventDefault();
+});
+document.addEventListener('dragstart',event=>{
+  if(activeStoryDialogue())event.preventDefault();
 });
 function openStoryMode(){
   if(!currentUser||currentUser.isAnonymous){
