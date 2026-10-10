@@ -2214,9 +2214,9 @@ function makeTutorialButton(){
   menu.insertBefore(button,menu.querySelector('.push-screen'));
 }
 function startCpuBattleFromTitle(){
-  /* 認証・着せ替え同期を待つとユーザー操作の有効期限が切れ、ブラウザが
-     BGM を自動再生扱いにする。盤面と曲はクリックの瞬間に開始する。 */
-  window.primeSpellHeartsAudio?.();
+  /* restartCpuMatch はこのクリックの最中に startBgm を呼ぶ。
+     ここで全音声を事前再生すると、非同期の停止処理がバトル曲にも後から
+     かかってしまうため、CPU 戦の BGM は直接開始する。 */
   window.restartCpuMatch?.();
   const guest=window.ensureSpellHeartsGuest?.();
   const syncCosmetics=()=>Promise.resolve(window.waitForSpellHeartsCosmetics?.());
