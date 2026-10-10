@@ -23,18 +23,37 @@
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png',
     airBattle: 'assets/iris-battle-day.png'
   };
-  const naturalLineBreak = text => {
-    if (typeof text !== 'string' || text.includes('\n') || text.length < 38) return text;
-    const phrases = text.match(/[^、。！？…]+[、。！？…]?/g) || [text];
-    const rows = [];
-    let row = '';
-    for (const phrase of phrases) {
-      if (row && row.length + phrase.length > 30) {
+const naturalLineBreak = text => {
+  if (typeof text !== 'string' || text.includes('\n') || text.length < 25) return text;
+  const phrases = text.match(/[^、。！？…]+[、。！？…]?/g) || [text];
+  const rows = [];
+  let row = '';
+
+  const appendPhrase = phrase => {
+    // 長い句は助詞の直後で区切り、末尾の一文字だけが次行に残らないようにする。
+    while (phrase.length > 24) {
+      const head = phrase.slice(0, 21);
+      const candidates = [...head.matchAll(/[、はがをにでとへもやの]/g)]
+        .map(match => match.index + 1)
+        .filter(index => index >= 10);
+      const splitAt = candidates.at(-1) || 18;
+      if (row) {
         rows.push(row);
         row = '';
       }
-      row += phrase;
+      rows.push(phrase.slice(0, splitAt));
+      phrase = phrase.slice(splitAt);
     }
+    if (row && row.length + phrase.length > 24) {
+      rows.push(row);
+      row = '';
+    }
+    row += phrase;
+  };
+
+  for (const phrase of phrases) {
+    appendPhrase(phrase);
+  }
     if (row) rows.push(row);
     return rows.join('\n');
   };
@@ -176,11 +195,11 @@
       .chapter4-air{position:absolute;z-index:2;left:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:.78;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(-14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter4-air[hidden]{display:none}.chapter4-air.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
       .chapter4-meriel{position:absolute;z-index:2;right:22vw;bottom:36vh;width:min(22vw,285px);max-height:59vh;object-fit:contain;opacity:.78;pointer-events:none;filter:brightness(.65) saturate(.72) drop-shadow(0 10px 14px #0009);transform:translateX(14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter4-meriel[hidden]{display:none}.chapter4-meriel.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.06);filter:brightness(1.08) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}
       .chapter4-liliana{position:absolute;z-index:2;right:3vw;bottom:35vh;width:min(18vw,225px);max-height:55vh;object-fit:contain;opacity:.82;pointer-events:none;filter:brightness(.7) saturate(.76) drop-shadow(0 10px 14px #0009);transform:translateX(14px) scale(.92);transition:opacity .35s ease,transform .35s ease,filter .35s ease}.chapter4-liliana[hidden]{display:none}.chapter4-liliana.talking{z-index:4;opacity:1;transform:translateX(0) scale(1.05);filter:brightness(1.07) saturate(1.02) drop-shadow(0 0 12px rgba(225,205,138,.42))}.chapter4-liliana.home{left:22vw;right:auto;bottom:36vh;width:min(22vw,285px);max-height:59vh;transform:translateX(-14px) scale(.92)}.chapter4-liliana.home.talking{transform:translateX(0) scale(1.06)}.chapter4-meriel.home{right:22vw;bottom:36vh;filter:brightness(.65) saturate(.52) drop-shadow(0 10px 14px #0009)}.chapter4-meriel.home.talking{filter:brightness(1.04) saturate(.7) drop-shadow(0 0 12px rgba(225,205,138,.42))}
-      .chapter4-air.farewell{left:6vw;bottom:28vh;width:min(18vw,235px);max-height:62vh}.chapter4-meriel.farewell{left:41vw;right:auto;bottom:28vh;width:min(18vw,235px);max-height:62vh;filter:brightness(.72) saturate(.78) drop-shadow(0 10px 14px #0009)}.chapter4-liliana.farewell{right:6vw;bottom:28vh;width:min(18vw,235px);max-height:62vh}.chapter4-air.farewell.talking,.chapter4-meriel.farewell.talking,.chapter4-liliana.farewell.talking{transform:translateX(0) scale(1.05)}
+      .chapter4-air.farewell{left:6vw;bottom:28vh;width:min(18vw,235px);max-height:62vh}.chapter4-meriel.farewell{left:55vw;right:auto;bottom:28vh;width:min(18vw,235px);max-height:62vh;filter:brightness(.72) saturate(.78) drop-shadow(0 10px 14px #0009)}.chapter4-liliana.farewell{right:6vw;bottom:28vh;width:min(18vw,235px);max-height:62vh}.chapter4-air.farewell.talking,.chapter4-meriel.farewell.talking,.chapter4-liliana.farewell.talking{transform:translateX(0) scale(1.05)}.chapter4-meriel.farewell.talking,.chapter4-liliana.farewell.talking{filter:brightness(1.1) saturate(1.05) drop-shadow(0 0 18px rgba(255,222,132,.72))}
       #chapter4BattleCards{position:fixed;z-index:138;inset:0;pointer-events:none}#chapter4BattleCards img{position:absolute;right:3vw;bottom:30vh;width:min(23vw,300px);max-height:66vh;object-fit:contain;filter:drop-shadow(0 8px 14px #0009)}#chapter4BattleFade{position:fixed;z-index:170;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity .7s ease}#chapter4BattleFade.out{opacity:0}
       #chapter4Ending{position:absolute;z-index:11;inset:0;display:grid;place-items:center;border:0;background:#000;color:#fff0b4;opacity:0;cursor:pointer;transition:opacity .9s ease}#chapter4Ending.show{opacity:1}#chapter4Ending span{font:clamp(32px,5vw,70px) Georgia,"Yu Mincho",serif;letter-spacing:.16em;text-shadow:0 0 20px #d99a22,0 3px 8px #000}
       .chapter4-dialogue{position:absolute;z-index:5;left:50%;bottom:5.5vh;width:min(88vw,920px);min-height:144px;padding:26px 42px 30px;transform:translate(-50%,16px);border:1px solid #d8ae4e;border-radius:5px;background:rgba(4,5,9,.76);box-shadow:inset 0 0 22px rgba(255,217,129,.12),0 8px 26px #000b;color:#f9ead0;opacity:0;pointer-events:none;text-align:left;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:opacity .35s ease,transform .35s ease}.chapter4-dialogue.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}.chapter4-dialogue:before{content:"";position:absolute;inset:8px;border:1px solid rgba(225,184,77,.32);border-radius:2px;pointer-events:none}.chapter4-dialogue b{position:absolute;z-index:1;left:26px;top:-17px;min-width:120px;padding:7px 17px;border:1px solid #d8ae4e;border-radius:3px;background:linear-gradient(180deg,rgba(59,43,18,.97),rgba(14,10,5,.98));color:#fff0ae;font:16px Georgia,"Yu Mincho",serif;letter-spacing:.14em;text-align:center}.chapter4-dialogue p{position:relative;margin:16px 20px 0;white-space:pre-line;font:clamp(16px,1.35vw,22px)/1.65 "Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}.chapter4-dialogue i{position:absolute;right:24px;bottom:16px;width:0;height:0;border-right:10px solid transparent;border-left:10px solid transparent;border-top:12px solid #f5d77c;filter:drop-shadow(0 1px 3px #000);animation:chapter4-next .82s ease-in-out infinite}.chapter4-dialogue.last i{display:none}@keyframes chapter4-next{50%{opacity:.45;transform:translateY(6px)}}
-      @media (pointer:coarse) and (orientation:landscape){.chapter4-return{top:7px;right:9px;padding:5px 9px;font-size:10px}.chapter4-air,.chapter4-meriel{bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}.chapter4-air{left:7vw}.chapter4-meriel{right:7vw}.chapter4-liliana{right:1vw;bottom:27vh;width:min(14vw,125px);max-height:48vh}.chapter4-liliana.home{left:7vw;right:auto;bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}.chapter4-air.farewell{left:3vw;bottom:24vh;width:min(15vw,135px)}.chapter4-meriel.farewell{left:42vw;right:auto;bottom:24vh;width:min(15vw,135px)}.chapter4-liliana.farewell{right:3vw;bottom:24vh;width:min(15vw,135px)}#chapter4BattleCards img{right:1vw;bottom:23vh;width:min(22vw,200px);max-height:54vh}.chapter4-dialogue{bottom:8px;width:min(60vw,760px);min-height:94px;padding:15px 20px 18px}.chapter4-dialogue b{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}.chapter4-dialogue p{margin:9px 6px 0;font-size:clamp(11px,2vh,14px);line-height:1.45;letter-spacing:.035em}.chapter4-dialogue i{right:13px;bottom:9px;transform:scale(.68)}}
+      @media (pointer:coarse) and (orientation:landscape){.chapter4-return{top:7px;right:9px;padding:5px 9px;font-size:10px}.chapter4-air,.chapter4-meriel{bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}.chapter4-air{left:7vw}.chapter4-meriel{right:7vw}.chapter4-liliana{right:1vw;bottom:27vh;width:min(14vw,125px);max-height:48vh}.chapter4-liliana.home{left:7vw;right:auto;bottom:27vh;width:min(17vw,150px);max-height:calc(100vh - 148px)}.chapter4-air.farewell{left:3vw;bottom:24vh;width:min(15vw,135px)}.chapter4-meriel.farewell{left:65vw;right:auto;bottom:24vh;width:min(15vw,135px)}.chapter4-liliana.farewell{right:3vw;bottom:24vh;width:min(15vw,135px)}#chapter4BattleCards img{right:1vw;bottom:23vh;width:min(22vw,200px);max-height:54vh}.chapter4-dialogue{bottom:8px;width:min(60vw,760px);min-height:94px;padding:15px 20px 18px}.chapter4-dialogue b{left:14px;top:-12px;min-width:88px;padding:4px 9px;font-size:11px}.chapter4-dialogue p{margin:9px 6px 0;font-size:clamp(11px,2vh,14px);line-height:1.45;letter-spacing:.035em}.chapter4-dialogue i{right:13px;bottom:9px;transform:scale(.68)}}
     `;
     document.head.append(style);
   }
@@ -414,8 +433,8 @@
         speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
         text.textContent = current.speaker ? `「${current.text}」` : current.text;
         air.classList.toggle('talking', current.speaker === 'アイリス');
-        meriel.classList.toggle('talking', current.speaker === 'メリール' || current.speakerCard === 'meriel');
-        liliana.classList.toggle('talking', current.speaker === 'リリアーナ' || current.speakerCard === 'liliana');
+        meriel.classList.toggle('talking', farewell || current.speaker === 'メリール' || current.speakerCard === 'meriel');
+        liliana.classList.toggle('talking', farewell || current.speaker === 'リリアーナ' || current.speakerCard === 'liliana');
         dialogue.classList.toggle('last', Boolean(current.ending));
       };
       if (current.background || current.morning || current.transition) {
