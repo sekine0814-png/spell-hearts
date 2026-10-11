@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  const displayStoryNames = value => String(value ?? '').replaceAll('アイリス', 'エア').replaceAll('マルク', 'ユート');
+
   const line = (text, speaker = '', options = {}) => ({ text, speaker, ...options });
   const lines = [
     line('アイリスさん曰く、王都までは徒歩で２～３日程かかるらしい。'),
@@ -218,8 +220,8 @@
       // 抜刀・戦闘差分は、一度表示したらバトル開始まで通常差分で上書きしない。
       setCardSource(air, battleAir ? assets.airBattle : assets.air);
       speaker.hidden = !current.speaker;
-      speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
-      text.textContent = current.speaker ? `「${current.text}」` : current.text;
+      speaker.textContent = displayStoryNames(current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || ''));
+      text.textContent = displayStoryNames(current.speaker ? `「${current.text}」` : current.text);
       if (current.speaker === 'アイリス') { air.hidden = false; air.classList.add('show'); }
       air.classList.toggle('talking', current.speaker === 'アイリス');
       if (current.delyuke) {
@@ -390,8 +392,8 @@
       if (current.hideDelyuke) delyuke.hidden = true;
       if (current.hideAir) air.hidden = true;
       speaker.hidden = !current.speaker;
-      speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
-      text.textContent = current.speaker ? `「${current.text}」` : current.text;
+      speaker.textContent = displayStoryNames(current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || ''));
+      text.textContent = displayStoryNames(current.speaker ? `「${current.text}」` : current.text);
       air.classList.toggle('talking', current.speaker === 'アイリス');
       delyuke.classList.toggle('talking', current.speaker === 'デリューク');
       dialogue.classList.toggle('last', index === victoryLines.length - 1);

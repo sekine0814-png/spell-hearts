@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  const displayStoryNames = value => String(value ?? '').replaceAll('アイリス', 'エア').replaceAll('マルク', 'ユート');
+
   const assets = {
     meadow: 'assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg',
     river: 'assets/99d34c2a-2be3-4154-8db7-da26576829e6.jpg',
@@ -233,8 +235,8 @@ const naturalLineBreak = text => {
       meriel.hidden = !current.meriel;
       liliana.hidden = true;
       speaker.hidden = !current.speaker;
-      speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
-      text.textContent = current.speaker ? `「${current.text}」` : current.text;
+      speaker.textContent = displayStoryNames(current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || ''));
+      text.textContent = displayStoryNames(current.speaker ? `「${current.text}」` : current.text);
       air.classList.toggle('talking', current.speaker === 'アイリス');
       meriel.classList.toggle('talking', current.speaker === '？？？');
       if (current.impact) { impact.currentTime = 0; impact.volume = 0.34; impact.play().catch(() => {}); }
@@ -432,8 +434,8 @@ const naturalLineBreak = text => {
         meriel.classList.toggle('farewell', farewell);
         liliana.classList.toggle('farewell', farewell);
         speaker.hidden = !current.speaker;
-        speaker.textContent = current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || '');
-        text.textContent = current.speaker ? `「${current.text}」` : current.text;
+        speaker.textContent = displayStoryNames(current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || ''));
+        text.textContent = displayStoryNames(current.speaker ? `「${current.text}」` : current.text);
         air.classList.toggle('talking', current.speaker === 'アイリス');
         meriel.classList.toggle('talking', farewell || current.speaker === 'メリール' || current.speakerCard === 'meriel');
         liliana.classList.toggle('talking', farewell || current.speaker === 'リリアーナ' || current.speakerCard === 'liliana');

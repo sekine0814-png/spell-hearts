@@ -804,9 +804,10 @@ window.getSpellHeartsNickname=()=>{
   if(!guest){guest=`ゲスト${Math.floor(1000+Math.random()*9000)}`;localStorage.setItem('spellHeartsGuestNickname',guest);}
   return guest;
 };
-function storySpeakerName(name){return name==='主人公'?(window.getSpellHeartsNickname?.()||'主人公'):name;}
+function storyDisplayName(value){return String(value??'').replaceAll('アイリス','エア').replaceAll('マルク','ユート');}
+function storySpeakerName(name){return storyDisplayName(name==='主人公'?(window.getSpellHeartsNickname?.()||'主人公'):name);}
 function storyLineText(line){
-  const text=line.text;
+  const text=storyDisplayName(line.text);
   // 地の文・心中は spoken を付けない限りそのまま。名前付きの発話だけをかぎ括弧で統一する。
   const spoken=line.spoken===true||(line.spoken!==false&&line.speaker!=='主人公');
   return spoken&&!/[「」]/.test(text)?`「${text}」`:text;
@@ -1064,7 +1065,7 @@ function tutorialDialogue(text,next){
   const session=tutorialSession;
   const intro=document.querySelector('#tutorialBattleIntro');if(!intro)return;
   const dialogue=intro.querySelector('.tutorial-battle-dialogue'),copy=dialogue.querySelector('p');
-  intro.hidden=false;intro.classList.add('show');copy.textContent=/[「」]/.test(text)?text:`「${text}」`;
+  text=storyDisplayName(text);intro.hidden=false;intro.classList.add('show');copy.textContent=/[「」]/.test(text)?text:`「${text}」`;
   let advanced=false;
   dialogue.onclick=event=>{
     event.preventDefault();event.stopPropagation();
@@ -1372,7 +1373,7 @@ function beginVillageBattle(scene){
     let intro=document.querySelector('#villageBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='villageBattleIntro';
-      intro.innerHTML='<button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……マルク先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+    intro.innerHTML='<button class="chapter-dialogue village-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">主人公</span><p>思い出すんだ……ユート先輩が教えてくれたことを！</p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.querySelector('.chapter-speaker').textContent=storySpeakerName('主人公');
@@ -1580,7 +1581,7 @@ function beginChapterOneTutorial(scene){
     let intro=document.querySelector('#tutorialBattleIntro');
     if(!intro){
       intro=document.createElement('section');intro.id='tutorialBattleIntro';
-      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="マルク先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">マルク</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
+      intro.innerHTML='<img class="chapter-npc-card speaker-active" src="assets/story-senior-warrior.webp" alt="ユート先輩"><button class="chapter-dialogue tutorial-battle-dialogue" type="button" aria-label="会話を進める"><span class="chapter-speaker">ユート</span><p></p><i class="chapter-next-mark" aria-hidden="true"></i></button>';
       document.body.append(intro);
     }
     intro.hidden=false;
