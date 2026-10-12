@@ -126,6 +126,7 @@
     background: 'assets/596a09e0-b35c-421f-b5f6-22caff7c813c.jpg',
     bgm: 'assets/藁の記憶.mp3',
     air: 'assets/exec-cf1d9101-c5d6-4ddb-8aa1-e972c2f7a927.png',
+    airEvening: 'assets/chapter3-air-evening.png',
     evening: 'assets/862dbc28-ef1d-474f-becc-68ab30b979fd.jpg',
     delyuke: 'assets/exec-ea55e498-d164-4f94-8b07-78a9d38615a8.png',
     delyukeSword: 'assets/exec-de0615d8-6dfe-4ee0-af48-a7ce0210f4e2.png',
@@ -229,7 +230,8 @@
       if (current.airBattle) battleAir = true;
       if (current.delyukeSword) battleDelyuke = true;
       // 抜刀・戦闘差分は、一度表示したらバトル開始まで通常差分で上書きしない。
-      setCardSource(air, battleAir ? assets.airBattle : assets.air);
+      // 夕方以降は旅装の夕景差分へ。抜刀後だけ戦闘差分を優先する。
+      setCardSource(air, battleAir ? assets.airBattle : (current.evening ? assets.airEvening : assets.air));
       speaker.hidden = !current.speaker;
       speaker.textContent = displayStoryNames(current.speaker === '主人公' ? (window.getSpellHeartsNickname?.() || '主人公') : (current.speaker || ''));
       text.textContent = displayStoryNames(current.speaker ? `「${current.text}」` : current.text);
@@ -261,7 +263,7 @@
     battleDelyuke = false;
     // バトル直前の二枚は会話中に先読みしておく。画像の読込待ちで差分が
     // 通常カードのまま見える端末を防ぐ。
-    [assets.airBattle, assets.delyukeSword].forEach(source => { const image = new Image(); image.src = source; });
+    [assets.airEvening, assets.airBattle, assets.delyukeSword].forEach(source => { const image = new Image(); image.src = source; });
     dialogue.classList.remove('show');
     render();
     music.pause(); music.currentTime = 0; music.volume = 0.05; music.play().catch(() => {});
@@ -296,7 +298,7 @@
     if (battleMusic) {
       battleMusic.pause();
       battleMusic.src = assets.battleBgm;
-      battleMusic.volume = 0.08;
+      battleMusic.volume = 0.045;
       battleMusic.load();
       battleMusic.play().catch(() => {});
     }
