@@ -2374,6 +2374,8 @@ chapterOneStyle.textContent+='.story-active .battle-settings{z-index:230;left:34
 chapterOneStyle.textContent+='body.story-active:not(.story-cinematic) .top .btn{position:relative;z-index:200!important;pointer-events:auto!important}';
 chapterOneStyle.textContent+='.chapter-dialogue{width:min(94vw,1080px);min-height:170px;padding:29px 46px 33px}.chapter-dialogue p{margin:18px 20px 0;font-size:clamp(16px,1.85vw,23px);line-height:1.68;white-space:pre-line}@media(max-width:600px){.chapter-dialogue{min-height:138px;padding:24px 18px 28px}.chapter-dialogue p{margin:16px 8px 0;font-size:15px;line-height:1.6}}';
 chapterOneStyle.textContent+='.story-active .below{display:none}';
+// ストーリーの全画面レイヤーの外側が端末側で見えても、背後の通常盤面を
+// 露出させない。戦闘へ移る際は story-cinematic を外すため、通常盤面は復帰する。
 chapterOneStyle.textContent+='body.story-cinematic main{visibility:hidden!important}';
 // タイトル暗転中に body に残っているランダム戦場背景を絶対に見せない。
 chapterOneStyle.textContent+='body.story-cinematic{background:#000!important;background-image:none!important}';

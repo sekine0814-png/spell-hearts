@@ -178,6 +178,17 @@
   function startChapterThree() {
     document.querySelector('#titleBgm')?.pause();
     document.querySelector('#storyModePanel')?.setAttribute('hidden', '');
+    // Chapter 3 used to skip the common story state.  On narrow mobile
+    // viewports the still-visible title/battle board then leaked from both
+    // sides of the scene.
+    document.body.classList.add('story-active', 'story-cinematic');
+    const title = document.querySelector('#titleScreen');
+    if (title) {
+      title.classList.add('dismiss');
+      title.style.setProperty('transition', 'none', 'important');
+      title.style.setProperty('opacity', '0', 'important');
+      title.style.setProperty('visibility', 'hidden', 'important');
+    }
     const root = makeScene();
     root.querySelector('#chapter3Ending')?.remove();
     const bg = root.querySelector('.chapter3-background');
@@ -343,6 +354,10 @@
 
   function startAfterBattleStory(root, chapterMusic) {
     window.chapter3DelyukeBattleActive = false;
+    // The battle temporarily restores the normal board.  Re-enter the common
+    // story state before showing the Chapter 3 aftermath so it cannot remain
+    // visible around the scene edges.
+    document.body.classList.add('story-active', 'story-cinematic');
     document.querySelector('#resultScreen')?.classList.remove('show');
     const cards = document.querySelector('#chapter3BattleCards');
     cards?.remove();
