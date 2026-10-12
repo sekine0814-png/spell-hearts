@@ -2535,6 +2535,26 @@ body.touch-landscape .chapter-one-scene{
 }
 `;
 document.head.append(touchViewportFillStyle);
+const modalLayerFixStyle=document.createElement('style');
+modalLayerFixStyle.textContent=`
+/* Chapter の終了演出（z-index:10000）より、確認・タイトル内メニューを必ず前面に置く。 */
+#titleReturnConfirm{z-index:20050!important;pointer-events:auto!important}
+#dressupPanel,#itemExchangePanel,#summonGatePanel,
+#dressupConfirm,#itemExchangeConfirm,#summonConfirm{z-index:20040!important}
+#dressupPanel .item-exchange-close,
+#dressupPanel .item-exchange-return{position:relative;z-index:3;pointer-events:auto!important}
+`;
+document.head.append(modalLayerFixStyle);
+/* 既存の個別ハンドラに加え、着せ替え画面の閉じる操作を最前面で確実に受け取る。 */
+document.addEventListener('click',event=>{
+  const close=event.target.closest?.('#dressupPanel .item-exchange-close,#dressupPanel .item-exchange-return');
+  if(!close)return;
+  const panel=document.querySelector('#dressupPanel');
+  if(!panel)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  panel.hidden=true;
+},true);
 const titlePressStyle=document.createElement('style');
 titlePressStyle.textContent=`
 #titleScreen .title-menu.press-menu{gap:10px;min-width:min(88vw,430px)}
