@@ -2514,43 +2514,8 @@ body.touch-landscape{
   overflow:hidden!important;
   background:#020509!important;
 }
-body.touch-landscape main{
-  display:grid!important;
-  grid-template-rows:auto minmax(0,1fr) auto!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:0!important;
-  margin:0!important;
-  padding:3px 6px!important;
-}
-body.touch-landscape .top{
-  width:100%!important;
-  max-width:none!important;
-  min-width:0!important;
-}
-body.touch-landscape .stage-wrap{
-  width:100%!important;
-  min-width:0!important;
-  min-height:0!important;
-  height:100%!important;
-  overflow:hidden!important;
-}
-body.touch-landscape .stage{
-  width:100%!important;
-  min-width:0!important;
-  max-width:none!important;
-  height:100%!important;
-  max-height:none!important;
-  margin:0!important;
-  aspect-ratio:auto!important;
-  background-size:100% 100%!important;
-}
-body.touch-landscape .below{
-  width:100%!important;
-  max-width:none!important;
-  min-width:0!important;
-}
-/* fixed 要素にも vw/vh ではなく同じ実表示領域を使う。 */
+/* fixed 要素のストーリー画面には vw/vh ではなく同じ実表示領域を使う。
+   通常バトルは固有の 1.67:1 盤面を維持する（ここで引き伸ばさない）。 */
 body.touch-landscape #titleScreen,
 body.touch-landscape #resultScreen,
 body.touch-landscape #titleReturnConfirm,
