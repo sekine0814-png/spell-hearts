@@ -365,6 +365,8 @@ function resumeStoryMedia(){
 document.addEventListener('pointerdown',resumeStoryMedia,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(resumeStoryMedia,80);});
 window.addEventListener('pageshow',()=>setTimeout(resumeStoryMedia,80));
+// モバイルの省電力処理で停止されたストーリー曲を、場面を変えずに復帰させる。
+setInterval(resumeStoryMedia,1500);
 
 const storyVisualAssets=['assets/story-training-ground.webp','assets/story-village.webp','assets/story-village-night.webp','assets/story-tavern.jpg','assets/story-home-night.jpg','assets/story-home-morning.jpg','assets/story-town-gate.jpg','assets/story-yuto-tavern-v2.png','assets/story-yuto-battle.png','assets/story-air-tavern-v2.png','assets/story-senior-warrior.webp','assets/story-wolf-monster.webp','assets/story-woman-warrior.webp','assets/story-woman-warrior-smile.webp'];
 const visualPreloads=new Set();
@@ -428,7 +430,25 @@ function installTitleBgm(){
   const originalStartBgm=window.startBgm,originalRestartFromTitle=window.restartFromTitle,originalReturnToTitle=window.returnToTitle;
   if(typeof originalStartBgm==='function')window.startBgm=()=>{stopTitleBgm();return originalStartBgm();};
   if(typeof originalRestartFromTitle==='function')window.restartFromTitle=()=>{const result=originalRestartFromTitle();startTitleBgm();return result;};
-  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{cancelTutorialInteractions?.();document.body.classList.remove('story-cinematic');document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();return originalReturnToTitle();};
+  if(typeof originalReturnToTitle==='function')window.returnToTitle=()=>{
+    // ページを再読み込みすると、タイトルBGMがユーザー操作外の autoplay と判定される。
+    // タイトル画面をその場で復帰すれば、押下操作のまま確実に曲を開始できる。
+    cancelTutorialInteractions?.();
+    document.body.classList.remove('story-active','story-cinematic','tutorial-battle-active','battle-backdrop-active');
+    document.body.style.removeProperty('--battle-backdrop');
+    document.querySelector('#battleBgm')?.pause();
+    document.querySelector('#battleBgm')?.removeAttribute('data-story-keep-playing');
+    stopTitleBgm();stopChapterOneBgm();stopTavernBgm();stopAirAftermathBgm();stopTutorialBattleBgm();stopVillageAmbience();stopVillageDangerBgm();stopAirSmileBgm();
+    document.querySelectorAll('#chapterOneScene,#chapterTwoScene,#chapterThreeScene,#chapterFourScene,#tutorialBattleIntro,#villageBattleIntro,#chapterOneEndScreen,#chapterTwoEndScreen,#chapter3Ending,#chapter4Ending,#chapter3BattleCards,#chapter4BattleCards,#storyAirOpponentCard,#storyBattleOpponentCard,#wolfBattleContinue,#tutorialBattleCurtain,#chapter3AftermathBgm,.chapter4-aftermath-bgm').forEach(node=>{
+      if(node instanceof HTMLMediaElement){node.pause();node.currentTime=0;node.removeAttribute('data-keep-playing');}
+      else {node.hidden=true;node.classList?.remove('show','preparing','leaving','lift');}
+    });
+    document.querySelector('#resultScreen')?.classList.remove('show');
+    document.querySelector('#titleReturnConfirm')?.classList.remove('show');
+    const title=document.querySelector('#titleScreen');
+    title?.classList.remove('dismiss','chapter-title-reveal');
+    startTitleBgm();
+  };
   document.addEventListener('pointerdown',startTitleBgm,{once:true,capture:true});
   document.addEventListener('keydown',startTitleBgm,{once:true,capture:true});
   startTitleBgm();

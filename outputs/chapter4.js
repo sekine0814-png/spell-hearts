@@ -324,6 +324,8 @@ const naturalLineBreak = text => {
     liliana.classList.remove('home');
     music.pause();
     music.currentTime = 0;
+    music.loop = true;
+    music.dataset.keepPlaying = '1';
     music.volume = 0.05;
     music.play().catch(() => {});
     bg.src = assets.meadow;
@@ -509,6 +511,7 @@ const naturalLineBreak = text => {
   function stopChapter4AftermathBgm(root) {
     const music = root?.querySelector('.chapter4-aftermath-bgm');
     if (!music) return;
+    music.removeAttribute('data-keep-playing');
     music.pause();
     music.currentTime = 0;
   }

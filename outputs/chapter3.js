@@ -375,6 +375,8 @@
     aftermath.pause();
     aftermath.src = assets.aftermathBgm;
     aftermath.currentTime = 0;
+    aftermath.loop = true;
+    aftermath.dataset.keepPlaying = '1';
     aftermath.volume = 0.12;
     aftermath.play().catch(() => {});
     chapterMusic.pause();
