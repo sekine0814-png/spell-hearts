@@ -266,6 +266,8 @@ function startTutorialBattleBgm(){
   const music=ensureTutorialBattleBgm();
   clearInterval(tutorialBattleBgmWatch);cancelAnimationFrame(tutorialBattleBgmFadeFrame);music.loop=true;music.dataset.keepPlaying='1';music.dataset.fading='';
   if(!takePrimedStoryTrack(music,titleBgmLevel()*.65)){music.pause();music.currentTime=0;music.volume=titleBgmLevel()*.65;playTutorialBattleBgm(music);}
+  // 背景切替の直後は iOS が先行再生を中断することがあるため、一度だけ再確認する。
+  setTimeout(()=>{if(music.dataset.keepPlaying==='1'&&(music.paused||music.ended)){music.muted=false;music.volume=titleBgmLevel()*.65;playTutorialBattleBgm(music);}},260);
   // モバイルブラウザが長時間の再生を途中で止めても、チュートリアル中だけは復帰させる。
   tutorialBattleBgmWatch=setInterval(resumeTutorialBattleBgm,1200);
 }
@@ -2512,7 +2514,6 @@ body.touch-landscape{
   height:var(--spell-hearts-visible-height,100dvh)!important;
   min-height:var(--spell-hearts-visible-height,100dvh)!important;
   overflow:hidden!important;
-  background:#020509!important;
 }
 /* fixed 要素のストーリー画面には vw/vh ではなく同じ実表示領域を使う。
    通常バトルは固有の 1.67:1 盤面を維持する（ここで引き伸ばさない）。 */
