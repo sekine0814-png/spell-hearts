@@ -1444,10 +1444,10 @@ function beginWolfAftermath(){
       {speaker:'マルク',text:'帰ってきてたのか！',warrior:true,yuto:true},
       {speaker:'主人公',text:'女性は僕達二人に向き直ると、僕に自己紹介をしてくれた。',warrior:true,yuto:true},
       {speaker:'？？？',text:'私の名前はアイリス。アイリス・エルナだよ。よろしくね。',warrior:true,yuto:true},
-      {speaker:'マルク',text:'訓練校まで一緒だった、僕の友達だ。',warrior:true,yuto:true},
+      {speaker:'マルク',text:'訓練校まで一緒だった、俺の友達だ。',warrior:true,yuto:true},
       {speaker:'マルク',text:'二人とも、よく頑張ったな。とりあえず戦いの後片付けをしないとな。',warrior:true,yuto:true},
       {speaker:'主人公',text:'僕達は街の人達と協力して、魔物たちの亡骸を火葬した。土葬では臭いが残り、他の魔物を呼び寄せてしまうため、魔物の亡骸は火葬すると定められている。',warrior:true,yuto:true,night:true},
-      {speaker:'マルク',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は僕の奢りだ！',warrior:true,yuto:true,night:true},
+      {speaker:'マルク',text:'よし、あらかた片付いたな。3人で飯でも食いに行こう。今日は俺の奢りだ！',warrior:true,yuto:true,night:true},
       {speaker:'アイリス',text:'ほんと？ やったー！',warrior:true,yuto:true,night:true},
       {speaker:'主人公',text:'ありがとうございます！',warrior:true,yuto:true,night:true,spoken:true},
       {speaker:'主人公',text:'僕達は夜の街へと歩き出した。',warrior:true,yuto:true,night:true},
@@ -1609,7 +1609,7 @@ function startChapterOne(){
     {speaker:'マルク',text:'真面目なのはいいことだ。でも、少し肩に力が入りすぎてる。'},
     {speaker:'マルク',text:'ほら、基本の型はこうだ。\n足を置いて、相手の動きを見てから手を出す。'},
     {speaker:'主人公',text:'なるほど……先に当てにいこうとしてた。',spoken:true},
-    {speaker:'マルク',text:'その通り。今日は僕が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
+    {speaker:'マルク',text:'その通り。今日は俺が相手になる。\n遊びながら、戦い方のコツを教えてやるよ。'}
   ];
   let scene=document.querySelector('#chapterOneScene');
   if(!scene){
