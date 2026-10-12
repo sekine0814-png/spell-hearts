@@ -14,11 +14,11 @@
     line('なに？なんでも聞いてよ', 'アイリス'),
     line('夜になると魔物が活発になるのは訓練所でも習いましたし、\n事実、街の近くをうろついていたのを何度か見たこともあります', '主人公'),
     line('でも、昼間に魔物が人を襲うようなことってあるんでしょうか。', '主人公'),
-    line('僕は思い出していた。そう、昨日の騒ぎのことだ。'),
+    line('俺は思い出していた。そう、昨日の騒ぎのことだ。'),
     line('無くはないね。魔物の種類にもよるけど', 'アイリス'),
     line('アイリスさんは表情を緩めず言う。'),
     line('昨日のこと、気になってるんだね。', 'アイリス'),
-    line('僕は頷く。'),
+    line('俺は頷く。'),
     line('昨日の魔物、覚えてる？\n狼のような見た目で、体は痩せ細っていた。\n長い間食料にありつけていなかった証拠だよ', 'アイリス'),
     line('魔物が食糧難で姿を見せるのは珍しいんだ。\n弱っているところを別の魔物に食べられてしまうからね', 'アイリス'),
     line('つまりあの魔物の出現は、あの街の周辺で少し前から、\n野生における食物連鎖が完全に停止していたことの裏返しなんだ', 'アイリス'),
@@ -64,7 +64,7 @@
     line('・・・写真、王都の印はあるな。いいだろう。', 'デリューク', { evening: true, delyuke: true }),
     line('じゃあね、お疲れ様', 'アイリス', { evening: true, delyuke: true }),
     line('まだだ。貴様もだ', 'デリューク', { evening: true, delyuke: true }),
-    line('当然、僕に向けられた言葉だ。\nしかし、街を出てきたばかりの僕に旅証などあるはずもなかった。', '', { evening: true, delyuke: true }),
+    line('当然、俺に向けられた言葉だ。\nしかし、街を出てきたばかりの俺に旅証などあるはずもなかった。', '', { evening: true, delyuke: true }),
     line('私は・・・街から出てきたばかりで', '主人公', { evening: true, delyuke: true }),
     line('・・・怪しいな', 'デリューク', { evening: true, delyuke: true }),
     line('この人は私の連れだよ。\nそれに、アインクロッズより東のエリア以外では\n旅証の提示は義務じゃないはずだけど？', 'アイリス', { evening: true, delyuke: true }),
@@ -98,26 +98,26 @@
     line('眉一つ動かずデリュークは言う。'),
     line('太刀筋を見れば解る。\nいや、解りやすいと言ったほうがいいか？', 'デリューク'),
     line('明らかに地力が違う。'),
-    line('そして、デリュークは僕の方を見据える。'),
-    line('一瞬の緊張が走る。\nが、僕を一瞥するとアイリスさんに向き直る。'),
+    line('そして、デリュークは俺の方を見据える。'),
+    line('一瞬の緊張が走る。\nが、俺を一瞥するとアイリスさんに向き直る。'),
     line('西の街、だったな。', 'デリューク'),
     line('デリュークは剣を鞘に納めながら、そう言った。', '', { normal: true }),
     line('え・・・', '主人公', { normal: true }),
     line('情報提供、感謝する。', 'デリューク', { normal: true }),
-    line('僕とアイリスさんが歩いてきた方角を見つめ、歩き出した。', '', { normal: true }),
+    line('俺とアイリスさんが歩いてきた方角を見つめ、歩き出した。', '', { normal: true }),
     line('ちょ・・・ちょっと待って！', 'アイリス', { normal: true }),
     line('アイリスさんが叫ぶように制止する。', '', { normal: true }),
     line('どういうこと？ 連行とか、前哨基地とか', 'アイリス', { normal: true }),
     line('フ・・・', 'デリューク', { normal: true }),
     line('デリュークは如何にもお見通しだ、という笑みを浮かべ告げる。', '', { normal: true }),
     line('剣を交えればわかる。\nお前達がどのような人間で、嘘を吐いているかどうかなど、な', 'デリューク', { normal: true }),
-    line('驚いているとも呆れているとも何とも言えない表情で、\nアイリスさんがデリュークを見つめている。\n恐らく、僕も全く同じ表情をしていたことだろう。', '', { normal: true }),
+    line('驚いているとも呆れているとも何とも言えない表情で、\nアイリスさんがデリュークを見つめている。\n恐らく、俺も全く同じ表情をしていたことだろう。', '', { normal: true }),
     line('背を向けると、デリュークは迷いなく歩き出す。\nその姿は暮れゆく夕闇に消えていった。', '', { normal: true, hideDelyuke: true }),
     line('ぐっ・・・なんで・・・！', 'アイリス', { normal: true }),
     line('吐き捨てるほど悔しそうなアイリスさんの声が聞こえる。', '', { normal: true }),
-    line('突き刺さった剣を引き抜くと、\n僕の方は見ずにアイリスさんが呟く。', '', { normal: true }),
+    line('突き刺さった剣を引き抜くと、\n俺の方は見ずにアイリスさんが呟く。', '', { normal: true }),
     line('キャンプ・・・張ろっか', 'アイリス', { normal: true }),
-    line('ハッとした僕は、左手に持ったままだった杭の存在を思い出す。', '', { hideAir: true }),
+    line('ハッとした俺は、左手に持ったままだった杭の存在を思い出す。', '', { hideAir: true }),
     line('その後はキャンプの中で食事を取り、床についた。', '', { hideAir: true }),
     line('食事を終える頃には笑顔を見せていたが、\n終始アイリスさんは気落ちしていたように見えた。\nあれだけの実力差を見せられれば、剣士として思うところもあったことだろう。', '', { hideAir: true }),
     line('そして明日以降のことを考える。\nこのまま何もなく王都にたどり着けるか・・・\n恐らくそうは行かない気がすると想いながら、目を瞑った。', '', { hideAir: true, ending: true })
@@ -350,7 +350,16 @@
       };
     } else {
       result.querySelector('[data-chapter3-retry]').onclick = () => startBattle(root, chapterMusic);
-      result.querySelector('[data-chapter3-give-up]').onclick = () => { window.chapter3DelyukeBattleActive = false; window.returnToTitle?.(); };
+      result.querySelector('[data-chapter3-give-up]').onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.chapter3DelyukeBattleActive = false;
+        result.classList.remove('show');
+        result.innerHTML = '';
+        document.querySelector('#chapter3BattleCards')?.remove();
+        // 失敗画面が前面に残る端末向けに、結果画面を消してからタイトル復帰を呼ぶ。
+        window.returnToTitle?.();
+      };
     }
   }
 
