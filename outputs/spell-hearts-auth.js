@@ -28,8 +28,13 @@ const gameOwnerEmail='sekine0814@gmail.com';
 function syncTouchLandscapeLayout(){
   const touch=navigator.maxTouchPoints>0||'ontouchstart' in window;
   const viewport=window.visualViewport;
-  const width=viewport?.width||window.innerWidth;
-  const height=viewport?.height||window.innerHeight;
+  // iOS では window.innerHeight がアドレスバーを含む古い値になることがある。
+  // 実際に描画できる Visual Viewport を CSS に渡し、盤面・ストーリーを同じ座標系で描画する。
+  const width=Math.round(viewport?.width||window.innerWidth);
+  const height=Math.round(viewport?.height||window.innerHeight);
+  const root=document.documentElement;
+  root.style.setProperty('--spell-hearts-visible-width',`${width}px`);
+  root.style.setProperty('--spell-hearts-visible-height',`${height}px`);
   document.body?.classList.toggle('touch-landscape',touch&&width>height);
 }
 let touchLayoutFrame=0;
@@ -40,6 +45,7 @@ function scheduleTouchLandscapeLayout(){
 window.addEventListener('resize',scheduleTouchLandscapeLayout,{passive:true});
 window.addEventListener('orientationchange',scheduleTouchLandscapeLayout,{passive:true});
 window.visualViewport?.addEventListener('resize',scheduleTouchLandscapeLayout,{passive:true});
+window.visualViewport?.addEventListener('scroll',scheduleTouchLandscapeLayout,{passive:true});
 window.screen?.orientation?.addEventListener?.('change',scheduleTouchLandscapeLayout);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTouchLandscapeLayout,{once:true});else syncTouchLandscapeLayout();
 
@@ -2492,6 +2498,78 @@ body.touch-landscape .push-screen:before{content:"";position:absolute;z-index:-1
 body.touch-landscape .title-menu,.touch-landscape .push-screen,.touch-landscape .room-form,.touch-landscape .title-login{transform:none!important}
 `;
 document.head.append(touchLandscapeStyle);
+const touchViewportFillStyle=document.createElement('style');
+touchViewportFillStyle.textContent=`
+/*
+ * 横向きタッチ端末では、通常盤面とストーリー盤面を「実際に見えている」
+ * viewport いっぱいに描画する。従来の高さ×1.67 の固定比率を使うと、
+ * 表示領域が 16:9 以外の iPhone で外側に黒帯が残り、背面の盤面まで
+ * 見えることがあったため、この条件だけ高さも幅も可変にする。
+ */
+body.touch-landscape{
+  width:var(--spell-hearts-visible-width,100vw)!important;
+  min-width:0!important;
+  height:var(--spell-hearts-visible-height,100dvh)!important;
+  min-height:var(--spell-hearts-visible-height,100dvh)!important;
+  overflow:hidden!important;
+  background:#020509!important;
+}
+body.touch-landscape main{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:3px 6px!important;
+}
+body.touch-landscape .top{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+body.touch-landscape .stage-wrap{
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+}
+body.touch-landscape .stage{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:100%!important;
+  max-height:none!important;
+  margin:0!important;
+  aspect-ratio:auto!important;
+  background-size:100% 100%!important;
+}
+body.touch-landscape .below{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+/* fixed 要素にも vw/vh ではなく同じ実表示領域を使う。 */
+body.touch-landscape #titleScreen,
+body.touch-landscape #resultScreen,
+body.touch-landscape #titleReturnConfirm,
+body.touch-landscape #chapterThreeScene,
+body.touch-landscape #chapterFourScene,
+body.touch-landscape .chapter-one-scene{
+  top:0!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:0!important;
+  width:var(--spell-hearts-visible-width,100vw)!important;
+  min-width:0!important;
+  height:var(--spell-hearts-visible-height,100dvh)!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+}
+`;
+document.head.append(touchViewportFillStyle);
 const titlePressStyle=document.createElement('style');
 titlePressStyle.textContent=`
 #titleScreen .title-menu.press-menu{gap:10px;min-width:min(88vw,430px)}
