@@ -1,0 +1,20 @@
+{
+  "name": "SPELL HEART",
+  "short_name": "SPELL HEART",
+  "description": "対戦型スペルカードゲーム、SPELL HEART",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone"],
+  "background_color": "#070b14",
+  "theme_color": "#070b14",
+  "icons": [
+    {
+      "src": "/assets/spell-hearts-token.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
